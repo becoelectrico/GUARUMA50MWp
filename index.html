@@ -318,6 +318,43 @@ a.btn{text-decoration:none;color:inherit}
 .asana-form input{flex:1 1 260px;min-width:0;height:36px;border:1px solid var(--line);border-radius:8px;padding:0 10px;background:var(--surface-2);color:var(--ink);font:inherit}
 .src-live{color:var(--ok);font-weight:600}.src-err{color:var(--bad);font-weight:600}
 
+
+/* Resumen ejecutivo */
+.headline{font-size:15px;color:var(--ink);margin:6px 0 0;max-width:70ch}
+.fin{display:grid;grid-template-columns:repeat(4,minmax(0,1fr))}
+.fin a{padding:16px 18px;display:grid;gap:6px;align-content:start;text-decoration:none;color:inherit;border-right:1px solid var(--line-2);position:relative}
+.fin a:last-child{border-right:0}
+.fv{font-size:24px;font-weight:620;font-variation-settings:"wdth" 110;line-height:1.1;font-variant-numeric:tabular-nums;letter-spacing:-.01em;white-space:nowrap}
+.fv small{font-size:13px;font-weight:550;color:var(--ink-2);margin-right:4px}
+.fin a:hover{background:var(--surface-2)}
+.fin a::after{content:"";position:absolute;right:14px;top:16px;width:7px;height:7px;border-top:1.8px solid var(--ink-3);border-right:1.8px solid var(--ink-3);transform:rotate(45deg);opacity:0;transition:opacity .15s}
+.fin a:hover::after{opacity:1}
+@media (max-width:900px){.fin{grid-template-columns:repeat(2,minmax(0,1fr))}.fin a:nth-child(2){border-right:0}.fin a:nth-child(-n+2){border-bottom:1px solid var(--line-2)}}
+.pd-list{display:grid}
+.pd{display:grid;gap:8px;padding:14px 18px;border-bottom:1px solid var(--line-2);cursor:pointer;text-decoration:none;color:inherit}
+.pd:last-child{border-bottom:0}
+.pd:hover{background:var(--surface-2)}
+.pd-h{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.pd-h b{font-size:14.5px;font-weight:620;flex:1 1 280px;min-width:0}
+.prio{font-size:11.5px;font-weight:700;border-radius:5px;padding:2px 7px;letter-spacing:.02em}
+.p-Alta{background:var(--bad-bg);color:var(--bad)}.p-Media{background:var(--warn-bg);color:var(--warn)}.p-Baja{background:var(--mute-bg);color:var(--mute)}
+.due{font-size:12px;color:var(--ink-3);white-space:nowrap;font-variant-numeric:tabular-nums}
+.due.late{color:var(--bad);font-weight:600}
+.pd-who{font-size:12.5px;color:var(--ink-3)}
+.chain{display:flex;flex-wrap:wrap;align-items:center;gap:6px}
+.ch{display:inline-flex;gap:5px;align-items:baseline;font-size:12.5px;border:1px solid var(--line);border-radius:6px;padding:3px 9px;background:var(--surface);white-space:nowrap;max-width:100%;overflow:hidden;text-overflow:ellipsis}
+.ch b{font-weight:600}
+.ch span{color:var(--ink-3)}
+.ch.first{border-color:var(--ink-3)}
+.ch.last{border-color:color-mix(in srgb,var(--bad) 50%,transparent);background:var(--bad-bg);color:var(--bad)}
+.ch.last span{color:inherit;opacity:.85}
+.arr{width:14px;height:14px;stroke:var(--ink-3);fill:none;stroke-width:2;flex:none}
+.pd-imp{font-size:12.5px;color:var(--ink-2)}
+.chips{display:flex;flex-wrap:wrap;gap:8px;padding:14px 18px}
+.chip{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--line);border-radius:999px;padding:5px 12px 5px 10px;font-size:13px;text-decoration:none;color:inherit;background:var(--surface)}
+.chip:hover{border-color:var(--ink-3)}
+.chip small{color:var(--ink-3);font-size:11.5px}
+
 /* Tooltip */
 .tip{position:fixed;z-index:100;pointer-events:none;background:var(--ink);color:var(--surface);font-size:12px;line-height:1.4;padding:7px 10px;border-radius:7px;max-width:280px;box-shadow:0 6px 24px rgba(0,0,0,.18);opacity:0;transform:translateY(2px);transition:opacity .12s,transform .12s}
 .tip.on{opacity:1;transform:none}
@@ -435,7 +472,7 @@ const ext = (n) => { const e = (n.split('.').pop() || '').toLowerCase(); const m
 let P = {}, FX = 27.0272, F = [], C = [], PG = [], O = [], A = [], R = [], DC = [], INF = [], BIT = [], PRES = [], PZ = [], AS = [], fById = {};
 function applyData(D) {
   DATA = D; P = D.Proyecto || {}; FX = Number(P['Tasa de cambio de referencia (L por US$)']) || 27.0272;
-  F = D.Frentes || []; C = D.Contratos || []; PG = D.Pagos || []; O = D.Ofertas || []; A = D.Actividades || []; R = D.Riesgos || []; DC = D.Decisiones || []; INF = D.Informes || []; BIT = D['Bitácora'] || []; PRES = D.Presupuesto || []; PZ = (D.Plazos || []).map((p) => ({ ...p })); AS = D['Cronograma Asana'] || [];
+  F = D.Frentes || []; C = D.Contratos || []; PG = D.Pagos || []; O = D.Ofertas || []; A = D.Actividades || []; R = D.Riesgos || []; DC = D.Pendientes || []; INF = D.Informes || []; BIT = D['Bitácora'] || []; PRES = D.Presupuesto || []; PZ = (D.Plazos || []).map((p) => ({ ...p })); AS = D['Cronograma Asana'] || [];
   fById = Object.fromEntries(F.map((f) => [f.ID, f]));
 }
 const contractsOf = (id) => C.filter((c) => c.Frente === id);
@@ -449,7 +486,7 @@ const fin = (id) => {
 // ---------- Nav ----------
 const ROUTES = [
   ['resumen', 'Resumen', 'home'], ['frentes', 'Frentes', 'layers'], ['contratos', 'Contratos y pagos', 'contract'], ['ofertas', 'Ofertas', 'tag'],
-  ['cronograma', 'Cronograma', 'cal'], ['riesgos', 'Riesgos y decisiones', 'alert'], ['informes', 'Informes semanales', 'report'], ['documentos', 'Documentos', 'folder'], ['bitacora', 'Bitácora', 'clock']
+  ['cronograma', 'Cronograma', 'cal'], ['pendientes', 'Pendientes y riesgos', 'alert'], ['informes', 'Informes semanales', 'report'], ['documentos', 'Documentos', 'folder'], ['bitacora', 'Bitácora', 'clock']
 ];
 let frOpen = true;
 function drawNav(route) {
@@ -533,45 +570,46 @@ function asanaGantt() {
 }
 
 // ---------- Views ----------
+const ARROW = '<svg class="arr" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg>';
+const PRIO = { Alta: 0, Media: 1, Baja: 2 };
+const openPend = () => DC.filter((d) => d.Estado !== 'Resuelto' && d.Estado !== 'Descartado').sort((a, b) => (PRIO[a.Prioridad] ?? 3) - (PRIO[b.Prioridad] ?? 3) || String(a['Fecha límite'] || '9999').localeCompare(String(b['Fecha límite'] || '9999')));
+function chain(txt) {
+  const parts = String(txt || '').split('>').map((x) => x.trim()).filter(Boolean);
+  return `<div class="chain">${parts.map((x, i) => { const k = x.indexOf(':'); const lbl = k > 0 ? x.slice(0, k) : x, det = k > 0 ? x.slice(k + 1).trim() : '';
+    return `<span class="ch${i === 0 ? ' first' : ''}${i === parts.length - 1 && parts.length > 1 ? ' last' : ''}"><b>${esc(lbl)}</b>${det ? `<span>${esc(det)}</span>` : ''}</span>`; }).join(ARROW)}</div>`;
+}
+function pendCard(d, full) {
+  const late = d['Fecha límite'] && d['Fecha límite'] < TODAY;
+  const due = d['Fecha límite'] ? `<span class="due${late ? ' late' : ''}">${late ? 'Vencido · ' : 'Para el '}${fd(d['Fecha límite'], 1)}</span>` : '<span class="due">Sin fecha</span>';
+  return `<a class="pd" href="#frente-${esc(d.Frente)}"><div class="pd-h"><span class="prio p-${esc(d.Prioridad)}">${esc(d.Prioridad)}</span><b>${esc(d.Pendiente)}</b>${due}${full ? pill(d.Estado) : ''}</div>
+    <div class="pd-who">${esc(d.Responsable)} · ${esc(fById[d.Frente]?.Frente || '')}</div>${d['Qué atrasa'] ? chain(d['Qué atrasa']) : ''}${full && d.Impacto ? `<div class="pd-imp">${esc(d.Impacto)}</div>` : ''}${full && d.Notas ? `<div class="pd-who">${esc(d.Notas)}</div>` : ''}</a>`;
+}
 function vResumen() {
-  const firm = C.filter((c) => c.Estado === 'Firmado');
+  const firm = C.filter((c) => c.Estado === 'Firmado' || c.Estado === 'En ejecución' || c.Estado === 'Terminado');
   const tot = firm.reduce((s, c) => s + usd(c.Monto, c.Moneda), 0);
   const paid = PG.filter((p) => p.Estado === 'Pagado').reduce((s, p) => s + usd(p.Monto, p.Moneda), 0);
-  const pendAnt = PG.filter((p) => p.Estado === 'Pendiente' && /Anticipo/.test(p.Concepto));
-  const evalO = O.filter((o) => o.Estado === 'En evaluación' && o.Monto);
-  const decP = DC.filter((d) => d.Estado === 'Pendiente').length;
-  const rAlto = R.filter((r) => r.Nivel === 'Alto' && r.Estado !== 'Cerrado').length;
-  const crit = F.filter((f) => f.Estado === 'Crítico').length, atn = F.filter((f) => f.Estado === 'Atención').length;
-  const acts = A.filter((a) => a.Estado !== 'Cumplido' && a.Estado !== 'Cancelado').sort((a, b) => (a.Fecha || '9999').localeCompare(b.Fecha || '9999'));
-  const frRows = F.map((f) => {
-    const m = fin(f.ID); const pct = m.tot ? m.paid / m.tot : 0;
-    const ofs = O.filter((o) => o.Frente === f.ID && o.Estado === 'En evaluación').length;
-    const money = m.n ? `<div class="minibar"><div class="meter thin"><span style="width:${pct * 100}%;background:var(--ok)"></span></div><div class="small"><span>${nf0.format(m.paid)} pagado</span><span>${nf0.format(m.tot)}</span></div></div>`
-      : `<span class="faint small">${ofs ? ofs + ' oferta' + (ofs > 1 ? 's' : '') + ' en evaluación' : 'Sin contrato'}</span>`;
-    return `<tr class="click" data-go="frente-${f.ID}"><td><div class="fname"><i class="dot d-${tone(f.Estado)}"></i>${esc(f.Frente)}</div><div class="faint small" style="margin-left:18px">${esc(f['Proveedor / contraparte'])}</div></td>
-      <td>${pill(f.Estado)}</td><td>${money}</td><td><div>${esc(f['Próximo hito'])}</div><div class="faint small">${f['Fecha próximo hito'] ? fd(f['Fecha próximo hito'], 1) : 'Sin fecha'}</div></td></tr>`;
-  }).join('');
+  // Por adjudicar: por frente sin contrato firmado, la oferta en evaluación de mayor monto (con monto)
+  const frSin = [...new Set(O.filter((o) => o.Estado === 'En evaluación' && o.Monto).map((o) => o.Frente))];
+  const porAdj = frSin.map((fid) => O.filter((o) => o.Frente === fid && o.Estado === 'En evaluación' && o.Monto).sort((a, b) => usd(b.Monto, b.Moneda) - usd(a.Monto, a.Moneda))[0]);
+  const adjTot = porAdj.reduce((s, o) => s + usd(o.Monto, o.Moneda), 0);
+  const pend = openPend(); const top = pend.filter((d) => d.Prioridad === 'Alta').slice(0, 4);
+  const lateN = pend.filter((d) => d['Fecha límite'] && d['Fecha límite'] < TODAY).length;
+  const pct = tot ? paid / tot : 0;
   return `
   <section class="cover">
-    <div><h1 class="h1">Proyecto Solar Guaruma 50 MW</h1><div class="loc">${esc(P['Ubicación'])}</div></div>
-    <div class="status-card">${pill(P['Estado general'])}<p>${esc(P['Comentario de estado'])}</p></div>
+    <div><h1 class="h1">Proyecto Solar Guaruma 50 MW</h1><p class="headline">${esc(P['Comentario de estado'] || '')}</p></div>
+    <div class="status-card">${pill(P['Estado general'])}<p class="faint">${esc(P['Ubicación'] || '')}</p></div>
   </section>
-  <section class="panel band" aria-label="Indicadores">
-    <div class="kpi"><div class="k">Contratado</div><div class="v"><small>US$</small>${nf.format(tot)}</div><div class="n">${firm.length} contratos firmados</div></div>
-    <div class="kpi" data-tip="<b>Pagado ${(paid / tot * 100).toFixed(1)} %</b>Anticipos de IADS y Saybe (suelos). ${pendAnt.length} anticipo${pendAnt.length !== 1 ? 's' : ''} pendiente${pendAnt.length !== 1 ? 's' : ''}."><div class="k">Pagado</div><div class="v"><small>US$</small>${nf.format(paid)}</div><div class="meter thin"><span style="width:${paid / tot * 100}%;background:var(--ok)"></span></div><div class="n">Saldo por pagar US$ ${nf.format(tot - paid)}</div></div>
-    <div class="kpi" data-tip="<b>Ofertas en evaluación</b>${evalO.map((o) => esc(o.Proveedor) + ': ' + money(o.Monto, o.Moneda)).join('<br>')}<br>Tasa L ${FX} por US$"><div class="k">Por adjudicar</div><div class="v"><small>≈ US$</small>${nf0.format(evalO.filter((o)=>o.Frente!=='F06'||o.Proveedor==='DITOP').reduce((s, o) => s + usd(o.Monto, o.Moneda), 0))}</div><div class="n">LiDAR (DITOP) + hidrológico</div></div>
-    <div class="kpi"><div class="k">Frentes</div><div class="v">${F.length}</div><div class="n">${crit} crítico · ${atn} en atención</div></div>
-    <div class="kpi"><div class="k">Pendiente de gerencia</div><div class="v">${decP}</div><div class="n">decisiones · ${rAlto} riesgos altos</div></div>
+  <section class="panel fin" aria-label="Resumen financiero">
+    <a href="#contratos" data-tip="${firm.length} contratos firmados. Lempiras convertidos a L ${FX} por US$."><span class="k small muted">Comprometido</span><span class="fv"><small>US$</small>${nf0.format(tot)}</span><span class="faint small">${firm.length} contratos firmados</span></a>
+    <a href="#contratos" data-tip="<b>Pagado ${(pct * 100).toFixed(1)} %</b>Anticipos y pagos registrados en la hoja Pagos."><span class="k small muted">Pagado</span><span class="fv"><small>US$</small>${nf0.format(paid)}</span><span class="meter thin"><span style="width:${pct * 100}%;background:var(--ok)"></span></span><span class="faint small">${Math.round(pct * 100)} % de lo comprometido</span></a>
+    <a href="#contratos"><span class="k small muted">Por pagar</span><span class="fv"><small>US$</small>${nf0.format(tot - paid)}</span><span class="faint small">Saldo de contratos firmados</span></a>
+    <a href="#ofertas" data-tip="<b>Ofertas en evaluación</b>${porAdj.map((o) => esc(fById[o.Frente]?.Frente || '') + ': ' + esc(o.Proveedor) + ' ' + money(o.Monto, o.Moneda)).join('<br>')}"><span class="k small muted">Por adjudicar</span><span class="fv"><small>≈ US$</small>${nf0.format(adjTot)}</span><span class="faint small">${porAdj.length} estudio${porAdj.length !== 1 ? 's' : ''} sin contratar</span></a>
   </section>
-  <section class="panel"><div class="ph"><div><h2 class="h2">¿Cuándo termina cada estudio?</h2><p>Fin estimado según el plazo de cada contrato u oferta, comparado con el cronograma de Asana${ASANA.live ? ' (en vivo)' : ''}.</p></div><a class="btn" href="#cronograma">Ver cronograma</a></div>${plazos()}</section>
-  <section class="panel"><div class="ph"><div><h2 class="h2">Estado de los frentes</h2><p>Montos de contratos firmados en US$ (lempiras convertidos a L ${FX}).</p></div><button class="btn" aria-disabled="true" data-tip="Disponible en la fase 3: crea la fila y la carpeta en OneDrive">${ic('plus')}Agregar frente</button></div>
-    <div class="tbl-wrap"><table class="t"><thead><tr><th>Frente</th><th>Estado</th><th>Contrato</th><th>Próximo hito</th></tr></thead><tbody>${frRows}</tbody></table></div></section>
-  <div class="grid2">
-    <section class="panel"><div class="ph"><div><h2 class="h2">Decisiones de gerencia</h2><p>Lo que está esperando aprobación.</p></div></div><div class="list">
-      ${DC.map((d) => `<div class="li"><span class="tag">${esc(fById[d.Frente]?.ID || '')}</span><div class="what"><b>${esc(d.Tema)}.</b> ${esc(d['Qué se necesita'])}</div>${pill(d.Estado)}</div>`).join('')}</div></section>
-    <section class="panel"><div class="ph"><div><h2 class="h2">Próximas actividades</h2><p>En rojo, las que ya pasaron su fecha.</p></div><a class="btn" href="#cronograma">Ver cronograma</a></div><div class="list">
-      ${acts.slice(0, 8).map((a) => `<div class="li"><span class="when ${a.Fecha && a.Fecha < TODAY ? 'late' : ''}">${a.Fecha ? fd(a.Fecha) : 'Sin fecha'}</span><div class="what">${esc(a.Actividad)}</div>${pill(a.Estado)}<div class="who">${esc(a.Responsable)} · ${esc(fById[a.Frente]?.Frente)}</div></div>`).join('')}</div></section>
-  </div>`;
+  <section class="panel"><div class="ph"><div><h2 class="h2">Lo que frena el proyecto</h2><p>Pendientes de prioridad alta y lo que atrasan.${lateN ? ` ${lateN} pendiente${lateN > 1 ? 's' : ''} con fecha vencida.` : ''}</p></div><a class="btn sm" href="#pendientes">Ver los ${pend.length} pendientes</a></div>
+    <div class="pd-list">${top.length ? top.map((d) => pendCard(d)).join('') : '<div class="empty">No hay pendientes de prioridad alta.</div>'}</div></section>
+  <section class="panel"><div class="ph"><div><h2 class="h2">Frentes</h2><p>${F.filter((f) => f.Estado === 'Crítico').length} crítico · ${F.filter((f) => f.Estado === 'Atención').length} en atención · ${F.filter((f) => f.Estado === 'En tiempo').length} en tiempo · ${F.filter((f) => f.Estado === 'En espera').length} en espera</p></div><a class="btn sm" href="#cronograma">¿Cuándo termina cada estudio?</a></div>
+    <div class="chips">${F.map((f) => `<a class="chip" href="#frente-${f.ID}" data-tip="<b>${esc(f.Estado)}</b>${esc(f['Próximo hito'] || '')}${f['Fecha próximo hito'] ? ' · ' + fd(f['Fecha próximo hito'], 1) : ''}"><i class="dot d-${tone(f.Estado)}"></i>${esc(f.Frente)}</a>`).join('')}</div></section>`;
 }
 
 function vFrentes() {
@@ -590,7 +628,7 @@ function vFrentes() {
 let fTab = 'resumen', docSel = 0;
 function vFrente(id) {
   const f = fById[id]; if (!f) return '<div class="empty">No existe ese frente.</div>';
-  const cs = contractsOf(id), ofs = O.filter((o) => o.Frente === id), acts = A.filter((a) => a.Frente === id), rs = R.filter((r) => r.Frente === id), dcs = DC.filter((d) => d.Frente === id);
+  const cs = contractsOf(id), ofs = O.filter((o) => o.Frente === id), acts = A.filter((a) => a.Frente === id), rs = R.filter((r) => r.Frente === id), dcs = openPend().filter((d) => d.Frente === id);
   const m = fin(id);
   const pres = PRES.find((p) => p.Frente === id);
   const tabs = [['resumen', 'Resumen'], ['ofertas', 'Ofertas', ofs.length], ['contrato', 'Contrato y pagos', cs.length], ['actividades', 'Actividades', acts.length], ['documentos', 'Documentos']];
@@ -599,10 +637,10 @@ function vFrente(id) {
     body = `<div class="grid2"><section class="panel"><div class="ph"><h2 class="h2">Situación</h2></div><div class="pb" style="display:grid;gap:12px">
         <p style="margin:0">${esc(f.Notas || 'Sin notas.')}</p>
         <div class="small"><span class="faint">Próximo hito:</span> ${esc(f['Próximo hito'])}${f['Fecha próximo hito'] ? ` · <b>${fd(f['Fecha próximo hito'], 1)}</b>` : ''}</div></div></section>
-      <section class="panel"><div class="ph"><h2 class="h2">Riesgos y decisiones</h2></div><div class="list">
+      <section class="panel"><div class="ph"><h2 class="h2">Pendientes y riesgos</h2></div>
+        <div class="pd-list">${dcs.map((d) => pendCard(d)).join('')}</div><div class="list">
         ${rs.map((r) => `<div class="li"><span class="tag">${r.ID}</span><div class="what"><b>${esc(r.Tema)}.</b> ${esc(r.Impacto)}<div class="faint small">Acción: ${esc(r['Acción propuesta'])}</div></div>${pill(r.Nivel)}</div>`).join('')}
-        ${dcs.map((d) => `<div class="li"><span class="tag">${d.ID}</span><div class="what"><b>Decisión:</b> ${esc(d['Qué se necesita'])}</div>${pill(d.Estado)}</div>`).join('')}
-        ${!rs.length && !dcs.length ? '<div class="empty">Sin riesgos ni decisiones abiertas.</div>' : ''}</div></section></div>`;
+        ${!rs.length && !dcs.length ? '<div class="empty">Sin pendientes ni riesgos abiertos.</div>' : ''}</div></section></div>`;
   } else if (fTab === 'ofertas') {
     body = `<section class="panel"><div class="ph"><div><h2 class="h2">Ofertas</h2>${pres ? `<p>Presupuesto de la partida: US$ ${nf.format(pres['Presupuesto US$'])}</p>` : ''}</div><button class="btn" aria-disabled="true" data-tip="Disponible en la fase 3">${ic('plus')}Agregar oferta</button></div>
       ${ofs.length ? `<div class="tbl-wrap"><table class="t"><thead><tr><th>Proveedor</th><th>Referencia</th><th class="num">Monto</th><th>Vs. presupuesto</th><th>Alcance</th><th>Estado</th></tr></thead><tbody>
@@ -771,9 +809,13 @@ function vCrono() {
     <section class="panel"><div class="ph"><h2 class="h2">Actividades y próximos pasos</h2></div>${actTable(A)}</section>`;
 }
 function vRiesgos() {
-  return `<section class="cover"><div><h1 class="h1">Riesgos y decisiones</h1><div class="loc">Puntos de atención del proyecto y lo que se necesita de gerencia.</div></div></section>
-    <section class="panel"><div class="ph"><h2 class="h2">Decisiones de gerencia</h2></div><div class="tbl-wrap"><table class="t"><thead><tr><th>ID</th><th>Tema</th><th>Qué se necesita</th><th>Decide</th><th>Estado</th></tr></thead><tbody>
-      ${DC.map((d) => `<tr class="click" data-go="frente-${d.Frente}"><td class="small">${d.ID}</td><td><b>${esc(d.Tema)}</b></td><td>${esc(d['Qué se necesita'])}</td><td class="small nowrap">${esc(d['Quién decide'])}</td><td>${pill(d.Estado)}</td></tr>`).join('')}</tbody></table></div></section>
+  const pend = openPend(), done = DC.filter((d) => d.Estado === 'Resuelto' || d.Estado === 'Descartado');
+  const caret = '<svg viewBox="0 0 24 24" class="caret"><path d="m9 6 6 6-6 6"/></svg>';
+  const grp = (pr) => { const ps = pend.filter((d) => d.Prioridad === pr); return ps.length ? `<section class="panel"><div class="ph"><h2 class="h2">Prioridad ${pr.toLowerCase()} <span class="faint small" style="font-weight:500">${ps.length}</span></h2></div><div class="pd-list">${ps.map((d) => pendCard(d, true)).join('')}</div></section>` : ''; };
+  return `<section class="cover"><div><h1 class="h1">Pendientes y riesgos</h1><div class="loc">Lo que está frenando el proyecto, quién lo tiene y qué atrasa. Se edita en la hoja "Pendientes" del archivo maestro.</div></div>
+    <div class="status-card"><button class="btn primary" aria-disabled="true" data-tip="Disponible en la fase 3">${ic('plus')}Agregar pendiente</button></div></section>
+    ${grp('Alta')}${grp('Media')}${grp('Baja')}
+    ${done.length ? `<details class="grp"><summary>${caret}<div class="gs-t">Resueltos<span class="faint small" style="font-weight:500">${done.length}</span></div></summary><div class="pd-list">${done.map((d) => pendCard(d, true)).join('')}</div></details>` : ''}
     <section class="panel"><div class="ph"><h2 class="h2">Riesgos</h2></div><div class="tbl-wrap"><table class="t"><thead><tr><th>Nivel</th><th>Tema</th><th>Impacto</th><th>Acción propuesta</th><th>Estado</th></tr></thead><tbody>
       ${R.slice().sort((a, b) => ['Alto', 'Medio', 'Bajo'].indexOf(a.Nivel) - ['Alto', 'Medio', 'Bajo'].indexOf(b.Nivel)).map((r) => `<tr class="click" data-go="frente-${r.Frente}"><td>${pill(r.Nivel)}</td><td><b>${esc(r.Tema)}</b><div class="faint small">${esc(fById[r.Frente]?.Frente)}</div></td><td class="small">${esc(r.Impacto)}</td><td class="small">${esc(r['Acción propuesta'])}</td><td>${pill(r.Estado)}</td></tr>`).join('')}</tbody></table></div></section>`;
 }
@@ -796,10 +838,10 @@ function vBit() {
 function render() {
   if (!DATA) return;
   let route = (location.hash || '#resumen').slice(1);
-  const views = { resumen: vResumen, frentes: vFrentes, contratos: vContratos, ofertas: vOfertas, cronograma: vCrono, riesgos: vRiesgos, informes: vInformes, documentos: vDocs, bitacora: vBit };
+  const views = { resumen: vResumen, frentes: vFrentes, contratos: vContratos, ofertas: vOfertas, cronograma: vCrono, pendientes: vRiesgos, riesgos: vRiesgos, informes: vInformes, documentos: vDocs, bitacora: vBit };
   let html, crumb;
   if (route.startsWith('frente-')) { const id = route.slice(7); html = vFrente(id); crumb = `<span>Frentes</span>${ic('chev').replace('<svg', '<svg width="12" height="12" style="stroke:currentColor;fill:none;stroke-width:2"')}<b>${esc(fById[id]?.Frente || '')}</b>`; }
-  else { if (!views[route]) route = 'resumen'; html = views[route](); crumb = `<span>Guaruma 50 MW</span>${ic('chev').replace('<svg', '<svg width="12" height="12" style="stroke:currentColor;fill:none;stroke-width:2"')}<b>${ROUTES.find((r) => r[0] === route)[1]}</b>`; }
+  else { if (!views[route]) route = 'resumen'; html = views[route](); crumb = `<span>Guaruma 50 MW</span>${ic('chev').replace('<svg', '<svg width="12" height="12" style="stroke:currentColor;fill:none;stroke-width:2"')}<b>${(ROUTES.find((r) => r[0] === route) || ROUTES.find((r) => r[0] === 'pendientes'))[1]}</b>`; }
   $('#view').innerHTML = html; $('#crumbs').innerHTML = crumb; drawNav(route);
   $('#app').classList.remove('mopen');
   mountDocs();
@@ -916,7 +958,7 @@ async function openFolderWeb(rel) {
   catch (e) { toast('No se pudo abrir la carpeta: ' + e.message); }
 }
 // Excel maestro -> objetos
-const DATE_COLS = new Set(['Inicio', 'Fin previsto', 'Fecha próximo hito', 'Fecha firma', 'Fecha de pago', 'Fecha', 'Fecha de emisión', 'Fecha de inicio', 'Fin estimado', 'Fin máximo', 'Inicio Asana', 'Fin Asana', 'Fin']);
+const DATE_COLS = new Set(['Fecha límite', 'Inicio', 'Fin previsto', 'Fecha próximo hito', 'Fecha firma', 'Fecha de pago', 'Fecha', 'Fecha de emisión', 'Fecha de inicio', 'Fin estimado', 'Fin máximo', 'Inicio Asana', 'Fin Asana', 'Fin']);
 const serial = (n) => new Date(Math.round((n - 25569) * 864e5)).toISOString().slice(0, 10);
 function readSheet(wb, name) {
   const ws = wb.Sheets[name]; if (!ws) return [];
@@ -929,7 +971,7 @@ function readSheet(wb, name) {
 function parseMaster(buf) {
   const wb = XLSX.read(buf, { type: 'array' });
   const D = {};
-  for (const n of ['Frentes', 'Contratos', 'Pagos', 'Ofertas', 'Presupuesto', 'Actividades', 'Riesgos', 'Decisiones', 'Informes', 'Plazos', 'Cronograma Asana', 'Bitácora']) D[n] = readSheet(wb, n);
+  for (const n of ['Frentes', 'Contratos', 'Pagos', 'Ofertas', 'Presupuesto', 'Actividades', 'Riesgos', 'Pendientes', 'Informes', 'Plazos', 'Cronograma Asana', 'Bitácora']) D[n] = readSheet(wb, n);
   D.Proyecto = Object.fromEntries(readSheet(wb, 'Proyecto').map((r) => [r.Campo, r.Valor]));
   return D;
 }
