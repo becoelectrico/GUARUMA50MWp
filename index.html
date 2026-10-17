@@ -311,6 +311,13 @@ a.btn{text-decoration:none;color:inherit}
 .loading .spin{border-color:var(--track);border-top-color:var(--info)}
 .err-box{padding:18px;color:var(--bad);font-size:13px}
 
+
+.asana-form{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:16px 18px;display:grid;gap:10px;box-shadow:var(--shadow)}
+.asana-form p{margin:0;font-size:12.5px;color:var(--ink-2)}
+.asana-form .row{display:flex;gap:8px;flex-wrap:wrap}
+.asana-form input{flex:1 1 260px;min-width:0;height:36px;border:1px solid var(--line);border-radius:8px;padding:0 10px;background:var(--surface-2);color:var(--ink);font:inherit}
+.src-live{color:var(--ok);font-weight:600}.src-err{color:var(--bad);font-weight:600}
+
 /* Tooltip */
 .tip{position:fixed;z-index:100;pointer-events:none;background:var(--ink);color:var(--surface);font-size:12px;line-height:1.4;padding:7px 10px;border-radius:7px;max-width:280px;box-shadow:0 6px 24px rgba(0,0,0,.18);opacity:0;transform:translateY(2px);transition:opacity .12s,transform .12s}
 .tip.on{opacity:1;transform:none}
@@ -428,7 +435,7 @@ const ext = (n) => { const e = (n.split('.').pop() || '').toLowerCase(); const m
 let P = {}, FX = 27.0272, F = [], C = [], PG = [], O = [], A = [], R = [], DC = [], INF = [], BIT = [], PRES = [], PZ = [], AS = [], fById = {};
 function applyData(D) {
   DATA = D; P = D.Proyecto || {}; FX = Number(P['Tasa de cambio de referencia (L por US$)']) || 27.0272;
-  F = D.Frentes || []; C = D.Contratos || []; PG = D.Pagos || []; O = D.Ofertas || []; A = D.Actividades || []; R = D.Riesgos || []; DC = D.Decisiones || []; INF = D.Informes || []; BIT = D['Bitácora'] || []; PRES = D.Presupuesto || []; PZ = D.Plazos || []; AS = D['Cronograma Asana'] || [];
+  F = D.Frentes || []; C = D.Contratos || []; PG = D.Pagos || []; O = D.Ofertas || []; A = D.Actividades || []; R = D.Riesgos || []; DC = D.Decisiones || []; INF = D.Informes || []; BIT = D['Bitácora'] || []; PRES = D.Presupuesto || []; PZ = (D.Plazos || []).map((p) => ({ ...p })); AS = D['Cronograma Asana'] || [];
   fById = Object.fromEntries(F.map((f) => [f.ID, f]));
 }
 const contractsOf = (id) => C.filter((c) => c.Frente === id);
@@ -556,7 +563,7 @@ function vResumen() {
     <div class="kpi"><div class="k">Frentes</div><div class="v">${F.length}</div><div class="n">${crit} crítico · ${atn} en atención</div></div>
     <div class="kpi"><div class="k">Pendiente de gerencia</div><div class="v">${decP}</div><div class="n">decisiones · ${rAlto} riesgos altos</div></div>
   </section>
-  <section class="panel"><div class="ph"><div><h2 class="h2">¿Cuándo termina cada estudio?</h2><p>Fin estimado según el plazo de cada contrato u oferta, comparado con el cronograma de Asana.</p></div><a class="btn" href="#cronograma">Ver cronograma</a></div>${plazos()}</section>
+  <section class="panel"><div class="ph"><div><h2 class="h2">¿Cuándo termina cada estudio?</h2><p>Fin estimado según el plazo de cada contrato u oferta, comparado con el cronograma de Asana${ASANA.live ? ' (en vivo)' : ''}.</p></div><a class="btn" href="#cronograma">Ver cronograma</a></div>${plazos()}</section>
   <section class="panel"><div class="ph"><div><h2 class="h2">Estado de los frentes</h2><p>Montos de contratos firmados en US$ (lempiras convertidos a L ${FX}).</p></div><button class="btn" aria-disabled="true" data-tip="Disponible en la fase 3: crea la fila y la carpeta en OneDrive">${ic('plus')}Agregar frente</button></div>
     <div class="tbl-wrap"><table class="t"><thead><tr><th>Frente</th><th>Estado</th><th>Contrato</th><th>Próximo hito</th></tr></thead><tbody>${frRows}</tbody></table></div></section>
   <div class="grid2">
@@ -760,7 +767,7 @@ function vCrono() {
     <section class="panel"><div class="ph"><div><h2 class="h2">Plazos de estudios y contratos</h2><p>Fin estimado = inicio + plazo del contrato u oferta. Rayado: el inicio todavía no ocurre.</p></div></div>${plazos()}
       <div class="tbl-wrap" style="border-top:1px solid var(--line-2)"><table class="t"><thead><tr><th>Estudio</th><th>Plazo contractual</th><th>Inicio</th><th>Fin estimado</th><th>En Asana</th><th>Notas</th></tr></thead><tbody>
       ${PZ.map((p) => `<tr><td><b>${esc(p['Estudio / entregable'])}</b><div class="faint small">${esc(p.Proveedor)}</div></td><td class="small">${esc(p['Plazo contractual'])}</td><td class="nowrap small">${fd(p['Fecha de inicio'], 1)}<div class="faint">${esc(p.Inicio.toLowerCase())}</div></td><td class="nowrap"><b>${fd(p['Fin estimado'], 1)}</b>${p['Fin máximo'] ? `<div class="faint small">máx. ${fd(p['Fin máximo'], 1)}</div>` : ''}</td><td class="nowrap small">${p['Fin Asana'] ? fd(p['Fin Asana'], 1) : '<span class="faint">—</span>'}</td><td class="small" style="min-width:240px">${esc(p.Notas)}</td></tr>`).join('')}</tbody></table></div></section>
-    <section style="display:grid;gap:12px"><div class="ph" style="padding:0;border:0"><div><h2 class="h2">Cronograma general (Asana)</h2><p>Hoja "Cronograma Asana" del archivo maestro (copia de "Resumen Proyecto Solar CAHSA"), por sección.</p></div></div>${asanaGantt()}</section>
+    <section style="display:grid;gap:12px"><div class="ph" style="padding:0;border:0"><div><h2 class="h2">Cronograma general (Asana)</h2><p>${asanaSourceText()}</p></div><button class="btn sm" type="button" data-asana-cfg="1">${ASANA.pat ? 'Conexión con Asana' : 'Conectar Asana'}</button></div>${asanaForm()}${asanaGantt()}</section>
     <section class="panel"><div class="ph"><h2 class="h2">Actividades y próximos pasos</h2></div>${actTable(A)}</section>`;
 }
 function vRiesgos() {
@@ -802,6 +809,7 @@ window.addEventListener('hashchange', () => { const r = location.hash; if (r !==
 document.addEventListener('click', (e) => {
   const go = e.target.closest('[data-go]'); if (go && !e.target.closest('a,button')) { location.hash = go.dataset.go; return; }
   const ft = e.target.closest('[data-ftab]'); if (ft) { fTab = ft.dataset.ftab; docSel = 0; render(); return; }
+  if (e.target.closest('[data-asana-cfg],[data-asana-save],[data-asana-del]')) { asanaClick(e); return; }
   if (e.target.closest('#docbox')) { docsClick(e); }
   const of = e.target.closest('[data-openfolder]'); if (of) { openFolderWeb(of.dataset.openfolder); return; }
   const ac = e.target.closest('[data-acc]'); if (ac) { document.querySelectorAll('details.grp').forEach((d) => { d.open = ac.dataset.acc === 'open'; }); return; }
@@ -829,6 +837,64 @@ const hideTip = () => { tip.classList.remove('on'); tipEl = null; };
 document.addEventListener('mouseover', (e) => { const el = e.target.closest('[data-tip],[data-tip-c]'); if (el && el !== tipEl) showTip(el); else if (!el) hideTip(); });
 document.addEventListener('focusin', (e) => { const el = e.target.closest('[data-tip],[data-tip-c]'); if (el) showTip(el); });
 document.addEventListener('focusout', hideTip); addEventListener('scroll', hideTip, true);
+
+
+// ================= Asana (en vivo, opcional) =================
+const ASANA_PROJECT = '1219127034886298'; // "Resumen Proyecto Solar CAHSA"
+const ASANA_KEY = 'guaruma.asana.pat';
+const ASANA = { pat: (() => { try { return localStorage.getItem(ASANA_KEY) || ''; } catch (_) { return ''; } })(), live: false, at: null, err: null, form: false };
+// Plazos que se comparan con una tarea de Asana (por nombre)
+const PZ_ASANA = { PZ1: 'estudios de suelos', PZ2: 'ingeniería básica', PZ7: 'licencia ambiental' };
+const norm = (t) => String(t || '').toLowerCase().replace(/\s+/g, ' ').trim();
+async function asanaGet(path) {
+  const r = await fetch('https://app.asana.com/api/1.0' + path, { headers: { Authorization: 'Bearer ' + ASANA.pat, Accept: 'application/json' } });
+  if (!r.ok) { let m = 'HTTP ' + r.status; try { const j = await r.json(); m = (j.errors && j.errors[0] && j.errors[0].message) || m; } catch (_) {} throw new Error(r.status === 401 ? 'El token no es válido o expiró' : m); }
+  return r.json();
+}
+async function loadAsana() {
+  if (!ASANA.pat) { ASANA.live = false; return; }
+  try {
+    const [secs, tasks] = await Promise.all([
+      asanaGet(`/projects/${ASANA_PROJECT}/sections?opt_fields=name&limit=100`),
+      asanaGet(`/projects/${ASANA_PROJECT}/tasks?opt_fields=name,start_on,due_on,completed,assignee.name,memberships.section.name,memberships.project.gid&limit=100`)
+    ]);
+    const order = (secs.data || []).map((x) => x.name.replace(/:\s*$/, '').trim());
+    const rows = (tasks.data || []).map((t) => {
+      const m = (t.memberships || []).find((mm) => mm.project && mm.project.gid === ASANA_PROJECT) || (t.memberships || [])[0] || {};
+      return { 'Sección': ((m.section && m.section.name) || 'Sin sección').replace(/:\s*$/, '').trim(), Tarea: t.name.trim(), Inicio: t.start_on || null, Fin: t.due_on || null, Completada: t.completed ? 'Sí' : 'No', Responsable: (t.assignee && t.assignee.name) || '' };
+    }).filter((r) => r.Fin || r.Inicio);
+    rows.sort((a, b) => (order.indexOf(a['Sección']) - order.indexOf(b['Sección'])));
+    AS = rows;
+    // Actualiza la comparación de plazos con las fechas vivas
+    PZ.forEach((p) => { const n = PZ_ASANA[p.ID]; if (!n) return; const t = rows.find((r) => norm(r.Tarea) === n); if (t) { p['Inicio Asana'] = t.Inicio; p['Fin Asana'] = t.Fin; } });
+    ASANA.live = true; ASANA.at = new Date(); ASANA.err = null;
+  } catch (e) {
+    ASANA.live = false; ASANA.err = (e instanceof TypeError) ? 'El navegador no pudo conectarse a Asana (bloqueo de conexión directa o sin internet)' : e.message;
+  }
+}
+function asanaSourceText() {
+  if (ASANA.live) return `<span class="src-live">En vivo desde Asana</span> · "Resumen Proyecto Solar CAHSA" · leído a las ${ASANA.at.toLocaleTimeString('es-HN', { hour: '2-digit', minute: '2-digit' })}`;
+  if (ASANA.pat && ASANA.err) return `<span class="src-err">No se pudo leer Asana:</span> ${esc(ASANA.err)}. Se muestra la copia del Excel maestro.`;
+  return 'Copia del Excel maestro (hoja "Cronograma Asana"). Conecta Asana para verlo en vivo.';
+}
+function asanaForm() {
+  if (!ASANA.form) return '';
+  return `<div class="asana-form"><b>Conexión con Asana</b>
+    <p>Pega tu token personal de Asana (Asana → foto de perfil → Configuración → Aplicaciones → Administrar aplicaciones de desarrollador → Crear nuevo token). Se guarda solo en este navegador; no se sube a GitHub ni al Excel.</p>
+    <div class="row"><input id="asana-pat" type="password" autocomplete="off" placeholder="${ASANA.pat ? 'Token guardado · pega uno nuevo para reemplazarlo' : 'Pega aquí el token'}"><button class="btn primary sm" type="button" data-asana-save="1">Guardar y conectar</button>${ASANA.pat ? '<button class="btn sm" type="button" data-asana-del="1">Desconectar</button>' : ''}<button class="btn sm" type="button" data-asana-cfg="1">Cerrar</button></div></div>`;
+}
+async function asanaClick(e) {
+  if (e.target.closest('[data-asana-cfg]')) { ASANA.form = !ASANA.form; render(); return true; }
+  if (e.target.closest('[data-asana-del]')) { ASANA.pat = ''; try { localStorage.removeItem(ASANA_KEY); } catch (_) {} ASANA.live = false; ASANA.err = null; ASANA.form = false; applyData(DATA); render(); toast('Asana desconectado. Se muestra la copia del Excel.'); return true; }
+  if (e.target.closest('[data-asana-save]')) {
+    const v = ($('#asana-pat') || {}).value; if (!v || !v.trim()) { toast('Pega el token primero.'); return true; }
+    ASANA.pat = v.trim(); try { localStorage.setItem(ASANA_KEY, ASANA.pat); } catch (_) {}
+    toast('Conectando con Asana…'); await loadAsana(); ASANA.form = !ASANA.live; render();
+    toast(ASANA.live ? 'Asana conectado. El cronograma ya está en vivo.' : 'No se pudo conectar: ' + ASANA.err);
+    return true;
+  }
+  return false;
+}
 
 // ================= Microsoft (MSAL + Graph) =================
 const encPath = (p) => p.split('/').map(encodeURIComponent).join('/');
@@ -881,7 +947,7 @@ async function load() {
     const D = parseMaster(await r.arrayBuffer());
     META = { at: it.lastModifiedDateTime, by: it.lastModifiedBy && it.lastModifiedBy.user && it.lastModifiedBy.user.displayName, url: it.webUrl, synced: new Date().toISOString() };
     try { localStorage.setItem(CACHE_KEY, JSON.stringify({ D, META })); } catch (_) {}
-    applyData(D); hideGate(); render(); stampSync();
+    applyData(D); await loadAsana(); hideGate(); render(); stampSync();
   } catch (e) {
     console.error(e);
     if (DATA) { setSync('err', 'Sin conexión · datos guardados'); toast('No se pudo actualizar: ' + e.message); }
