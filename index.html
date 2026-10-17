@@ -355,6 +355,32 @@ a.btn{text-decoration:none;color:inherit}
 .chip:hover{border-color:var(--ink-3)}
 .chip small{color:var(--ink-3);font-size:11.5px}
 
+/* Edición */
+.dlg{border:0;border-radius:14px;padding:0;width:min(660px,calc(100vw - 24px));max-height:calc(100vh - 32px);background:var(--surface);color:var(--ink);box-shadow:0 24px 70px rgba(5,15,30,.35)}
+.dlg::backdrop{background:rgba(5,15,30,.5)}
+.dlg form{display:grid;grid-template-rows:auto minmax(0,1fr) auto;max-height:calc(100vh - 32px);margin:0}
+.dlg-h{padding:16px 20px;border-bottom:1px solid var(--line-2);display:flex;justify-content:space-between;align-items:center;gap:12px}
+.dlg-h h2{font-size:16px;font-weight:620;margin:0;font-variation-settings:"wdth" 108}
+.dlg-b{padding:16px 20px;overflow:auto;display:grid;grid-template-columns:1fr 1fr;gap:12px 14px;align-content:start}
+.fld{display:grid;gap:5px;min-width:0;align-content:start}.fld.w2{grid-column:1/-1}
+.fld label{font-size:12.5px;color:var(--ink-2);font-weight:550}
+.fld label i{color:var(--bad);font-style:normal}
+.fld input,.fld select,.fld textarea{font:inherit;color:var(--ink);background:var(--surface-2);border:1px solid var(--line);border-radius:8px;padding:8px 10px;min-width:0;width:100%}
+.fld textarea{min-height:64px;resize:vertical}
+.fld input:focus,.fld select:focus,.fld textarea:focus{outline:2px solid var(--info);outline-offset:-1px;border-color:transparent}
+.fld .help{font-size:11.5px;color:var(--ink-3)}
+.fld .cur{font-size:12px;color:var(--ink-2);word-break:break-all}
+.dlg-f{padding:12px 20px;border-top:1px solid var(--line-2);display:flex;justify-content:space-between;gap:8px;align-items:center}
+.dlg-f .err{color:var(--bad);font-size:12.5px;flex:1;min-width:0}
+.ebtn{width:28px;height:28px;border-radius:7px;border:1px solid transparent;background:none;color:var(--ink-3);display:inline-grid;place-items:center;cursor:pointer;flex:none;padding:0}
+.ebtn:hover{border-color:var(--line);color:var(--ink);background:var(--surface)}
+.ebtn svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linejoin:round}
+.qbtn{font:inherit;font-size:12px;font-weight:600;border:1px solid var(--line);background:var(--surface);color:var(--ok);border-radius:7px;padding:3px 9px;cursor:pointer;white-space:nowrap}
+.qbtn:hover{border-color:var(--ok)}
+.pd-act{display:flex;gap:6px;margin-left:auto}
+.t td.act{width:1%;white-space:nowrap;text-align:right}
+@media (max-width:560px){.dlg-b{grid-template-columns:1fr}}
+
 /* Tooltip */
 .tip{position:fixed;z-index:100;pointer-events:none;background:var(--ink);color:var(--surface);font-size:12px;line-height:1.4;padding:7px 10px;border-radius:7px;max-width:280px;box-shadow:0 6px 24px rgba(0,0,0,.18);opacity:0;transform:translateY(2px);transition:opacity .12s,transform .12s}
 .tip.on{opacity:1;transform:none}
@@ -418,6 +444,8 @@ a.btn{text-decoration:none;color:inherit}
   </div>
 </div>
 <div class="tip" id="tip" role="tooltip"></div>
+<dialog class="dlg" id="dlg"></dialog>
+<input type="file" id="upl" multiple hidden>
 
 <script>
 (() => {
@@ -570,6 +598,7 @@ function asanaGantt() {
 }
 
 // ---------- Views ----------
+const EDI = '<svg viewBox="0 0 24 24"><path d="M4 20h4L19 9l-4-4L4 16z"/></svg>';
 const ARROW = '<svg class="arr" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg>';
 const PRIO = { Alta: 0, Media: 1, Baja: 2 };
 const openPend = () => DC.filter((d) => d.Estado !== 'Resuelto' && d.Estado !== 'Descartado').sort((a, b) => (PRIO[a.Prioridad] ?? 3) - (PRIO[b.Prioridad] ?? 3) || String(a['Fecha límite'] || '9999').localeCompare(String(b['Fecha límite'] || '9999')));
@@ -581,8 +610,9 @@ function chain(txt) {
 function pendCard(d, full) {
   const late = d['Fecha límite'] && d['Fecha límite'] < TODAY;
   const due = d['Fecha límite'] ? `<span class="due${late ? ' late' : ''}">${late ? 'Vencido · ' : 'Para el '}${fd(d['Fecha límite'], 1)}</span>` : '<span class="due">Sin fecha</span>';
-  return `<a class="pd" href="#frente-${esc(d.Frente)}"><div class="pd-h"><span class="prio p-${esc(d.Prioridad)}">${esc(d.Prioridad)}</span><b>${esc(d.Pendiente)}</b>${due}${full ? pill(d.Estado) : ''}</div>
-    <div class="pd-who">${esc(d.Responsable)} · ${esc(fById[d.Frente]?.Frente || '')}</div>${d['Qué atrasa'] ? chain(d['Qué atrasa']) : ''}${full && d.Impacto ? `<div class="pd-imp">${esc(d.Impacto)}</div>` : ''}${full && d.Notas ? `<div class="pd-who">${esc(d.Notas)}</div>` : ''}</a>`;
+  const acts = full ? `<span class="pd-act">${d.Estado !== 'Resuelto' ? `<button class="qbtn" type="button" data-quick="${encodeURIComponent('Pendientes|' + d.ID + '|Estado=Resuelto')}">Marcar resuelto</button>` : ''}<button class="ebtn" type="button" data-edit="Pendientes|${esc(d.ID)}" data-tip="Editar">${EDI}</button></span>` : '';
+  return `<div class="pd" data-go="frente-${esc(d.Frente)}" tabindex="0"><div class="pd-h"><span class="prio p-${esc(d.Prioridad)}">${esc(d.Prioridad)}</span><b>${esc(d.Pendiente)}</b>${due}${full ? pill(d.Estado) : ''}${acts}</div>
+    <div class="pd-who">${esc(d.Responsable)} · ${esc(fById[d.Frente]?.Frente || '')}</div>${d['Qué atrasa'] ? chain(d['Qué atrasa']) : ''}${full && d.Impacto ? `<div class="pd-imp">${esc(d.Impacto)}</div>` : ''}${full && d.Notas ? `<div class="pd-who">${esc(d.Notas)}</div>` : ''}</div>`;
 }
 function vResumen() {
   const firm = C.filter((c) => c.Estado === 'Firmado' || c.Estado === 'En ejecución' || c.Estado === 'Terminado');
@@ -614,7 +644,7 @@ function vResumen() {
 
 function vFrentes() {
   return `<section class="cover"><div><h1 class="h1">Frentes de trabajo</h1><div class="loc">Cada estudio, contrato o trámite del proyecto, con su carpeta en OneDrive.</div></div>
-    <div class="status-card"><button class="btn primary" aria-disabled="true" data-tip="Disponible en la fase 3">${ic('plus')}Agregar frente</button></div></section>
+    <div class="status-card"><button class="btn primary" type="button" data-new="Frentes">${ic('plus')}Agregar frente</button></div></section>
     <div class="grid2">${F.map((f) => {
       const m = fin(f.ID), pct = m.tot ? m.paid / m.tot : 0;
       return `<a class="panel" href="#frente-${f.ID}" style="text-decoration:none;color:inherit;display:grid">
@@ -642,21 +672,21 @@ function vFrente(id) {
         ${rs.map((r) => `<div class="li"><span class="tag">${r.ID}</span><div class="what"><b>${esc(r.Tema)}.</b> ${esc(r.Impacto)}<div class="faint small">Acción: ${esc(r['Acción propuesta'])}</div></div>${pill(r.Nivel)}</div>`).join('')}
         ${!rs.length && !dcs.length ? '<div class="empty">Sin pendientes ni riesgos abiertos.</div>' : ''}</div></section></div>`;
   } else if (fTab === 'ofertas') {
-    body = `<section class="panel"><div class="ph"><div><h2 class="h2">Ofertas</h2>${pres ? `<p>Presupuesto de la partida: US$ ${nf.format(pres['Presupuesto US$'])}</p>` : ''}</div><button class="btn" aria-disabled="true" data-tip="Disponible en la fase 3">${ic('plus')}Agregar oferta</button></div>
-      ${ofs.length ? `<div class="tbl-wrap"><table class="t"><thead><tr><th>Proveedor</th><th>Referencia</th><th class="num">Monto</th><th>Vs. presupuesto</th><th>Alcance</th><th>Estado</th></tr></thead><tbody>
+    body = `<section class="panel"><div class="ph"><div><h2 class="h2">Ofertas</h2>${pres ? `<p>Presupuesto de la partida: US$ ${nf.format(pres['Presupuesto US$'])}</p>` : ''}</div><button class="btn" type="button" data-new="Ofertas" data-preset="${encodeURIComponent('Frente=' + id)}">${ic('plus')}Agregar oferta</button></div>
+      ${ofs.length ? `<div class="tbl-wrap"><table class="t"><thead><tr><th>Proveedor</th><th>Referencia</th><th class="num">Monto</th><th>Vs. presupuesto</th><th>Alcance</th><th>Estado</th><th></th></tr></thead><tbody>
       ${ofs.map((o) => { const v = pres && o.Monto ? (usd(o.Monto, o.Moneda) - pres['Presupuesto US$']) / pres['Presupuesto US$'] : null;
         return `<tr><td><b>${esc(o.Proveedor)}</b><div class="faint small">${fd(o.Fecha, 1)}</div></td><td class="small">${esc(o.Referencia)}</td><td class="num">${money(o.Monto, o.Moneda)}</td>
         <td class="nowrap">${v == null ? '<span class="faint">—</span>' : `<span class="pill s-${v > 0 ? 'bad' : 'ok'}" data-tip="≈ US$ ${nf.format(usd(o.Monto, o.Moneda))} vs. US$ ${nf.format(pres['Presupuesto US$'])}">${v > 0 ? '+' : ''}${(v * 100).toFixed(1)} %</span>`}</td>
-        <td class="small" style="min-width:220px">${esc(o.Alcance)}${o.Notas ? `<div class="faint">${esc(o.Notas)}</div>` : ''}</td><td>${pill(o.Estado)}</td></tr>`; }).join('')}</tbody></table></div>` : '<div class="empty">Sin ofertas registradas.</div>'}</section>`;
+        <td class="small" style="min-width:220px">${esc(o.Alcance)}${o.Notas ? `<div class="faint">${esc(o.Notas)}</div>` : ''}</td><td>${pill(o.Estado)}</td><td class="act"><button class="ebtn" type="button" data-edit="Ofertas|${esc(o.ID)}" data-tip="Editar">${EDI}</button></td></tr>`; }).join('')}</tbody></table></div>` : '<div class="empty">Sin ofertas registradas.</div>'}</section>`;
   } else if (fTab === 'contrato') {
     body = cs.length ? cs.map((c) => contractPanel(c)).join('') : '<section class="panel"><div class="empty">Este frente aún no tiene contrato.</div></section>';
   } else if (fTab === 'actividades') {
-    body = `<section class="panel"><div class="ph"><h2 class="h2">Actividades</h2><button class="btn" aria-disabled="true" data-tip="Disponible en la fase 3">${ic('plus')}Agregar actividad</button></div>${actTable(acts)}</section>`;
+    body = `<section class="panel"><div class="ph"><h2 class="h2">Actividades</h2><button class="btn" type="button" data-new="Actividades" data-preset="${encodeURIComponent('Frente=' + id)}">${ic('plus')}Agregar actividad</button></div>${actTable(acts)}</section>`;
   } else {
     body = docBox(f.Carpeta, f.Frente);
   }
   return `<section class="fhead">
-      <div class="row"><span class="tag">${f.ID}</span>${pill(f.Estado)}</div>
+      <div class="row"><span class="tag">${f.ID}</span>${pill(f.Estado)}${f['Avance %'] != null && f['Avance %'] !== '' ? `<span class="small muted">Avance ${Math.round(Number(f['Avance %']) * 100)} %</span>` : ''}<button class="btn sm" type="button" data-edit="Frentes|${esc(f.ID)}" style="margin-left:auto">${EDI.replace('<svg', '<svg width="14" height="14" style="stroke:currentColor;fill:none;stroke-width:1.8"')}Editar frente</button></div>
       <h1 class="h1">${esc(f.Frente)}</h1>
       <div class="row muted small"><span>${esc(f['Proveedor / contraparte'])}</span><span class="faint">·</span><span>Responsable: ${esc(f['Responsable EHG'])}</span></div>
       <div class="path">${ic('folder')}Proyecto CAHSA 50 MW / ${esc(f.Carpeta)} <button class="btn sm" data-openfolder="${esc(f.Carpeta)}" data-tip="Abrir esta carpeta en OneDrive">${ic('ext')}Abrir en OneDrive</button></div>
@@ -678,9 +708,9 @@ function contractPanel(c, collapsible) {
   const cls = (p) => p.Estado === 'Pagado' ? 'paid' : p.Estado === 'No aplica aún' ? 'na' : 'pend';
   const bar = `<div class="pay">${ps.map((p) => `<div class="${cls(p)}" style="flex:${p.Monto / tot}" data-tip="<b>${esc(p.Concepto)} · ${Math.round(p['%'] * 100)} %</b>${money(p.Monto, p.Moneda)}<br>${esc(p['Condición / hito'])}<br>Estado: ${esc(p.Estado)}${p.Notas ? '<br>' + esc(p.Notas) : ''}">${Math.round(p['%'] * 100)} %</div>`).join('')}</div>`;
   const facts = `<div style="display:flex;gap:24px;flex-wrap:wrap" class="small"><div><div class="faint">Monto</div><b class="tnum" style="font-size:15px">${money(c.Monto, c.Moneda)}</b></div><div><div class="faint">Pagado</div><b class="tnum" style="font-size:15px">${money(paid, c.Moneda)}</b></div><div><div class="faint">Saldo</div><b class="tnum" style="font-size:15px">${money((c.Monto || 0) - paid, c.Moneda)}</b></div><div><div class="faint">Firma</div><b>${fd(c['Fecha firma'], 1)}</b></div><div><div class="faint">Plazo</div><b>${esc(c.Plazo)}</b></div></div>`;
-  const table = `<div class="tbl-wrap"><table class="t"><thead><tr><th>Pago</th><th class="num">Monto</th><th>Condición</th><th>Estado</th><th>Fecha</th></tr></thead><tbody>
-        ${ps.map((p) => `<tr><td>${esc(p.Concepto)}</td><td class="num">${money(p.Monto, p.Moneda)}</td><td class="small">${esc(p['Condición / hito'])}${p.Notas ? `<div class="faint">${esc(p.Notas)}</div>` : ''}</td><td>${pill(p.Estado)}</td><td class="nowrap small">${fd(p['Fecha de pago'], 1)}</td></tr>`).join('')}</tbody></table></div>
-      ${c.Notas ? `<div class="faint small">${esc(c.Notas)}</div>` : ''}`;
+  const table = `<div class="tbl-wrap"><table class="t"><thead><tr><th>Pago</th><th class="num">Monto</th><th>Condición</th><th>Estado</th><th>Fecha</th><th></th></tr></thead><tbody>
+        ${ps.map((p) => `<tr><td>${esc(p.Concepto)}</td><td class="num">${money(p.Monto, p.Moneda)}</td><td class="small">${esc(p['Condición / hito'])}${p.Notas ? `<div class="faint">${esc(p.Notas)}</div>` : ''}</td><td>${pill(p.Estado)}</td><td class="nowrap small">${fd(p['Fecha de pago'], 1)}</td><td class="act">${p.Estado !== 'Pagado' && p.Estado !== 'No aplica aún' ? `<button class="qbtn" type="button" data-edit="Pagos|${esc(p.ID)}" data-preset="${encodeURIComponent('Estado=Pagado&Fecha de pago=' + TODAY)}">Registrar pago</button>` : ''}<button class="ebtn" type="button" data-edit="Pagos|${esc(p.ID)}" data-tip="Editar pago">${EDI}</button></td></tr>`).join('')}</tbody></table></div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">${c.Notas ? `<div class="faint small" style="flex:1;min-width:200px">${esc(c.Notas)}</div>` : '<span style="flex:1"></span>'}<button class="btn sm" type="button" data-new="Pagos" data-preset="${encodeURIComponent('Contrato=' + c['N.º'] + '&Moneda=' + (c.Moneda || 'USD'))}">${ic('plus')}Agregar pago</button><button class="btn sm" type="button" data-edit="Contratos|${esc(c['N.º'])}">Editar contrato</button></div>`;
   if (collapsible) {
     const caret = '<svg viewBox="0 0 24 24" class="caret"><path d="m9 6 6 6-6 6"/></svg>';
     return `<details class="grp"><summary>${caret}<div class="gs-t">${esc(c['N.º'])} · ${esc(c.Contratista)}</div><div class="gs-r">${pill(c.Estado)}</div>
@@ -692,9 +722,9 @@ function contractPanel(c, collapsible) {
 }
 function actTable(acts) {
   if (!acts.length) return '<div class="empty">Sin actividades.</div>';
-  return `<div class="tbl-wrap"><table class="t"><thead><tr><th>Fecha</th><th>Actividad</th><th>Responsable</th><th>Frente</th><th>Estado</th></tr></thead><tbody>
+  return `<div class="tbl-wrap"><table class="t"><thead><tr><th>Fecha</th><th>Actividad</th><th>Responsable</th><th>Frente</th><th>Estado</th><th></th></tr></thead><tbody>
     ${acts.slice().sort((a, b) => (a.Fecha || '9999').localeCompare(b.Fecha || '9999')).map((a) => { const late = a.Fecha && a.Fecha < TODAY && a.Estado !== 'Cumplido';
-      return `<tr><td class="nowrap tnum" style="${late ? 'color:var(--bad);font-weight:600' : ''}" ${late ? 'data-tip="Fecha vencida"' : ''}>${a.Fecha ? fd(a.Fecha, 1) : '<span class="faint">Sin fecha</span>'}</td><td>${esc(a.Actividad)}${a.Notas ? `<div class="faint small">${esc(a.Notas)}</div>` : ''}</td><td class="small">${esc(a.Responsable)}</td><td class="small nowrap"><a href="#frente-${a.Frente}" style="color:inherit">${esc(fById[a.Frente]?.Frente)}</a></td><td>${pill(a.Estado)}</td></tr>`; }).join('')}</tbody></table></div>`;
+      return `<tr><td class="nowrap tnum" style="${late ? 'color:var(--bad);font-weight:600' : ''}" ${late ? 'data-tip="Fecha vencida"' : ''}>${a.Fecha ? fd(a.Fecha, 1) : '<span class="faint">Sin fecha</span>'}</td><td>${esc(a.Actividad)}${a.Notas ? `<div class="faint small">${esc(a.Notas)}</div>` : ''}</td><td class="small">${esc(a.Responsable)}</td><td class="small nowrap"><a href="#frente-${a.Frente}" style="color:inherit">${esc(fById[a.Frente]?.Frente)}</a></td><td>${pill(a.Estado)}</td><td class="act">${a.Estado !== 'Cumplido' && a.Estado !== 'Cancelado' ? `<button class="qbtn" type="button" data-quick="${encodeURIComponent('Actividades|' + a.ID + '|Estado=Cumplido')}">Cumplido</button>` : ''}<button class="ebtn" type="button" data-edit="Actividades|${esc(a.ID)}" data-tip="Editar">${EDI}</button></td></tr>`; }).join('')}</tbody></table></div>`;
 }
 // ---------- Documentos en vivo (OneDrive) ----------
 const DOCSTATE = {}; // key: base path -> { rel, items, sel, pv }
@@ -737,7 +767,7 @@ function drawDocs(box, st, base, label) {
     else inner = `<div class="empty">Este tipo de archivo no tiene vista previa. Descárgalo o ábrelo en OneDrive.</div>`;
     pv = `<div class="pv-wrap">${bar}<div class="preview">${inner}</div></div>`;
   }
-  box.innerHTML = `<div class="ph"><div><h2 class="h2">Documentos</h2><p>En vivo desde OneDrive · ${esc(joinRel(CFG.root, joinRel(base, st.rel)))}</p></div><span style="display:flex;gap:8px"><button class="btn sm" type="button" data-dreload="1">Actualizar</button><button class="btn sm" aria-disabled="true" data-tip="Disponible en la fase 3">${ic('plus')}Subir archivo</button></span></div>
+  box.innerHTML = `<div class="ph"><div><h2 class="h2">Documentos</h2><p>En vivo desde OneDrive · ${esc(joinRel(CFG.root, joinRel(base, st.rel)))}</p></div><span style="display:flex;gap:8px"><button class="btn sm" type="button" data-dreload="1">Actualizar</button><button class="btn sm" type="button" data-upload="1">${ic('plus')}Subir archivo</button></span></div>
     <div class="dcrumbs">${crumbs}</div><div class="docs"><div class="doclist">${list}</div>${pv}</div>`;
 }
 async function docsClick(e) {
@@ -771,7 +801,7 @@ async function listFolder(rel) {
 
 function vContratos() {
   const byCur = {}; C.filter((c) => c.Estado !== 'Borrador').forEach((c) => { byCur[c.Moneda] = byCur[c.Moneda] || { t: 0, p: 0 }; byCur[c.Moneda].t += c.Monto; paysOf(c['N.º']).forEach((p) => { if (p.Estado === 'Pagado') byCur[c.Moneda].p += p.Monto; }); });
-  return `<section class="cover"><div><h1 class="h1">Contratos y pagos</h1><div class="loc">Contratos de obra determinada de EHGSA, con sus anticipos y pagos.</div></div><div class="status-card"><button class="btn primary" aria-disabled="true" data-tip="Disponible en la fase 3">${ic('plus')}Registrar pago</button></div></section>
+  return `<section class="cover"><div><h1 class="h1">Contratos y pagos</h1><div class="loc">Contratos de obra determinada de EHGSA, con sus anticipos y pagos.</div></div><div class="status-card" style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn" type="button" data-new="Contratos">${ic('plus')}Agregar contrato</button><button class="btn primary" type="button" data-new="Pagos">${ic('plus')}Agregar pago</button></div></section>
     <section class="panel band">${Object.entries(byCur).map(([cur, v]) => `<div class="kpi"><div class="k">Firmado en ${cur === 'USD' ? 'dólares' : 'lempiras'}</div><div class="v">${money(v.t, cur)}</div><div class="meter thin"><span style="width:${v.p / v.t * 100}%;background:var(--ok)"></span></div><div class="n">Pagado ${money(v.p, cur)} · saldo ${money(v.t - v.p, cur)}</div></div>`).join('')}
       <div class="kpi"><div class="k">En borrador</div><div class="v">${C.filter((c) => c.Estado === 'Borrador').length}</div><div class="n">${C.filter((c) => c.Estado === 'Borrador').map((c) => c['N.º']).join(', ')} · esperan adjudicación</div></div></section>
     <div class="status-card" style="justify-items:end;max-width:none"><div class="seg"><button type="button" data-acc="open">Abrir todo</button><button type="button" data-acc="close">Cerrar todo</button></div></div>
@@ -781,7 +811,7 @@ function vOfertas() {
   const groups = F.map((f) => ({ f, os: O.filter((o) => o.Frente === f.ID) })).filter((g) => g.os.length);
   const caret = '<svg viewBox="0 0 24 24" class="caret"><path d="m9 6 6 6-6 6"/></svg>';
   return `<section class="cover"><div><h1 class="h1">Ofertas</h1><div class="loc">Cotizaciones agrupadas por frente. Abre un grupo para ver el detalle y la comparación con el presupuesto.</div></div>
-    <div class="status-card"><div class="seg"><button type="button" data-acc="open">Abrir todo</button><button type="button" data-acc="close">Cerrar todo</button></div></div></section>
+    <div class="status-card" style="display:flex;gap:8px;flex-wrap:wrap;align-items:center"><button class="btn primary" type="button" data-new="Ofertas">${ic('plus')}Agregar oferta</button><div class="seg"><button type="button" data-acc="open">Abrir todo</button><button type="button" data-acc="close">Cerrar todo</button></div></div></section>
     <div class="acc">${groups.map(({ f, os }) => {
       const pr = PRES.find((p) => p.Frente === f.ID);
       const by = {}; os.forEach((o) => { by[o.Estado] = (by[o.Estado] || 0) + 1; });
@@ -792,12 +822,12 @@ function vOfertas() {
         <div class="gs-t"><i class="dot d-${tone(f.Estado)}"></i>${esc(f.Frente)}<span class="faint small" style="font-weight:500">${os.length} oferta${os.length > 1 ? 's' : ''}</span></div>
         <div class="gs-r">${chips}</div>
         <div class="gs-sub">${adj ? `<span>Adjudicada a <b style="color:var(--ink)">${esc(adj.Proveedor)}</b> por ${money(adj.Monto, adj.Moneda)}</span>` : '<span>Sin adjudicar</span>'}${pr ? `<span>Presupuesto US$ ${nf.format(pr['Presupuesto US$'])}</span>` : ''}</div></summary>
-        <div class="tbl-wrap"><table class="t"><thead><tr><th>Proveedor</th><th class="num">Monto</th><th>Vs. presupuesto</th><th>Alcance</th><th>Plazo</th><th>Estado</th></tr></thead><tbody>
+        <div class="tbl-wrap"><table class="t"><thead><tr><th>Proveedor</th><th class="num">Monto</th><th>Vs. presupuesto</th><th>Alcance</th><th>Plazo</th><th>Estado</th><th></th></tr></thead><tbody>
         ${os.map((o) => { const v = pr && o.Monto ? (usd(o.Monto, o.Moneda) - pr['Presupuesto US$']) / pr['Presupuesto US$'] : null;
           return `<tr><td><b>${esc(o.Proveedor)}</b><div class="faint small">${esc(o.Referencia)} · ${fd(o.Fecha, 1)}</div></td><td class="num">${money(o.Monto, o.Moneda)}</td>
           <td>${v == null ? '<span class="faint">—</span>' : `<span class="pill s-${v > 0 ? 'bad' : 'ok'}" data-tip="≈ US$ ${nf.format(usd(o.Monto, o.Moneda))} vs. presupuesto US$ ${nf.format(pr['Presupuesto US$'])}">${v > 0 ? '+' : ''}${(v * 100).toFixed(1)} %</span>`}</td>
-          <td class="small" style="min-width:220px">${esc(o.Alcance)}${o.Notas ? `<div class="faint">${esc(o.Notas)}</div>` : ''}</td><td class="small nowrap">${esc(o.Plazo)}</td><td>${pill(o.Estado)}</td></tr>`; }).join('')}</tbody></table></div>
-        <div class="pb" style="padding-top:10px;padding-bottom:12px"><a class="small" href="#frente-${f.ID}" style="color:var(--info)">Abrir el frente</a></div></details>`;
+          <td class="small" style="min-width:220px">${esc(o.Alcance)}${o.Notas ? `<div class="faint">${esc(o.Notas)}</div>` : ''}</td><td class="small nowrap">${esc(o.Plazo)}</td><td>${pill(o.Estado)}</td><td class="act"><button class="ebtn" type="button" data-edit="Ofertas|${esc(o.ID)}" data-tip="Editar">${EDI}</button></td></tr>`; }).join('')}</tbody></table></div>
+        <div class="pb" style="padding-top:10px;padding-bottom:12px;display:flex;gap:14px;align-items:center"><a class="small" href="#frente-${f.ID}" style="color:var(--info)">Abrir el frente</a><button class="btn sm" type="button" data-new="Ofertas" data-preset="${encodeURIComponent('Frente=' + f.ID)}">${ic('plus')}Agregar oferta</button></div></details>`;
     }).join('')}</div>`;
 }
 function vCrono() {
@@ -813,11 +843,11 @@ function vRiesgos() {
   const caret = '<svg viewBox="0 0 24 24" class="caret"><path d="m9 6 6 6-6 6"/></svg>';
   const grp = (pr) => { const ps = pend.filter((d) => d.Prioridad === pr); return ps.length ? `<section class="panel"><div class="ph"><h2 class="h2">Prioridad ${pr.toLowerCase()} <span class="faint small" style="font-weight:500">${ps.length}</span></h2></div><div class="pd-list">${ps.map((d) => pendCard(d, true)).join('')}</div></section>` : ''; };
   return `<section class="cover"><div><h1 class="h1">Pendientes y riesgos</h1><div class="loc">Lo que está frenando el proyecto, quién lo tiene y qué atrasa. Se edita en la hoja "Pendientes" del archivo maestro.</div></div>
-    <div class="status-card"><button class="btn primary" aria-disabled="true" data-tip="Disponible en la fase 3">${ic('plus')}Agregar pendiente</button></div></section>
+    <div class="status-card"><button class="btn primary" type="button" data-new="Pendientes">${ic('plus')}Agregar pendiente</button></div></section>
     ${grp('Alta')}${grp('Media')}${grp('Baja')}
     ${done.length ? `<details class="grp"><summary>${caret}<div class="gs-t">Resueltos<span class="faint small" style="font-weight:500">${done.length}</span></div></summary><div class="pd-list">${done.map((d) => pendCard(d, true)).join('')}</div></details>` : ''}
-    <section class="panel"><div class="ph"><h2 class="h2">Riesgos</h2></div><div class="tbl-wrap"><table class="t"><thead><tr><th>Nivel</th><th>Tema</th><th>Impacto</th><th>Acción propuesta</th><th>Estado</th></tr></thead><tbody>
-      ${R.slice().sort((a, b) => ['Alto', 'Medio', 'Bajo'].indexOf(a.Nivel) - ['Alto', 'Medio', 'Bajo'].indexOf(b.Nivel)).map((r) => `<tr class="click" data-go="frente-${r.Frente}"><td>${pill(r.Nivel)}</td><td><b>${esc(r.Tema)}</b><div class="faint small">${esc(fById[r.Frente]?.Frente)}</div></td><td class="small">${esc(r.Impacto)}</td><td class="small">${esc(r['Acción propuesta'])}</td><td>${pill(r.Estado)}</td></tr>`).join('')}</tbody></table></div></section>`;
+    <section class="panel"><div class="ph"><h2 class="h2">Riesgos</h2><button class="btn sm" type="button" data-new="Riesgos">${ic('plus')}Agregar riesgo</button></div><div class="tbl-wrap"><table class="t"><thead><tr><th>Nivel</th><th>Tema</th><th>Impacto</th><th>Acción propuesta</th><th>Estado</th><th></th></tr></thead><tbody>
+      ${R.slice().sort((a, b) => ['Alto', 'Medio', 'Bajo'].indexOf(a.Nivel) - ['Alto', 'Medio', 'Bajo'].indexOf(b.Nivel)).map((r) => `<tr class="click" data-go="frente-${r.Frente}"><td>${pill(r.Nivel)}</td><td><b>${esc(r.Tema)}</b><div class="faint small">${esc(fById[r.Frente]?.Frente)}</div></td><td class="small">${esc(r.Impacto)}</td><td class="small">${esc(r['Acción propuesta'])}</td><td>${pill(r.Estado)}</td><td class="act"><button class="ebtn" type="button" data-edit="Riesgos|${esc(r.ID)}" data-tip="Editar">${EDI}</button></td></tr>`).join('')}</tbody></table></div></section>`;
 }
 function vInformes() {
   return `<section class="cover"><div><h1 class="h1">Informes semanales</h1><div class="loc">Informes de avance y resúmenes ejecutivos, en orden de emisión.</div></div></section>
@@ -851,6 +881,10 @@ window.addEventListener('hashchange', () => { const r = location.hash; if (r !==
 document.addEventListener('click', (e) => {
   const go = e.target.closest('[data-go]'); if (go && !e.target.closest('a,button')) { location.hash = go.dataset.go; return; }
   const ft = e.target.closest('[data-ftab]'); if (ft) { fTab = ft.dataset.ftab; docSel = 0; render(); return; }
+  const ed = e.target.closest('[data-edit]'); if (ed) { e.preventDefault(); e.stopPropagation(); const [t, id] = ed.dataset.edit.split('|'); openForm(t, id, presetOf(ed)); return; }
+  const nw = e.target.closest('[data-new]'); if (nw) { e.preventDefault(); openForm(nw.dataset.new, null, presetOf(nw)); return; }
+  const qk = e.target.closest('[data-quick]'); if (qk) { e.preventDefault(); e.stopPropagation(); quick(decodeURIComponent(qk.dataset.quick)); return; }
+  if (e.target.closest('[data-upload]')) { $('#upl').click(); return; }
   if (e.target.closest('[data-asana-cfg],[data-asana-save],[data-asana-del]')) { asanaClick(e); return; }
   if (e.target.closest('#docbox')) { docsClick(e); }
   const of = e.target.closest('[data-openfolder]'); if (of) { openFolderWeb(of.dataset.openfolder); return; }
@@ -880,6 +914,179 @@ document.addEventListener('mouseover', (e) => { const el = e.target.closest('[da
 document.addEventListener('focusin', (e) => { const el = e.target.closest('[data-tip],[data-tip-c]'); if (el) showTip(el); });
 document.addEventListener('focusout', hideTip); addEventListener('scroll', hideTip, true);
 
+
+// ================= Edición (fase 3): escribe en el Excel maestro con Microsoft Graph =================
+const TABLES = {
+  Frentes: { t: 'tFrentes', id: 'ID', prefix: 'F', pad: 2, label: 'frente', name: 'Frente' },
+  Contratos: { t: 'tContratos', id: 'N.º', prefix: '', pad: 5, label: 'contrato', name: 'Contratista' },
+  Pagos: { t: 'tPagos', id: 'ID', prefix: 'P', pad: 2, label: 'pago', name: 'Concepto' },
+  Ofertas: { t: 'tOfertas', id: 'ID', prefix: 'O', pad: 2, label: 'oferta', name: 'Proveedor' },
+  Actividades: { t: 'tActividades', id: 'ID', prefix: 'A', pad: 2, label: 'actividad', name: 'Actividad' },
+  Riesgos: { t: 'tRiesgos', id: 'ID', prefix: 'R', pad: 2, label: 'riesgo', name: 'Tema' },
+  Pendientes: { t: 'tPendientes', id: 'ID', prefix: 'PD', pad: 2, label: 'pendiente', name: 'Pendiente' }
+};
+const rowsOf = (tb) => ({ Frentes: F, Contratos: C, Pagos: PG, Ofertas: O, Actividades: A, Riesgos: R, Pendientes: DC })[tb];
+const frOpts = () => F.map((f) => [f.ID, f.ID + ' · ' + f.Frente]);
+const ctOpts = () => C.map((c) => [c['N.º'], c['N.º'] + ' · ' + c.Contratista]);
+const SCHEMA = {
+  Pendientes: [{ k: 'Pendiente', t: 'text', req: 1, w: 2 }, { k: 'Prioridad', t: 'select', o: ['Alta', 'Media', 'Baja'], req: 1 }, { k: 'Estado', t: 'select', o: ['Pendiente', 'En curso', 'Resuelto', 'Descartado'], req: 1 }, { k: 'Frente', t: 'select', o: frOpts, req: 1 }, { k: 'Responsable', t: 'text' }, { k: 'Fecha límite', t: 'date' }, { k: 'Qué atrasa', t: 'textarea', w: 2, help: 'Pasos separados por  >  y cada paso como "Nombre: detalle". El último paso es el impacto final.' }, { k: 'Impacto', t: 'textarea', w: 2 }, { k: 'Notas', t: 'textarea', w: 2 }],
+  Actividades: [{ k: 'Actividad', t: 'text', req: 1, w: 2 }, { k: 'Frente', t: 'select', o: frOpts, req: 1 }, { k: 'Estado', t: 'select', o: ['Pendiente', 'En curso', 'Programado', 'Cumplido', 'Cancelado'], req: 1 }, { k: 'Responsable', t: 'text' }, { k: 'Fecha', t: 'date' }, { k: 'Notas', t: 'textarea', w: 2 }],
+  Ofertas: [{ k: 'Frente', t: 'select', o: frOpts, req: 1 }, { k: 'Proveedor', t: 'text', req: 1 }, { k: 'Referencia', t: 'text' }, { k: 'Fecha', t: 'date' }, { k: 'Monto', t: 'number' }, { k: 'Moneda', t: 'select', o: ['USD', 'HNL'], req: 1 }, { k: 'Estado', t: 'select', o: ['Solicitada', 'Recibida', 'En evaluación', 'Adjudicada', 'Descartada', 'Reemplazada'], req: 1 }, { k: 'Plazo', t: 'text' }, { k: 'Alcance', t: 'textarea', w: 2 }, { k: 'Archivo', t: 'file', w: 2, help: 'Se guarda en la carpeta del frente.' }, { k: 'Notas', t: 'textarea', w: 2 }],
+  Pagos: [{ k: 'Contrato', t: 'select', o: ctOpts, req: 1 }, { k: 'Concepto', t: 'text', req: 1 }, { k: '%', t: 'percent' }, { k: 'Monto', t: 'number', req: 1 }, { k: 'Moneda', t: 'select', o: ['USD', 'HNL'], req: 1 }, { k: 'Estado', t: 'select', o: ['Pagado', 'Pendiente', 'Programado', 'No aplica aún'], req: 1 }, { k: 'Fecha de pago', t: 'date' }, { k: 'Condición / hito', t: 'text', w: 2 }, { k: 'Notas', t: 'textarea', w: 2 }],
+  Contratos: [{ k: 'N.º', t: 'text', req: 1, newOnly: 1 }, { k: 'Frente', t: 'select', o: frOpts, req: 1 }, { k: 'Contratista', t: 'text', req: 1, w: 2 }, { k: 'Objeto', t: 'textarea', w: 2 }, { k: 'Monto', t: 'number', req: 1 }, { k: 'Moneda', t: 'select', o: ['USD', 'HNL'], req: 1 }, { k: 'Estado', t: 'select', o: ['Borrador', 'Firmado', 'En ejecución', 'Terminado', 'Anulado'], req: 1 }, { k: 'Fecha firma', t: 'date' }, { k: 'Plazo', t: 'text', w: 2 }, { k: 'Archivo', t: 'file', w: 2, help: 'Se guarda en la carpeta del frente.' }, { k: 'Notas', t: 'textarea', w: 2 }],
+  Frentes: [{ k: 'Frente', t: 'text', req: 1, w: 2 }, { k: 'Estado', t: 'select', o: ['En tiempo', 'Atención', 'Crítico', 'En espera', 'Completado', 'No iniciado'], req: 1 }, { k: 'Avance %', t: 'percent' }, { k: 'Responsable EHG', t: 'text' }, { k: 'Proveedor / contraparte', t: 'text' }, { k: 'Inicio', t: 'date' }, { k: 'Fin previsto', t: 'date' }, { k: 'Próximo hito', t: 'text', w: 2 }, { k: 'Fecha próximo hito', t: 'date' }, { k: 'Carpeta', t: 'text', help: 'Ruta dentro de "Proyecto CAHSA 50 MW". Si no existe, se crea.' }, { k: 'Notas', t: 'textarea', w: 2 }],
+  Riesgos: [{ k: 'Tema', t: 'text', req: 1, w: 2 }, { k: 'Frente', t: 'select', o: frOpts, req: 1 }, { k: 'Nivel', t: 'select', o: ['Alto', 'Medio', 'Bajo'], req: 1 }, { k: 'Estado', t: 'select', o: ['Abierto', 'Mitigado', 'Cerrado'], req: 1 }, { k: 'Impacto', t: 'textarea', w: 2 }, { k: 'Acción propuesta', t: 'textarea', w: 2 }]
+};
+const presetOf = (el) => { const p = {}; const raw = el.dataset.preset ? decodeURIComponent(el.dataset.preset) : ''; raw.split('&').filter(Boolean).forEach((kv) => { const i = kv.indexOf('='); p[kv.slice(0, i)] = kv.slice(i + 1); }); return p; };
+function nextId(tb) {
+  const { id, prefix, pad } = TABLES[tb];
+  const nums = rowsOf(tb).map((r) => String(r[id] || '')).filter((v) => v.startsWith(prefix)).map((v) => parseInt(v.slice(prefix.length), 10)).filter((n) => !isNaN(n));
+  return prefix + String((nums.length ? Math.max(...nums) : 0) + 1).padStart(pad, '0');
+}
+let FORM = null;
+function openForm(tb, id, preset = {}) {
+  const T = TABLES[tb], sc = SCHEMA[tb]; if (!T) return;
+  const cur = id ? rowsOf(tb).find((r) => String(r[T.id]) === String(id)) : null;
+  if (id && !cur) { toast('No encontré ese registro. Toca Actualizar e intenta de nuevo.'); return; }
+  const rec = { ...(cur || {}), ...preset };
+  if (!cur) { if (tb === 'Contratos') rec['N.º'] = rec['N.º'] || nextId(tb); if (!rec.Moneda && (tb === 'Ofertas' || tb === 'Pagos' || tb === 'Contratos')) rec.Moneda = 'USD'; if (!rec.Estado) rec.Estado = sc.find((f) => f.k === 'Estado').o[tb === 'Pagos' ? 1 : 0]; }
+  FORM = { tb, id: cur ? cur[T.id] : null, cur };
+  const field = (f) => {
+    const v = rec[f.k], fid = 'f_' + f.k.replace(/[^a-z0-9]/gi, '_');
+    const lab = `<label for="${fid}">${esc(f.k)}${f.req ? ' <i>*</i>' : ''}</label>`;
+    let inp;
+    if (f.newOnly && cur) inp = `<input id="${fid}" value="${esc(v)}" disabled>`;
+    else if (f.t === 'select') { const opts = typeof f.o === 'function' ? f.o() : f.o.map((x) => [x, x]); inp = `<select id="${fid}" data-k="${esc(f.k)}">${f.req ? '' : '<option value=""></option>'}${opts.map(([val, txt]) => `<option value="${esc(val)}"${String(v ?? '') === String(val) ? ' selected' : ''}>${esc(txt)}</option>`).join('')}</select>`; }
+    else if (f.t === 'textarea') inp = `<textarea id="${fid}" data-k="${esc(f.k)}">${esc(v ?? '')}</textarea>`;
+    else if (f.t === 'date') inp = `<input id="${fid}" type="date" data-k="${esc(f.k)}" value="${esc(v || '')}">`;
+    else if (f.t === 'number') inp = `<input id="${fid}" type="number" step="0.01" inputmode="decimal" data-k="${esc(f.k)}" value="${v ?? ''}">`;
+    else if (f.t === 'percent') inp = `<input id="${fid}" type="number" step="1" min="0" max="100" data-k="${esc(f.k)}" data-pct="1" value="${v === '' || v == null ? '' : Math.round(Number(v) * 100)}" placeholder="0 – 100">`;
+    else if (f.t === 'file') inp = `${v ? `<div class="cur">Actual: ${esc(v)}</div>` : ''}<input id="${fid}" type="file" data-file="${esc(f.k)}">`;
+    else inp = `<input id="${fid}" data-k="${esc(f.k)}" value="${esc(v ?? '')}">`;
+    return `<div class="fld${f.w ? ' w2' : ''}">${lab}${inp}${f.help ? `<span class="help">${esc(f.help)}</span>` : ''}</div>`;
+  };
+  const title = (cur ? 'Editar ' : 'Agregar ') + T.label + (cur ? ' · ' + (cur[T.id] || '') : '');
+  const dlg = $('#dlg');
+  dlg.innerHTML = `<form method="dialog" id="frm" novalidate><div class="dlg-h"><h2>${esc(title)}</h2><button class="ebtn" type="button" data-close="1" aria-label="Cerrar">✕</button></div>
+    <div class="dlg-b">${sc.map(field).join('')}</div>
+    <div class="dlg-f"><span class="err" id="frm-err"></span><span style="display:flex;gap:8px"><button class="btn" type="button" data-close="1">Cancelar</button><button class="btn primary" type="submit" id="frm-ok">${cur ? 'Guardar cambios' : 'Agregar'}</button></span></div></form>`;
+  dlg.querySelectorAll('[data-close]').forEach((b) => b.onclick = () => dlg.close());
+  $('#frm').onsubmit = (e) => { e.preventDefault(); saveForm(); };
+  dlg.showModal();
+  const first = dlg.querySelector('input:not([disabled]),select,textarea'); if (first) first.focus();
+}
+async function saveForm() {
+  const { tb, cur } = FORM, T = TABLES[tb], sc = SCHEMA[tb], dlg = $('#dlg');
+  const vals = {}; let missing = [];
+  dlg.querySelectorAll('[data-k]').forEach((el) => { let v = el.value.trim(); if (el.dataset.pct) v = v === '' ? '' : Number(v) / 100; else if (el.type === 'number') v = v === '' ? '' : Number(v); vals[el.dataset.k] = v; });
+  sc.forEach((f) => { if (f.req && !(f.newOnly && cur) && (vals[f.k] === '' || vals[f.k] == null)) missing.push(f.k); });
+  if (missing.length) { $('#frm-err').textContent = 'Falta: ' + missing.join(', ') + '.'; return; }
+  const rec = { ...(cur || {}), ...vals };
+  if (!cur) { if (tb === 'Contratos') { rec['N.º'] = vals['N.º']; if (C.some((c) => c['N.º'] === rec['N.º'])) { $('#frm-err').textContent = 'Ya existe el contrato ' + rec['N.º'] + '.'; return; } } else rec[T.id] = nextId(tb); }
+  const ok = $('#frm-ok'); ok.disabled = true; ok.textContent = 'Guardando…'; $('#frm-err').textContent = '';
+  try {
+    const fileEl = dlg.querySelector('[data-file]');
+    if (fileEl && fileEl.files[0]) {
+      const fr = fById[rec.Frente]; const folder = fr && fr.Carpeta ? fr.Carpeta : '00_Plataforma/Archivos';
+      ok.textContent = 'Subiendo archivo…';
+      const up = await uploadFile(folder, fileEl.files[0]);
+      rec[fileEl.dataset.file] = joinRel(folder, up.name);
+    }
+    if (tb === 'Frentes') { if (!rec.Carpeta) rec.Carpeta = rec.Frente.replace(/[\\/:*?"<>|]/g, '').trim(); ok.textContent = 'Revisando carpeta…'; await ensureFolder(rec.Carpeta); }
+    ok.textContent = 'Guardando…';
+    const changed = cur ? Object.keys(vals).filter((k) => String(vals[k] ?? '') !== String(cur[k] ?? '')) : [];
+    if (cur && !changed.length && !(fileEl && fileEl.files[0])) { dlg.close(); toast('Sin cambios.'); return; }
+    await writeRow(tb, rec, !cur);
+    const what = cur ? `Editado ${T.label} ${rec[T.id]} (${String(rec[T.name] || '').slice(0, 80)}): ${changed.join(', ')}` : `Agregado ${T.label} ${rec[T.id]}: ${String(rec[T.name] || '').slice(0, 100)}`;
+    await logChange(what);
+    applyLocal(tb, rec, !cur);
+    dlg.close(); toast(cur ? 'Cambios guardados en el Excel maestro.' : 'Agregado al Excel maestro.');
+  } catch (e) { ok.disabled = false; ok.textContent = cur ? 'Guardar cambios' : 'Agregar'; $('#frm-err').textContent = writeErr(e); }
+}
+async function quick(spec) {
+  const [tb, id, kv] = spec.split('|'); const T = TABLES[tb]; const cur = rowsOf(tb).find((r) => String(r[T.id]) === id); if (!cur) return;
+  const i = kv.indexOf('='); const k = kv.slice(0, i), v = kv.slice(i + 1);
+  const rec = { ...cur, [k]: v };
+  toast('Guardando…');
+  try { await writeRow(tb, rec, false); await logChange(`${T.label[0].toUpperCase() + T.label.slice(1)} ${id} (${String(cur[T.name] || '').slice(0, 80)}): ${k} = ${v}`); applyLocal(tb, rec, false); toast('Listo: ' + T.label + ' ' + id + ' marcado como ' + v.toLowerCase() + '.'); }
+  catch (e) { toast(writeErr(e)); }
+}
+const writeErr = (e) => e.status === 423 || /lock|bloque/i.test(e.message) ? 'El Excel maestro está bloqueado (abierto con cambios sin guardar). Ciérralo o guárdalo e intenta de nuevo.' : e.status === 403 ? 'Tu cuenta no tiene permiso de escritura sobre el Excel maestro.' : 'No se pudo guardar: ' + e.message;
+async function masterId() { if (META && META.id) return META.id; const it = await locateMaster(); META = { ...(META || {}), id: it.id }; return it.id; }
+const isoCell = (v) => v ? v : '';
+function toCell(h, v) {
+  if (v === undefined || v === null) return '';
+  if (DATE_COLS.has(h)) return typeof v === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(v) ? v : (v === '' ? '' : v);
+  return v;
+}
+async function writeRow(tb, rec, isNew) {
+  const { t, id } = TABLES[tb]; const mid = await masterId();
+  const rng = await graph(`${BASE}/items/${mid}/workbook/tables/${t}/range?$select=address,values`);
+  const head = rng.values[0], idc = head.indexOf(id);
+  if (isNew) {
+    const row = head.map((h) => toCell(h, rec[h]));
+    // si la tabla tiene una fila vacía de plantilla, se usa esa
+    const emptyIdx = rng.values.findIndex((v, i) => i > 0 && v.every((c) => c === '' || c === null));
+    if (emptyIdx > 0) return patchRow(mid, rng.address, emptyIdx, row);
+    return graph(`${BASE}/items/${mid}/workbook/tables/${t}/rows/add`, { method: 'POST', body: JSON.stringify({ index: null, values: [row] }) });
+  }
+  const ri = rng.values.findIndex((v, i) => i > 0 && String(v[idc]) === String(rec[id]));
+  if (ri < 1) throw new Error(`no encontré ${id} ${rec[id]} en la hoja`);
+  const old = rng.values[ri];
+  const row = head.map((h, j) => (h in rec && SCHEMA[tb].some((f) => f.k === h || h === id)) ? toCell(h, rec[h]) : old[j]);
+  return patchRow(mid, rng.address, ri, row);
+}
+async function patchRow(mid, address, ri, row) {
+  // address: Hoja!A4:J13  ->  fila absoluta = fila inicial + ri
+  const m = address.match(/^(.*)!([A-Z]+)(\d+):([A-Z]+)(\d+)$/); if (!m) throw new Error('dirección de tabla inesperada: ' + address);
+  const sheet = m[1].replace(/^'|'$/g, '').replace(/''/g, "'"), r = Number(m[3]) + ri;
+  return graph(`${BASE}/items/${mid}/workbook/worksheets/${encodeURIComponent(sheet)}/range(address='${m[2]}${r}:${m[4]}${r}')`, { method: 'PATCH', body: JSON.stringify({ values: [row] }) });
+}
+function stampNow() { const d = new Date(); const p = (n) => String(n).padStart(2, '0'); return `${p(d.getDate())}/${p(d.getMonth() + 1)}/${d.getFullYear()} ${p(d.getHours())}:${p(d.getMinutes())}`; }
+async function logChange(txt) {
+  const mid = await masterId(); const by = (ACCOUNT && (ACCOUNT.name || ACCOUNT.username)) || 'Plataforma';
+  const row = [stampNow(), txt, by + ' (plataforma)'];
+  try { await graph(`${BASE}/items/${mid}/workbook/tables/tBitacora/rows/add`, { method: 'POST', body: JSON.stringify({ index: null, values: [row] }) }); BIT.push({ 'Fecha y hora': row[0], Cambio: row[1], 'Hecho por': row[2] }); } catch (e) { console.warn('bitácora', e); }
+}
+function applyLocal(tb, rec, isNew) {
+  const arr = rowsOf(tb), id = TABLES[tb].id;
+  if (isNew) arr.push(rec); else { const i = arr.findIndex((r) => String(r[id]) === String(rec[id])); if (i >= 0) arr[i] = rec; }
+  if (tb === 'Frentes') fById = Object.fromEntries(F.map((f) => [f.ID, f]));
+  try { localStorage.setItem(CACHE_KEY, JSON.stringify({ D: DATA, META })); } catch (_) {}
+  render(); clearTimeout(window.__rl); window.__rl = setTimeout(() => load(), 2500);
+}
+async function ensureFolder(rel) {
+  const parts = joinRel(CFG.root, rel).split('/'); let path = '';
+  for (const part of parts) {
+    const next = path ? path + '/' + part : part;
+    try { await graph(`${BASE}/root:/${encPath(next)}?$select=id`); }
+    catch (e) { if (e.status !== 404) throw e; const parentUrl = path ? `${BASE}/root:/${encPath(path)}:/children` : `${BASE}/root/children`; await graph(parentUrl, { method: 'POST', body: JSON.stringify({ name: part, folder: {}, '@microsoft.graph.conflictBehavior': 'fail' }) }); }
+    path = next;
+  }
+}
+async function uploadFile(relFolder, file, onProgress) {
+  const path = encPath(joinRel(CFG.root, joinRel(relFolder, file.name)));
+  if (file.size < 4 * 1024 * 1024) return graph(`${BASE}/root:/${path}:/content?@microsoft.graph.conflictBehavior=rename`, { method: 'PUT', body: file, headers: { 'Content-Type': file.type || 'application/octet-stream' } });
+  const ses = await graph(`${BASE}/root:/${path}:/createUploadSession`, { method: 'POST', body: JSON.stringify({ item: { '@microsoft.graph.conflictBehavior': 'rename' } }) });
+  const CH = 327680 * 20; let pos = 0, res;
+  while (pos < file.size) {
+    const end = Math.min(pos + CH, file.size);
+    const r = await fetch(ses.uploadUrl, { method: 'PUT', headers: { 'Content-Range': `bytes ${pos}-${end - 1}/${file.size}` }, body: file.slice(pos, end) });
+    if (!r.ok && r.status !== 202) throw new Error('falló la subida (' + r.status + ')');
+    res = r.status === 202 ? null : await r.json(); pos = end; if (onProgress) onProgress(pos / file.size);
+  }
+  return res;
+}
+$('#upl').addEventListener('change', async (e) => {
+  const files = [...e.target.files]; e.target.value = ''; const box = document.getElementById('docbox'); if (!box || !files.length) return;
+  const base = box.dataset.base, st = DOCSTATE[base]; const folder = joinRel(base, st ? st.rel : '');
+  try {
+    for (const [i, f] of files.entries()) { toast(`Subiendo ${i + 1} de ${files.length}: ${f.name}…`); await uploadFile(folder, f, (p) => toast(`Subiendo ${f.name}… ${Math.round(p * 100)} %`)); }
+    await logChange(`Subido${files.length > 1 ? 's' : ''} a ${joinRel(CFG.root, folder)}: ${files.map((f) => f.name).join(', ')}`);
+    toast(files.length > 1 ? `${files.length} archivos subidos.` : 'Archivo subido.');
+    if (st) { st.items = null; st.err = null; } mountDocs();
+  } catch (er) { toast('No se pudo subir: ' + er.message); }
+});
 
 // ================= Asana (en vivo, opcional) =================
 const ASANA_PROJECT = '1219127034886298'; // "Resumen Proyecto Solar CAHSA"
@@ -975,6 +1182,24 @@ function parseMaster(buf) {
   D.Proyecto = Object.fromEntries(readSheet(wb, 'Proyecto').map((r) => [r.Campo, r.Valor]));
   return D;
 }
+// Lectura directa de las tablas del Excel (siempre al día, incluso segundos después de editar)
+const TABLE_SHEETS = { tProyecto: 'Proyecto', tFrentes: 'Frentes', tContratos: 'Contratos', tPagos: 'Pagos', tOfertas: 'Ofertas', tPresupuesto: 'Presupuesto', tActividades: 'Actividades', tRiesgos: 'Riesgos', tPendientes: 'Pendientes', tInformes: 'Informes', tPlazos: 'Plazos', tAsana: 'Cronograma Asana', tBitacora: 'Bitácora' };
+async function readTables(mid) {
+  const names = Object.keys(TABLE_SHEETS);
+  const body = { requests: names.map((t, i) => ({ id: String(i), method: 'GET', url: `${BASE}/items/${mid}/workbook/tables/${t}/range?$select=values` })) };
+  const res = await graph('/$batch', { method: 'POST', body: JSON.stringify(body) });
+  const D = {};
+  for (const r of res.responses || []) {
+    const t = names[Number(r.id)];
+    if (r.status !== 200) { if (t === 'tFrentes') throw new Error('No se pudo leer la tabla de frentes (' + r.status + ')'); D[TABLE_SHEETS[t]] = []; continue; }
+    const v = r.body.values || []; const head = (v[0] || []).map((h) => String(h).trim());
+    D[TABLE_SHEETS[t]] = v.slice(1).filter((row) => row.some((c) => c !== '' && c !== null)).map((row) => {
+      const o = {}; head.forEach((h, j) => { let c = row[j]; if (c === '' || c === undefined) c = null; o[h] = (DATE_COLS.has(h) && typeof c === 'number') ? serial(c) : (typeof c === 'string' ? c.trim() : c); }); return o;
+    });
+  }
+  D.Proyecto = Object.fromEntries((D.Proyecto || []).map((r) => [r.Campo, r.Valor]));
+  return D;
+}
 async function locateMaster() {
   const p = encPath(joinRel(CFG.root, CFG.master));
   try { return await graph(`${BASE}/root:/${p}?$select=id,lastModifiedDateTime,lastModifiedBy,webUrl`); }
@@ -985,9 +1210,10 @@ async function load() {
   if (loading) return; loading = true; setSync('busy', 'Actualizando…');
   try {
     const it = await locateMaster();
-    const r = await graph(`${BASE}/items/${it.id}/content`, { raw: true });
-    const D = parseMaster(await r.arrayBuffer());
-    META = { at: it.lastModifiedDateTime, by: it.lastModifiedBy && it.lastModifiedBy.user && it.lastModifiedBy.user.displayName, url: it.webUrl, synced: new Date().toISOString() };
+    let D;
+    try { D = await readTables(it.id); }
+    catch (e) { console.warn('workbook API no disponible, se lee el archivo', e); const r = await graph(`${BASE}/items/${it.id}/content`, { raw: true }); D = parseMaster(await r.arrayBuffer()); }
+    META = { id: it.id, at: it.lastModifiedDateTime, by: it.lastModifiedBy && it.lastModifiedBy.user && it.lastModifiedBy.user.displayName, url: it.webUrl, synced: new Date().toISOString() };
     try { localStorage.setItem(CACHE_KEY, JSON.stringify({ D, META })); } catch (_) {}
     applyData(D); await loadAsana(); hideGate(); render(); stampSync();
   } catch (e) {
