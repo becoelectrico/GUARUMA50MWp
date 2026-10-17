@@ -424,10 +424,27 @@ a.btn{text-decoration:none;color:inherit}
 .rp-tb{width:100%;border-collapse:collapse}
 .rp-tb td{padding:2px 6px 2px 0;vertical-align:top;border-bottom:1px solid #EEF1F5}
 .rp-tb td:first-child{white-space:nowrap;color:#4A5A73;width:1%}
+.rp-tb td.late:first-child{color:#C2352B;font-weight:650}
 .rp-fr td:nth-child(2){white-space:nowrap}
 .rp-empty{color:#7A889E;font-style:italic}
 .rp-foot{margin-top:auto;border-top:1px solid #DDE3EC;padding-top:8px;font-size:9.5px;color:#7A889E;text-align:center}
 
+.pd-dec{font-size:12.5px;background:var(--warn-bg);color:var(--ink);border-radius:6px;padding:6px 10px}
+.pd-dec b{color:var(--warn)}
+.rep-warn{background:var(--warn-bg);border:1px solid color-mix(in srgb,var(--warn) 40%,transparent);border-radius:8px;padding:10px 12px;font-size:12.5px;display:grid;gap:4px}
+.rep-warn b{color:var(--warn)}
+.rp-dec{background:#FCF1DA;border-radius:4px;padding:3px 7px;font-size:11px}
+.rp-dec b{color:#A86F00}
+.rp-hits{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-bottom:8px}
+.rp-hits>div{border:1px solid #DDE3EC;border-radius:6px;padding:6px 8px;display:grid;gap:2px;align-content:start}
+.rp-hits span{font-size:10px;color:#4A5A73}
+.rp-hits b{font-size:12px}
+.rp-hits .rp-pill{justify-self:start;font-size:9.5px}
+.rp-hits small{font-size:9.5px;color:#7A889E}
+.rp-bud{font-size:11px;margin-top:6px;color:#4A5A73}
+.rp-av{white-space:nowrap}
+.rp-bar{display:inline-block;width:60px;height:6px;border-radius:3px;background:#E4E9F0;vertical-align:middle;margin-right:4px;overflow:hidden}
+.rp-bar i{display:block;height:100%;background:#2F9447}
 /* Tooltip */
 .tip{position:fixed;z-index:100;pointer-events:none;background:var(--ink);color:var(--surface);font-size:12px;line-height:1.4;padding:7px 10px;border-radius:7px;max-width:280px;box-shadow:0 6px 24px rgba(0,0,0,.18);opacity:0;transform:translateY(2px);transition:opacity .12s,transform .12s}
 .tip.on{opacity:1;transform:none}
@@ -545,11 +562,11 @@ const tone = (s) => TONE[s] || 'mute';
 const pill = (s, tip) => `<span class="pill s-${tone(s)}"${tip ? ` data-tip="${esc(tip)}"` : ''}>${esc(s)}</span>`;
 const ext = (n) => { const e = (n.split('.').pop() || '').toLowerCase(); const map = { pdf: 'pdf', docx: 'docx', doc: 'docx', xlsx: 'xlsx', pptx: 'pptx', dwg: 'dwg' }; return [map[e] || 'other', e.slice(0, 4).toUpperCase()]; };
 
-let P = {}, FX = 27.0272, F = [], C = [], PG = [], O = [], A = [], R = [], DC = [], INF = [], BIT = [], PRES = [], PZ = [], AS = [], fById = {};
+let HIST = [], P = {}, FX = 27.0272, F = [], C = [], PG = [], O = [], A = [], R = [], DC = [], INF = [], BIT = [], PRES = [], PZ = [], AS = [], fById = {};
 function applyData(D) {
   DATA = D; P = D.Proyecto || {}; FX = Number(P['Tasa de cambio de referencia (L por US$)']) || 27.0272;
   F = D.Frentes || []; C = D.Contratos || []; PG = D.Pagos || []; O = D.Ofertas || []; A = D.Actividades || []; R = D.Riesgos || []; DC = D.Pendientes || []; INF = D.Informes || []; BIT = D['Bitácora'] || []; PRES = D.Presupuesto || []; PZ = (D.Plazos || []).map((p) => ({ ...p })); AS = D['Cronograma Asana'] || [];
-  fById = Object.fromEntries(F.map((f) => [f.ID, f]));
+  fById = Object.fromEntries(F.map((f) => [f.ID, f])); HIST = D['Historial avance'] || [];
 }
 const contractsOf = (id) => C.filter((c) => c.Frente === id);
 const paysOf = (n) => PG.filter((p) => p.Contrato === n);
@@ -660,7 +677,7 @@ function pendCard(d, full) {
   const due = d['Fecha límite'] ? `<span class="due${late ? ' late' : ''}">${late ? 'Vencido · ' : 'Para el '}${fd(d['Fecha límite'], 1)}</span>` : '<span class="due">Sin fecha</span>';
   const acts = full ? `<span class="pd-act">${d.Estado !== 'Resuelto' ? `<button class="qbtn" type="button" data-quick="${encodeURIComponent('Pendientes|' + d.ID + '|Estado=Resuelto')}">Marcar resuelto</button>` : ''}<button class="ebtn" type="button" data-edit="Pendientes|${esc(d.ID)}" data-tip="Editar">${EDI}</button></span>` : '';
   return `<div class="pd" data-go="frente-${esc(d.Frente)}" tabindex="0"><div class="pd-h"><span class="prio p-${esc(d.Prioridad)}">${esc(d.Prioridad)}</span><b>${esc(d.Pendiente)}</b>${due}${full ? pill(d.Estado) : ''}${acts}</div>
-    <div class="pd-who">${esc(d.Responsable)} · ${esc(fById[d.Frente]?.Frente || '')}</div>${d['Qué atrasa'] ? chain(d['Qué atrasa']) : ''}${full && d.Impacto ? `<div class="pd-imp">${esc(d.Impacto)}</div>` : ''}${full && d.Notas ? `<div class="pd-who">${esc(d.Notas)}</div>` : ''}</div>`;
+    <div class="pd-who">${esc(d.Responsable)} · ${esc(fById[d.Frente]?.Frente || '')}</div>${d['Qué atrasa'] ? chain(d['Qué atrasa']) : ''}${d['Decisión solicitada'] ? `<div class="pd-dec"><b>Decisión solicitada:</b> ${esc(d['Decisión solicitada'])}</div>` : ''}${full && d.Impacto ? `<div class="pd-imp">${esc(d.Impacto)}</div>` : ''}${full && d.Notas ? `<div class="pd-who">${esc(d.Notas)}</div>` : ''}</div>`;
 }
 function vResumen() {
   const firm = C.filter((c) => c.Estado === 'Firmado' || c.Estado === 'En ejecución' || c.Estado === 'Terminado');
@@ -977,7 +994,7 @@ const rowsOf = (tb) => ({ Frentes: F, Contratos: C, Pagos: PG, Ofertas: O, Activ
 const frOpts = () => F.map((f) => [f.ID, f.ID + ' · ' + f.Frente]);
 const ctOpts = () => C.map((c) => [c['N.º'], c['N.º'] + ' · ' + c.Contratista]);
 const SCHEMA = {
-  Pendientes: [{ k: 'Pendiente', t: 'text', req: 1, w: 2 }, { k: 'Prioridad', t: 'select', o: ['Alta', 'Media', 'Baja'], req: 1 }, { k: 'Estado', t: 'select', o: ['Pendiente', 'En curso', 'Resuelto', 'Descartado'], req: 1 }, { k: 'Frente', t: 'select', o: frOpts, req: 1 }, { k: 'Responsable', t: 'text' }, { k: 'Fecha límite', t: 'date' }, { k: 'Qué atrasa', t: 'textarea', w: 2, help: 'Pasos separados por  >  y cada paso como "Nombre: detalle". El último paso es el impacto final.' }, { k: 'Impacto', t: 'textarea', w: 2 }, { k: 'Notas', t: 'textarea', w: 2 }],
+  Pendientes: [{ k: 'Pendiente', t: 'text', req: 1, w: 2 }, { k: 'Decisión solicitada', t: 'textarea', w: 2, help: 'Lo que se le pide concretamente a quien decide (sale resaltado en el reporte semanal).' }, { k: 'Prioridad', t: 'select', o: ['Alta', 'Media', 'Baja'], req: 1 }, { k: 'Estado', t: 'select', o: ['Pendiente', 'En curso', 'Resuelto', 'Descartado'], req: 1 }, { k: 'Frente', t: 'select', o: frOpts, req: 1 }, { k: 'Responsable', t: 'text' }, { k: 'Fecha límite', t: 'date' }, { k: 'Qué atrasa', t: 'textarea', w: 2, help: 'Pasos separados por  >  y cada paso como "Nombre: detalle". El último paso es el impacto final.' }, { k: 'Impacto', t: 'textarea', w: 2 }, { k: 'Notas', t: 'textarea', w: 2 }],
   Actividades: [{ k: 'Actividad', t: 'text', req: 1, w: 2 }, { k: 'Frente', t: 'select', o: frOpts, req: 1 }, { k: 'Estado', t: 'select', o: ['Pendiente', 'En curso', 'Programado', 'Cumplido', 'Cancelado'], req: 1 }, { k: 'Responsable', t: 'text' }, { k: 'Fecha', t: 'date' }, { k: 'Notas', t: 'textarea', w: 2 }],
   Ofertas: [{ k: 'Frente', t: 'select', o: frOpts, req: 1 }, { k: 'Proveedor', t: 'text', req: 1 }, { k: 'Referencia', t: 'text' }, { k: 'Fecha', t: 'date' }, { k: 'Monto', t: 'number' }, { k: 'Moneda', t: 'select', o: ['USD', 'HNL'], req: 1 }, { k: 'Estado', t: 'select', o: ['Solicitada', 'Recibida', 'En evaluación', 'Adjudicada', 'Descartada', 'Reemplazada'], req: 1 }, { k: 'Plazo', t: 'text' }, { k: 'Alcance', t: 'textarea', w: 2 }, { k: 'Archivo', t: 'file', w: 2, help: 'Se guarda en la carpeta del frente.' }, { k: 'Notas', t: 'textarea', w: 2 }],
   Pagos: [{ k: 'Contrato', t: 'select', o: ctOpts, req: 1 }, { k: 'Concepto', t: 'text', req: 1 }, { k: '%', t: 'percent' }, { k: 'Monto', t: 'number', req: 1 }, { k: 'Moneda', t: 'select', o: ['USD', 'HNL'], req: 1 }, { k: 'Estado', t: 'select', o: ['Pagado', 'Pendiente', 'Programado', 'No aplica aún'], req: 1 }, { k: 'Fecha de pago', t: 'date' }, { k: 'Condición / hito', t: 'text', w: 2 }, { k: 'Notas', t: 'textarea', w: 2 }],
@@ -1160,7 +1177,7 @@ function repData() {
   const paidWeek = PG.filter((p) => p.Estado === 'Pagado' && p['Fecha de pago'] && p['Fecha de pago'] >= x.as && p['Fecha de pago'] <= x.ae);
   const frSin = [...new Set(O.filter((o) => o.Estado === 'En evaluación' && o.Monto).map((o) => o.Frente))];
   const adj = frSin.map((fid) => O.filter((o) => o.Frente === fid && o.Estado === 'En evaluación' && o.Monto).sort((a, b) => usd(b.Monto, b.Moneda) - usd(a.Monto, a.Moneda))[0]).reduce((s, o) => s + usd(o.Monto, o.Moneda), 0);
-  const avances = BIT.filter((b) => { const d = parseStamp(b['Fecha y hora']); return d && d >= x.as && d <= x.ae && !/^Creación del archivo|^Nuevas hojas|^Nueva hoja/i.test(b.Cambio || ''); }).map((b) => b.Cambio);
+  const avances = BIT.filter((b) => { const d = parseStamp(b['Fecha y hora']); return d && d >= x.as && d <= x.ae && !/^Creación del archivo|^Nuevas hojas|^Nueva hoja|^Ajuste automático|^Reporte ejecutivo/i.test(b.Cambio || ''); }).map((b) => b.Cambio);
   const extra = String(REP.extra || '').split('\n').map((l) => l.replace(/^[-•*]\s*/, '').trim()).filter(Boolean);
   const crit = openPend().filter((d) => d.Prioridad === 'Alta');
   const plan = [];
@@ -1174,31 +1191,60 @@ function repData() {
   const planShow = late.slice(0, Math.max(3, 8 - week.length)).concat(week).slice(0, 8);
   return { x, tot, paid, adj, paidWeek, avances, extra, crit, plan: planShow, lateN: late.length, lateShown: Math.min(late.length, planShow.filter((p) => p.f < x.ps).length) };
 }
+function repExtras(x) {
+  // Hitos clave
+  const asT = (n) => AS.find((t) => norm(t.Tarea) === n);
+  const tone2 = (d) => d == null ? ['Sin comparar', '#7A889E'] : d <= 0 ? ['En fecha', '#2F9447'] : d <= 30 ? ['Atención', '#B07800'] : ['En riesgo', '#C2352B'];
+  const hit = [];
+  const pz = (id) => PZ.find((p) => p.ID === id);
+  const p2 = pz('PZ2'), p4 = pz('PZ4'), p5 = pz('PZ5'), p7 = pz('PZ7');
+  if (p2) { const d = p2['Fin Asana'] ? days(p2['Fin Asana'], p2['Fin estimado']) : null; hit.push({ n: 'Ingeniería básica', f: p2['Fin estimado'], d, ref: p2['Fin Asana'] ? `Asana: ${fd(p2['Fin Asana'])}` : '' }); }
+  if (p4) { const niv = asT('nivelación') || asT('nivelacion'); const d = niv && niv.Inicio ? days(niv.Inicio, p4['Fin estimado']) : null; hit.push({ n: 'Estudio hidrológico', f: p4['Fin estimado'], d, ref: niv && niv.Inicio ? `Nivelación inicia ${fd(niv.Inicio)}` : '' }); }
+  if (p5) hit.push({ n: 'EsIA a SERNA', f: p5['Fin estimado'], d: p5['Fin Asana'] ? days(p5['Fin Asana'], p5['Fin estimado']) : null, ref: '' });
+  if (p7) { const d = p7['Fin Asana'] ? days(p7['Fin Asana'], p7['Fin estimado']) : null; hit.push({ n: 'Licencia ambiental', f: p7['Fin estimado'], d, ref: p7['Fin máximo'] ? `Máx. ${fd(p7['Fin máximo'])}` : '' }); }
+  hit.forEach((h) => { [h.st, h.c] = tone2(h.d); });
+  const anyRisk = hit.some((h) => h.st === 'En riesgo' || h.st === 'Atención');
+  const pm = P['Puesta en marcha prevista'];
+  hit.push({ n: 'Puesta en marcha', f: pm, st: anyRisk ? 'Atención' : 'En fecha', c: anyRisk ? '#B07800' : '#2F9447', ref: anyRisk ? 'Hay hitos de la ruta atrasados' : 'Meta del proyecto' });
+  // Presupuesto de estudios
+  let pres = 0, comp = 0;
+  PRES.forEach((pr) => { pres += Number(pr['Presupuesto US$'] || 0); const cs = C.filter((c) => c.Frente === pr.Frente && ['Firmado', 'En ejecución', 'Terminado'].includes(c.Estado)); if (cs.length) comp += cs.reduce((s2, c) => s2 + usd(c.Monto, c.Moneda), 0); else { const o = O.filter((o2) => o2.Frente === pr.Frente && o2.Estado === 'En evaluación' && o2.Monto).sort((a2, b2) => usd(b2.Monto, b2.Moneda) - usd(a2.Monto, a2.Moneda))[0]; if (o) comp += usd(o.Monto, o.Moneda); } });
+  // Avance por frente y tendencia
+  const prevSnap = (fid) => HIST.filter((h) => h.ID === fid && (h['Fecha foto'] || '') < x.ps).sort((a2, b2) => String(a2['Fecha foto']).localeCompare(String(b2['Fecha foto']))).pop();
+  const fr = F.map((f) => { const av = f['Avance %'] === '' || f['Avance %'] == null ? null : Number(f['Avance %']); const pv = prevSnap(f.ID); const pav = pv && pv['Avance %'] !== '' && pv['Avance %'] != null ? Number(pv['Avance %']) : null; return { f, av, pav, trend: av == null || pav == null ? null : av > pav ? 'up' : av < pav ? 'down' : 'same' }; });
+  const stale = fr.filter((r) => !['Completado', 'No iniciado'].includes(r.f.Estado) && (r.av == null || r.trend === 'same'));
+  return { hit, pres, comp, fr, stale };
+}
 function repSheet() {
-  const r = repData(), x = r.x; const pct = r.tot ? r.paid / r.tot : 0;
+  const r = repData(), x = r.x, e = repExtras(x); const pct = r.tot ? r.paid / r.tot : 0;
   const msg = REP.msg != null ? REP.msg : (P['Comentario de estado'] || '');
   const sg = { 'En tiempo': '#2F9447', 'Atención': '#B07800', 'Crítico': '#C2352B', 'En espera': '#6A51B5', 'Completado': '#2F9447', 'No iniciado': '#7A889E' };
-  const pillR = (s) => `<span class="rp-pill" style="color:${sg[s] || '#7A889E'};border-color:${sg[s] || '#7A889E'}">${esc(s || '')}</span>`;
-  const chainR = (txt) => String(txt || '').split('>').map((s) => s.trim()).filter(Boolean).map((s, i, a) => { const k = s.indexOf(':'); return `<span class="rp-ch${i === a.length - 1 && a.length > 1 ? ' last' : ''}"><b>${esc(k > 0 ? s.slice(0, k) : s)}</b>${k > 0 ? ' ' + esc(s.slice(k + 1).trim()) : ''}</span>`; }).join('<span class="rp-arr">→</span>');
+  const pillR = (s2, c) => `<span class="rp-pill" style="color:${c || sg[s2] || '#7A889E'};border-color:${c || sg[s2] || '#7A889E'}">${esc(s2 || '')}</span>`;
+  const chainR = (txt) => String(txt || '').split('>').map((s2) => s2.trim()).filter(Boolean).map((s2, i, a) => { const k = s2.indexOf(':'); return `<span class="rp-ch${i === a.length - 1 && a.length > 1 ? ' last' : ''}"><b>${esc(k > 0 ? s2.slice(0, k) : s2)}</b>${k > 0 ? ' ' + esc(s2.slice(k + 1).trim()) : ''}</span>`; }).join('<span class="rp-arr">→</span>');
   const av = r.extra.concat(r.paidWeek.map((p) => `Pago registrado: ${p.Concepto} del contrato ${p.Contrato} (${money(p.Monto, p.Moneda)}).`)).concat(r.avances);
+  const dv = e.pres ? (e.comp - e.pres) / e.pres : 0;
+  const arrow = (t) => t === 'up' ? '<span style="color:#2F9447">▲</span>' : t === 'down' ? '<span style="color:#C2352B">▼</span>' : t === 'same' ? '<span style="color:#7A889E">＝</span>' : '';
   return `<div class="rp-page" id="rp-page">
     <div class="rp-head"><img src="icons/logo.png" alt=""><div class="rp-ht"><div class="rp-k">Empresa Hondureña de Generación, S.A. de C.V.</div><div class="rp-t">Reporte ejecutivo semanal · Proyecto Solar Guaruma 50 MW</div></div>
       <div class="rp-meta"><b>${x.num}</b><span>Semana del ${fd(x.ps)} al ${fd(x.pe, 1)}</span><span>Avances del ${fd(x.as)} al ${fd(x.ae)}</span></div></div>
     <div class="rp-status">${pillR(P['Estado general'])}<p>${esc(msg)}</p></div>
-    <div class="rp-fin">
-      <div><span>Comprometido</span><b>US$ ${nf0.format(r.tot)}</b></div>
-      <div><span>Pagado</span><b>US$ ${nf0.format(r.paid)}</b><i style="--w:${(pct * 100).toFixed(1)}%"></i><small>${Math.round(pct * 100)} %</small></div>
-      <div><span>Por pagar</span><b>US$ ${nf0.format(r.tot - r.paid)}</b></div>
-      <div><span>Por adjudicar</span><b>≈ US$ ${nf0.format(r.adj)}</b></div></div>
     <div class="rp-sec"><h3>Crítico por definir</h3>${r.crit.length ? r.crit.map((d) => { const late = d['Fecha límite'] && d['Fecha límite'] < TODAY;
-      return `<div class="rp-crit"><div class="rp-ct"><b>${esc(d.Pendiente)}</b><span class="${late ? 'late' : ''}">${d['Fecha límite'] ? (late ? 'Vencido ' : 'Para el ') + fd(d['Fecha límite']) : 'Sin fecha'}</span></div><div class="rp-who">Decide / responsable: ${esc(d.Responsable || '—')}</div>${d['Qué atrasa'] ? `<div class="rp-chain">${chainR(d['Qué atrasa'])}</div>` : ''}</div>`; }).join('') : '<p class="rp-empty">No hay pendientes de prioridad alta.</p>'}</div>
+      return `<div class="rp-crit"><div class="rp-ct"><b>${esc(d.Pendiente)}</b><span class="${late ? 'late' : ''}">${d['Fecha límite'] ? (late ? 'Vencido ' : 'Para el ') + fd(d['Fecha límite']) : 'Sin fecha'}</span></div>${d['Decisión solicitada'] ? `<div class="rp-dec"><b>Se solicita:</b> ${esc(d['Decisión solicitada'])}</div>` : ''}<div class="rp-who">Decide / responsable: ${esc(d.Responsable || '—')}</div>${d['Qué atrasa'] ? `<div class="rp-chain">${chainR(d['Qué atrasa'])}</div>` : ''}</div>`; }).join('') : '<p class="rp-empty">No hay pendientes de prioridad alta.</p>'}</div>
+    <div class="rp-sec"><h3>Hitos clave y presupuesto</h3>
+      <div class="rp-hits">${e.hit.map((h) => `<div><span>${esc(h.n)}</span><b>${fd(h.f, 1)}</b>${pillR(h.st, h.c)}<small>${esc(h.ref || '')}${h.d != null && h.d > 0 ? ` · +${h.d} días` : ''}</small></div>`).join('')}</div>
+      <div class="rp-fin">
+        <div><span>Comprometido</span><b>US$ ${nf0.format(r.tot)}</b></div>
+        <div><span>Pagado</span><b>US$ ${nf0.format(r.paid)}</b><i style="--w:${(pct * 100).toFixed(1)}%"></i><small>${Math.round(pct * 100)} %</small></div>
+        <div><span>Por pagar</span><b>US$ ${nf0.format(r.tot - r.paid)}</b></div>
+        <div><span>Por adjudicar</span><b>≈ US$ ${nf0.format(r.adj)}</b></div></div>
+      ${e.pres ? `<div class="rp-bud">Estudios del proyecto: presupuesto <b>US$ ${nf0.format(e.pres)}</b> · contratado + por adjudicar <b>US$ ${nf0.format(e.comp)}</b> · <b style="color:${dv > 0 ? '#C2352B' : '#2F9447'}">${dv > 0 ? '+' : ''}${(dv * 100).toFixed(1)} % ${dv > 0 ? 'sobre' : 'bajo'} presupuesto</b></div>` : ''}</div>
     <div class="rp-cols">
       <div class="rp-sec"><h3>Avances de la semana</h3>${av.length ? `<ul>${av.slice(0, 10).map((a) => `<li>${esc(a)}</li>`).join('')}</ul>` : '<p class="rp-empty">Sin avances registrados en la plataforma en estas fechas.</p>'}</div>
-      <div class="rp-sec"><h3>Plan de la semana${r.lateN ? ` <span style="color:#C2352B;font-weight:600;font-size:10.5px">· ${r.lateN} atrasado${r.lateN > 1 ? 's' : ''}</span>` : ''}</h3>${r.plan.length ? `<table class="rp-tb">${r.plan.map((p) => `<tr><td class="${p.f < x.ps ? 'late' : ''}">${p.f < x.ps ? 'Atrasado' : fd(p.f)}</td><td>${esc(p.t)}<div class="rp-who">${esc(p.who || '')}</div></td></tr>`).join('')}</table>${r.lateN > r.lateShown ? `<p class="rp-who" style="margin-top:4px">y ${r.lateN - r.lateShown} atrasado${r.lateN - r.lateShown > 1 ? 's' : ''} más en la plataforma.</p>` : ''}` : '<p class="rp-empty">Sin actividades con fecha esta semana.</p>'}</div>
+      <div class="rp-sec"><h3>Plan de la semana${r.lateN ? ` <span style="color:#C2352B;font-weight:600;font-size:10.5px">· ${r.lateN} atrasado${r.lateN > 1 ? 's' : ''}</span>` : ''}</h3>${r.plan.length ? `<table class="rp-tb">${r.plan.map((p) => `<tr><td class="${p.f < x.ps ? 'late' : ''}">${fd(p.f)}</td><td>${esc(p.t)}<div class="rp-who">${esc(p.who || '')}</div></td></tr>`).join('')}</table>${r.lateN > r.lateShown ? `<p class="rp-who" style="margin-top:4px">y ${r.lateN - r.lateShown} atrasado${r.lateN - r.lateShown > 1 ? 's' : ''} más en la plataforma.</p>` : ''}` : '<p class="rp-empty">Sin actividades con fecha esta semana.</p>'}<p class="rp-who" style="margin-top:4px">Fechas en rojo: vencidas.</p></div>
     </div>
-    <div class="rp-sec"><h3>Estado de los frentes</h3><table class="rp-tb rp-fr">${F.map((f) => `<tr><td>${pillR(f.Estado)}</td><td><b>${esc(f.Frente)}</b></td><td>${esc(f['Próximo hito'] || '')}${f['Fecha próximo hito'] ? ` · ${fd(f['Fecha próximo hito'])}` : ''}</td></tr>`).join('')}</table></div>
+    <div class="rp-sec"><h3>Estado de los frentes</h3><table class="rp-tb rp-fr">${e.fr.map(({ f, av: a, trend }) => `<tr><td>${pillR(f.Estado)}</td><td><b>${esc(f.Frente)}</b></td><td class="rp-av">${a == null ? '<span class="rp-who">sin dato</span>' : `<span class="rp-bar"><i style="width:${Math.round(a * 100)}%"></i></span><b>${Math.round(a * 100)} %</b> ${arrow(trend)}`}</td><td>${esc(f['Próximo hito'] || '')}${f['Fecha próximo hito'] ? ` · ${fd(f['Fecha próximo hito'])}` : ''}</td></tr>`).join('')}</table></div>
     ${REP.note ? `<div class="rp-sec"><h3>Notas</h3><p>${esc(REP.note).replace(/\n/g, '<br>')}</p></div>` : ''}
-    <div class="rp-foot">Generado desde la Plataforma Guaruma 50 MW el ${fd(TODAY, 1)} · Ing. Cristhyan Vallejos, Jefe de Proyectos EHGSA</div>
+    <div class="rp-foot">Generado desde la Plataforma Guaruma 50 MW el ${fd(TODAY, 1)} · Ing. Cristhyan Vallejos, Jefe de Proyectos EHGSA · ▲ subió ＝ igual ▼ bajó vs. reporte anterior</div>
   </div>`;
 }
 function vReporte() {
@@ -1212,12 +1258,20 @@ function vReporte() {
       <div class="fld"><label for="r-note">Notas (opcional)</label><textarea id="r-note" rows="2">${esc(REP.note || '')}</textarea></div>
       <div class="fld"><label>Destinatarios</label><div class="rcpts">${REP.to.map((m, i) => `<span class="rcpt">${esc(m)}<button type="button" data-rmto="${i}" aria-label="Quitar">✕</button></span>`).join('')}</div>
         <div style="display:flex;gap:6px"><input id="r-add" type="email" placeholder="Agregar correo" style="flex:1"><button class="btn sm" type="button" data-addto="1">Agregar</button></div></div>
+      ${repWarnHtml()}
       <div style="display:grid;gap:8px;grid-template-columns:1fr 1fr"><button class="btn" type="button" data-rep="pdf">Descargar PDF</button><button class="btn" type="button" data-rep="save">Guardar en OneDrive</button></div>
       <button class="btn primary" type="button" data-rep="send" style="justify-content:center">Vista previa y enviar</button>
     </div></section>
     <div class="rep-prev"><div class="rep-scale" id="rep-scale">${repSheet()}</div></div>
   </div>`;
 }
+function repWarn() {
+  const x = repCtx(), r = repData(), e = repExtras(x); const w = [];
+  if (e.stale.length) w.push(`<b>Avance sin actualizar:</b> ${e.stale.map((s2) => esc(s2.f.Frente) + (s2.av == null ? ' (vacío)' : ' (igual que la semana pasada)')).join(', ')}. Actualízalo en <i>Editar frente</i>.`);
+  if (!(r.extra.length || r.avances.length || r.paidWeek.length)) w.push('<b>Sin avances registrados</b> para la semana. Agrega al menos uno en "Avances adicionales".');
+  return w;
+}
+function repWarnHtml() { const w = repWarn(); return w.length ? `<div class="rep-warn">${w.map((t) => `<div>${t}</div>`).join('')}</div>` : ''; }
 function fitSheet() { const box = document.querySelector('.rep-prev'), sc = $('#rep-scale'); if (!box || !sc) return; const k = Math.min(1, (box.clientWidth - 2) / 816); sc.style.transform = `scale(${k})`; sc.style.height = (sc.firstElementChild.offsetHeight * k) + 'px'; }
 addEventListener('resize', fitSheet);
 function refreshSheet() { const sc = $('#rep-scale'); if (sc) { sc.innerHTML = repSheet(); fitSheet(); } }
@@ -1265,7 +1319,7 @@ async function repAction(kind) {
 function mailBody(x) {
   const crit = openPend().filter((d) => d.Prioridad === 'Alta');
   const msg = REP.msg != null ? REP.msg : (P['Comentario de estado'] || '');
-  return `Buen día,\n\nAdjunto el reporte ejecutivo semanal ${x.num} del Proyecto Solar Guaruma 50 MW (semana del ${fd(x.ps)} al ${fd(x.pe, 1)}).\n\n${msg}\n\nCrítico por definir:\n${crit.map((d) => '• ' + d.Pendiente + (d.Responsable ? ' (' + d.Responsable + ')' : '')).join('\n') || '• Sin pendientes críticos.'}\n\nSaludos,\nIng. Cristhyan Vallejos\nJefe de Proyectos · Empresa Hondureña de Generación, S.A. de C.V.`;
+  return `Buen día,\n\nAdjunto el reporte ejecutivo semanal ${x.num} del Proyecto Solar Guaruma 50 MW (semana del ${fd(x.ps)} al ${fd(x.pe, 1)}).\n\n${msg}\n\nCrítico por definir:\n${crit.map((d) => '• ' + d.Pendiente + (d.Responsable ? ' (' + d.Responsable + ')' : '') + (d['Decisión solicitada'] ? '\n   Se solicita: ' + d['Decisión solicitada'] : '')).join('\n') || '• Sin pendientes críticos.'}\n\nSaludos,\nIng. Cristhyan Vallejos\nJefe de Proyectos · Empresa Hondureña de Generación, S.A. de C.V.`;
 }
 let SEND = null;
 function openSendDialog(blob, fname, x) {
@@ -1273,6 +1327,7 @@ function openSendDialog(blob, fname, x) {
   const dlg = $('#dlg');
   dlg.innerHTML = `<form method="dialog" id="snd" style="grid-template-rows:auto minmax(0,1fr) auto"><div class="dlg-h"><h2>Vista previa y envío · ${esc(x.num)}</h2><button class="ebtn" type="button" data-close="1" aria-label="Cerrar">✕</button></div>
     <div class="dlg-b" style="grid-template-columns:1fr">
+      ${repWarnHtml()}
       <div class="fld"><label>Para</label><div class="rcpts">${REP.to.map((m) => `<span class="rcpt">${esc(m)}</span>`).join('')}</div></div>
       <div class="fld"><label for="s-sub">Asunto</label><input id="s-sub" value="${esc(`Reporte ejecutivo semanal ${x.num} · Proyecto Solar Guaruma 50 MW`)}"></div>
       <div class="fld"><label for="s-body">Mensaje</label><textarea id="s-body" rows="9">${esc(mailBody(x))}</textarea></div>
@@ -1296,6 +1351,7 @@ async function sendReport() {
     if (!r.ok) { let m = 'HTTP ' + r.status; try { const j = await r.json(); m = j.error.message; } catch (_) {} throw new Error(m); }
     if ($('#s-save').checked) { try { await ensureFolder(REP_FOLDER); await uploadFile(REP_FOLDER, new File([blob], fname, { type: 'application/pdf' })); } catch (e) { console.warn(e); } }
     await logChange(`Reporte ejecutivo ${x.num} enviado a ${REP.to.join(', ')}`);
+    try { if (!HIST.some((h) => h.Reporte === x.num)) { const mid = await masterId(); const by = (ACCOUNT && (ACCOUNT.name || ACCOUNT.username)) || ''; const rows = F.map((f) => [x.ps, x.num, f.ID, f.Frente, f['Avance %'] === '' || f['Avance %'] == null ? '' : Number(f['Avance %']), f.Estado, by]); await graph(`${BASE}/items/${mid}/workbook/tables/tHistorial/rows/add`, { method: 'POST', body: JSON.stringify({ index: null, values: rows }) }); rows.forEach((r) => HIST.push({ 'Fecha foto': r[0], Reporte: r[1], ID: r[2], Frente: r[3], 'Avance %': r[4], Estado: r[5] })); } } catch (e) { console.warn('historial', e); }
     $('#dlg').close(); toast('Reporte enviado. Queda en tus Elementos enviados de Outlook.');
   } catch (e) { ok.disabled = false; ok.textContent = 'Enviar'; $('#snd-err').textContent = 'No se pudo enviar: ' + e.message; }
 }
@@ -1305,6 +1361,40 @@ document.addEventListener('click', (e) => {
   if (e.target.closest('[data-addto]')) { const v = ($('#r-add').value || '').trim().toLowerCase(); if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)) { toast('Escribe un correo válido.'); return; } if (!REP.to.includes(v)) REP.to.push(v); saveRepPrefs(); render(); }
 });
 document.addEventListener('keydown', (e) => { if (e.key === 'Enter' && e.target.id === 'r-add') { e.preventDefault(); document.querySelector('[data-addto]').click(); } });
+
+
+// ================= Ajustes automáticos del archivo maestro =================
+const DEC_SEED = {
+  PD01: ['adjudicar las curvas', 'Aprobar la adjudicación del LiDAR a DITOP por L 540,500 con ISV (32 días hábiles), o fijar una fecha límite para la cotización de Gutiérrez.'],
+  PD02: ['pagar el anticipo de s', 'Autorizar el pago del anticipo de SÓLIDA (US$ 5,580) en cuanto envíen sus datos bancarios.'],
+  PD03: ['definir la capacidad del transformador', 'Definir la capacidad del transformador (60 o 65 MVA) para cotizar y comprar antes del 15 nov.'],
+  PD06: ['aprobar la oferta hidrol', 'Aprobar la oferta hidrológica de Saybe por L 2,818,000 (+38 % sobre presupuesto).'],
+  PD08: ['avalar reprogramar la nivelaci', 'Avalar reprogramar la nivelación y adelantar desbroce, vías de acceso y obra civil de la subestación.']
+};
+async function ensureSchema(mid, D) {
+  const done = [];
+  const ph = (D.__heads || {}).tPendientes || [];
+  if (ph.length && !ph.includes('Decisión solicitada')) {
+    const rng = await graph(`${BASE}/items/${mid}/workbook/tables/tPendientes/range?$select=values`);
+    const idc = rng.values[0].indexOf('ID'), pc = rng.values[0].indexOf('Pendiente');
+    const vals = rng.values.map((row, i) => { if (i === 0) return ['Decisión solicitada']; const s = DEC_SEED[row[idc]]; return [s && String(row[pc] || '').toLowerCase().startsWith(s[0]) ? s[1] : '']; });
+    await graph(`${BASE}/items/${mid}/workbook/tables/tPendientes/columns/add`, { method: 'POST', body: JSON.stringify({ index: null, values: vals }) });
+    done.push('columna "Decisión solicitada" en Pendientes (con propuestas para revisar)');
+  }
+  if ((D.__missing || []).includes('tHistorial')) {
+    let sheetOk = true;
+    try { await graph(`${BASE}/items/${mid}/workbook/worksheets/add`, { method: 'POST', body: JSON.stringify({ name: 'Historial avance' }) }); } catch (e) { if (!/exist/i.test(e.message)) sheetOk = false; }
+    if (sheetOk) {
+      const ws = `${BASE}/items/${mid}/workbook/worksheets/${encodeURIComponent('Historial avance')}`;
+      await graph(`${ws}/range(address='A1:A2')`, { method: 'PATCH', body: JSON.stringify({ values: [['Historial de avance por frente'], ['Una foto por cada reporte semanal enviado. La usa el reporte para mostrar si el avance subió o se quedó igual.']] }) });
+      await graph(`${ws}/range(address='A4:G4')`, { method: 'PATCH', body: JSON.stringify({ values: [['Fecha foto', 'Reporte', 'ID', 'Frente', 'Avance %', 'Estado', 'Hecho por']] }) });
+      const tb = await graph(`${ws}/tables/add`, { method: 'POST', body: JSON.stringify({ address: 'A4:G4', hasHeaders: true }) });
+      await graph(`${BASE}/items/${mid}/workbook/tables/${tb.id}`, { method: 'PATCH', body: JSON.stringify({ name: 'tHistorial' }) });
+      done.push('hoja "Historial avance"');
+    }
+  }
+  if (done.length) { await logChange('Ajuste automático del archivo maestro: ' + done.join('; ') + '.'); toast('Se actualizó el archivo maestro: ' + done.join('; ') + '.'); setTimeout(() => load(), 1500); }
+}
 
 // ================= Asana (en vivo, opcional) =================
 const ASANA_PROJECT = '1219127034886298'; // "Resumen Proyecto Solar CAHSA"
@@ -1383,7 +1473,7 @@ async function openFolderWeb(rel) {
   catch (e) { toast('No se pudo abrir la carpeta: ' + e.message); }
 }
 // Excel maestro -> objetos
-const DATE_COLS = new Set(['Fecha límite', 'Inicio', 'Fin previsto', 'Fecha próximo hito', 'Fecha firma', 'Fecha de pago', 'Fecha', 'Fecha de emisión', 'Fecha de inicio', 'Fin estimado', 'Fin máximo', 'Inicio Asana', 'Fin Asana', 'Fin']);
+const DATE_COLS = new Set(['Fecha foto', 'Fecha límite', 'Inicio', 'Fin previsto', 'Fecha próximo hito', 'Fecha firma', 'Fecha de pago', 'Fecha', 'Fecha de emisión', 'Fecha de inicio', 'Fin estimado', 'Fin máximo', 'Inicio Asana', 'Fin Asana', 'Fin']);
 const serial = (n) => new Date(Math.round((n - 25569) * 864e5)).toISOString().slice(0, 10);
 function readSheet(wb, name) {
   const ws = wb.Sheets[name]; if (!ws) return [];
@@ -1401,7 +1491,7 @@ function parseMaster(buf) {
   return D;
 }
 // Lectura directa de las tablas del Excel (siempre al día, incluso segundos después de editar)
-const TABLE_SHEETS = { tProyecto: 'Proyecto', tFrentes: 'Frentes', tContratos: 'Contratos', tPagos: 'Pagos', tOfertas: 'Ofertas', tPresupuesto: 'Presupuesto', tActividades: 'Actividades', tRiesgos: 'Riesgos', tPendientes: 'Pendientes', tInformes: 'Informes', tPlazos: 'Plazos', tAsana: 'Cronograma Asana', tBitacora: 'Bitácora' };
+const TABLE_SHEETS = { tHistorial: 'Historial avance', tProyecto: 'Proyecto', tFrentes: 'Frentes', tContratos: 'Contratos', tPagos: 'Pagos', tOfertas: 'Ofertas', tPresupuesto: 'Presupuesto', tActividades: 'Actividades', tRiesgos: 'Riesgos', tPendientes: 'Pendientes', tInformes: 'Informes', tPlazos: 'Plazos', tAsana: 'Cronograma Asana', tBitacora: 'Bitácora' };
 async function readTables(mid) {
   const names = Object.keys(TABLE_SHEETS);
   const body = { requests: names.map((t, i) => ({ id: String(i), method: 'GET', url: `${BASE}/items/${mid}/workbook/tables/${t}/range?$select=values` })) };
@@ -1409,7 +1499,8 @@ async function readTables(mid) {
   const D = {};
   for (const r of res.responses || []) {
     const t = names[Number(r.id)];
-    if (r.status !== 200) { if (t === 'tFrentes') throw new Error('No se pudo leer la tabla de frentes (' + r.status + ')'); D[TABLE_SHEETS[t]] = []; continue; }
+    if (r.status !== 200) { if (t === 'tFrentes') throw new Error('No se pudo leer la tabla de frentes (' + r.status + ')'); D[TABLE_SHEETS[t]] = []; (D.__missing = D.__missing || []).push(t); continue; }
+    (D.__heads = D.__heads || {})[t] = (r.body.values && r.body.values[0] || []).map((h) => String(h).trim());
     const v = r.body.values || []; const head = (v[0] || []).map((h) => String(h).trim());
     D[TABLE_SHEETS[t]] = v.slice(1).filter((row) => row.some((c) => c !== '' && c !== null)).map((row) => {
       const o = {}; head.forEach((h, j) => { let c = row[j]; if (c === '' || c === undefined) c = null; o[h] = (DATE_COLS.has(h) && typeof c === 'number') ? serial(c) : (typeof c === 'string' ? c.trim() : c); }); return o;
@@ -1434,6 +1525,7 @@ async function load() {
     META = { id: it.id, at: it.lastModifiedDateTime, by: it.lastModifiedBy && it.lastModifiedBy.user && it.lastModifiedBy.user.displayName, url: it.webUrl, synced: new Date().toISOString() };
     try { localStorage.setItem(CACHE_KEY, JSON.stringify({ D, META })); } catch (_) {}
     applyData(D); await loadAsana(); hideGate(); render(); stampSync();
+    if (!window.__migr) { window.__migr = 1; ensureSchema(it.id, D).catch((e) => console.warn('migración', e)); }
   } catch (e) {
     console.error(e);
     if (DATA) { setSync('err', 'Sin conexión · datos guardados'); toast('No se pudo actualizar: ' + e.message); }
