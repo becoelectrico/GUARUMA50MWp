@@ -1,8 +1,8 @@
 // Service worker · Plataforma Guaruma 50 MW
 // Sube VERSION cada vez que publiques cambios para que los equipos tomen la versión nueva.
-const VERSION = 'guaruma-v1.3.0';
+const VERSION = 'guaruma-v1.4.0';
 const SHELL = ['./', './index.html', './manifest.json', './icons/logo.png', './icons/icon-192.png', './icons/icon-512.png'];
-const CDN = ['https://cdn.jsdelivr.net/', 'https://fonts.googleapis.com/', 'https://fonts.gstatic.com/'];
+const CDN = ['https://cdn.jsdelivr.net/', 'https://cdnjs.cloudflare.com/', 'https://fonts.googleapis.com/', 'https://fonts.gstatic.com/'];
 
 self.addEventListener('install', (e) => {
   e.waitUntil(caches.open(VERSION).then((c) => c.addAll(SHELL)).then(() => self.skipWaiting()));

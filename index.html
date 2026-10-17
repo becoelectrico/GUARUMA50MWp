@@ -381,6 +381,53 @@ a.btn{text-decoration:none;color:inherit}
 .t td.act{width:1%;white-space:nowrap;text-align:right}
 @media (max-width:560px){.dlg-b{grid-template-columns:1fr}}
 
+
+/* Reporte semanal */
+.rep-wrap{display:grid;grid-template-columns:minmax(280px,360px) minmax(0,1fr);gap:20px;align-items:start}
+.rep-ctl{position:sticky;top:76px}
+.rep-prev{min-width:0;background:var(--surface-2);border:1px solid var(--line);border-radius:var(--r);padding:16px;overflow:hidden}
+.rep-scale{transform-origin:top left;width:816px}
+.rcpts{display:flex;flex-wrap:wrap;gap:6px}
+.rcpt{display:inline-flex;align-items:center;gap:6px;background:var(--surface-2);border:1px solid var(--line);border-radius:999px;padding:3px 6px 3px 10px;font-size:12.5px}
+.rcpt button{border:0;background:none;color:var(--ink-3);cursor:pointer;padding:0 2px;font-size:11px}
+@media (max-width:1000px){.rep-wrap{grid-template-columns:1fr}.rep-ctl{position:static}}
+.rp-page{width:816px;min-height:1056px;background:#fff;color:#13223A;padding:30px 40px 20px;font-family:"Archivo",Arial,sans-serif;font-size:11px;line-height:1.38;box-shadow:0 2px 12px rgba(10,42,85,.12);display:flex;flex-direction:column;gap:10px;font-variation-settings:"wdth" 100}
+.rp-head{display:grid;grid-template-columns:auto 1fr auto;gap:14px;align-items:center;border-bottom:2px solid #0A2A55;padding-bottom:12px}
+.rp-head img{width:54px;height:54px;object-fit:contain}
+.rp-k{font-size:10.5px;color:#4A5A73}
+.rp-t{font-size:17px;font-weight:650;color:#0A2A55;font-variation-settings:"wdth" 112;line-height:1.2}
+.rp-meta{display:grid;justify-items:end;font-size:10.5px;color:#4A5A73;text-align:right}
+.rp-meta b{font-size:12px;color:#13223A}
+.rp-status{display:flex;gap:12px;align-items:flex-start;background:#F3F5F9;border-radius:8px;padding:10px 12px}
+.rp-status p{margin:0;font-size:12.5px;font-weight:550}
+.rp-pill{display:inline-block;border:1.5px solid;border-radius:999px;padding:0 8px;font-size:10.5px;font-weight:650;white-space:nowrap}
+.rp-fin{display:grid;grid-template-columns:repeat(4,1fr);border:1px solid #DDE3EC;border-radius:8px}
+.rp-fin>div{padding:9px 12px;border-right:1px solid #DDE3EC;display:grid;gap:2px;position:relative}
+.rp-fin>div:last-child{border-right:0}
+.rp-fin span{font-size:10px;color:#4A5A73}
+.rp-fin b{font-size:15px;font-variation-settings:"wdth" 110;font-variant-numeric:tabular-nums}
+.rp-fin i{display:block;height:4px;border-radius:2px;background:linear-gradient(90deg,#2F9447 var(--w),#E4E9F0 var(--w))}
+.rp-fin small{position:absolute;right:10px;top:9px;font-size:10px;color:#2F9447;font-weight:650}
+.rp-sec h3{margin:0 0 6px;font-size:12px;color:#0A2A55;font-weight:650;text-transform:none;border-bottom:1px solid #DDE3EC;padding-bottom:4px}
+.rp-sec ul{margin:0;padding-left:16px;display:grid;gap:3px}
+.rp-sec p{margin:0}
+.rp-crit{border-left:3px solid #C2352B;padding:3px 0 3px 10px;margin-bottom:5px;display:grid;gap:3px}
+.rp-ct{display:flex;justify-content:space-between;gap:10px}
+.rp-ct span{color:#4A5A73;white-space:nowrap;font-size:10.5px}
+.rp-ct span.late,.rp-tb td.late{color:#C2352B;font-weight:650}
+.rp-who{font-size:10.5px;color:#7A889E}
+.rp-chain{display:flex;flex-wrap:wrap;gap:4px;align-items:center;font-size:10.5px}
+.rp-ch{border:1px solid #DDE3EC;border-radius:4px;padding:1px 6px}
+.rp-ch.last{border-color:#E6A39D;background:#FBE7E5;color:#C2352B}
+.rp-arr{color:#7A889E}
+.rp-cols{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.rp-tb{width:100%;border-collapse:collapse}
+.rp-tb td{padding:2px 6px 2px 0;vertical-align:top;border-bottom:1px solid #EEF1F5}
+.rp-tb td:first-child{white-space:nowrap;color:#4A5A73;width:1%}
+.rp-fr td:nth-child(2){white-space:nowrap}
+.rp-empty{color:#7A889E;font-style:italic}
+.rp-foot{margin-top:auto;border-top:1px solid #DDE3EC;padding-top:8px;font-size:9.5px;color:#7A889E;text-align:center}
+
 /* Tooltip */
 .tip{position:fixed;z-index:100;pointer-events:none;background:var(--ink);color:var(--surface);font-size:12px;line-height:1.4;padding:7px 10px;border-radius:7px;max-width:280px;box-shadow:0 6px 24px rgba(0,0,0,.18);opacity:0;transform:translateY(2px);transition:opacity .12s,transform .12s}
 .tip.on{opacity:1;transform:none}
@@ -477,6 +524,7 @@ const ICON = {
   tag: '<path d="M3 12V4h8l10 10-8 8z"/><circle cx="7.5" cy="8.5" r="1.3"/>',
   cal: '<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/>',
   alert: '<path d="M12 3 2 20h20z"/><path d="M12 10v4M12 17v.5"/>',
+  send: '<path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4z"/>',
   report: '<path d="M5 3h14v18H5z"/><path d="M9 8h6M9 12h6M9 16h3"/>',
   folder: '<path d="M3 6h6l2 2h10v11H3z"/>',
   clock: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
@@ -514,7 +562,7 @@ const fin = (id) => {
 // ---------- Nav ----------
 const ROUTES = [
   ['resumen', 'Resumen', 'home'], ['frentes', 'Frentes', 'layers'], ['contratos', 'Contratos y pagos', 'contract'], ['ofertas', 'Ofertas', 'tag'],
-  ['cronograma', 'Cronograma', 'cal'], ['pendientes', 'Pendientes y riesgos', 'alert'], ['informes', 'Informes semanales', 'report'], ['documentos', 'Documentos', 'folder'], ['bitacora', 'Bitácora', 'clock']
+  ['cronograma', 'Cronograma', 'cal'], ['pendientes', 'Pendientes y riesgos', 'alert'], ['reporte', 'Reporte semanal', 'send'], ['informes', 'Informes semanales', 'report'], ['documentos', 'Documentos', 'folder'], ['bitacora', 'Bitácora', 'clock']
 ];
 let frOpen = true;
 function drawNav(route) {
@@ -868,13 +916,13 @@ function vBit() {
 function render() {
   if (!DATA) return;
   let route = (location.hash || '#resumen').slice(1);
-  const views = { resumen: vResumen, frentes: vFrentes, contratos: vContratos, ofertas: vOfertas, cronograma: vCrono, pendientes: vRiesgos, riesgos: vRiesgos, informes: vInformes, documentos: vDocs, bitacora: vBit };
+  const views = { resumen: vResumen, frentes: vFrentes, contratos: vContratos, ofertas: vOfertas, cronograma: vCrono, pendientes: vRiesgos, riesgos: vRiesgos, reporte: vReporte, informes: vInformes, documentos: vDocs, bitacora: vBit };
   let html, crumb;
   if (route.startsWith('frente-')) { const id = route.slice(7); html = vFrente(id); crumb = `<span>Frentes</span>${ic('chev').replace('<svg', '<svg width="12" height="12" style="stroke:currentColor;fill:none;stroke-width:2"')}<b>${esc(fById[id]?.Frente || '')}</b>`; }
   else { if (!views[route]) route = 'resumen'; html = views[route](); crumb = `<span>Guaruma 50 MW</span>${ic('chev').replace('<svg', '<svg width="12" height="12" style="stroke:currentColor;fill:none;stroke-width:2"')}<b>${(ROUTES.find((r) => r[0] === route) || ROUTES.find((r) => r[0] === 'pendientes'))[1]}</b>`; }
   $('#view').innerHTML = html; $('#crumbs').innerHTML = crumb; drawNav(route);
   $('#app').classList.remove('mopen');
-  mountDocs();
+  mountDocs(); if (route === 'reporte') requestAnimationFrame(fitSheet);
 }
 let lastRoute = '';
 window.addEventListener('hashchange', () => { const r = location.hash; if (r !== lastRoute) { fTab = 'resumen'; docSel = 0; lastRoute = r; } render(); window.scrollTo({ top: 0 }); });
@@ -1087,6 +1135,176 @@ $('#upl').addEventListener('change', async (e) => {
     if (st) { st.items = null; st.err = null; } mountDocs();
   } catch (er) { toast('No se pudo subir: ' + er.message); }
 });
+
+// ================= Reporte ejecutivo semanal =================
+const REP_KEY = 'guaruma.reporte.v1';
+const REP_TO_DEFAULT = ['pberkling@beco.hn', 'arturoh@beco.hn', 'cvindel@cahsa.hn'];
+const REP_FOLDER = 'Informes semanales/Reportes ejecutivos';
+const isoD = (d) => new Date(d - d.getTimezoneOffset() * 6e4).toISOString().slice(0, 10);
+const addD = (iso, n) => { const d = new Date(iso + 'T12:00:00'); d.setDate(d.getDate() + n); return isoD(d); };
+function defaultPlanStart() { const d = new Date(TODAY + 'T12:00:00'); const wd = d.getDay(); const delta = wd === 1 ? 0 : wd === 0 ? 1 : wd === 6 ? 2 : -(wd - 1); d.setDate(d.getDate() + delta); return isoD(d); }
+function isoWeek(iso) { const d = new Date(iso + 'T12:00:00'); const t = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate())); const day = t.getUTCDay() || 7; t.setUTCDate(t.getUTCDate() + 4 - day); const y0 = new Date(Date.UTC(t.getUTCFullYear(), 0, 1)); return [t.getUTCFullYear(), Math.ceil(((t - y0) / 864e5 + 1) / 7)]; }
+const REP = (() => { let s = {}; try { s = JSON.parse(localStorage.getItem(REP_KEY) || '{}'); } catch (_) {} return { to: s.to || REP_TO_DEFAULT.slice(), planStart: null, msg: null, extra: '', note: '', ...{ to: s.to || REP_TO_DEFAULT.slice() } }; })();
+const saveRepPrefs = () => { try { localStorage.setItem(REP_KEY, JSON.stringify({ to: REP.to })); } catch (_) {} };
+function repCtx() {
+  const ps = REP.planStart || defaultPlanStart(), pe = addD(ps, 6), as = addD(ps, -7), ae = addD(ps, -1);
+  const [yy, ww] = isoWeek(ps); const num = `EHG-RS-${yy}-S${String(ww).padStart(2, '0')}`;
+  return { ps, pe, as, ae, num };
+}
+const parseStamp = (s) => { const m = String(s || '').match(/^(\d{2})\/(\d{2})\/(\d{4})/); return m ? `${m[3]}-${m[2]}-${m[1]}` : ''; };
+function repData() {
+  const x = repCtx();
+  const firm = C.filter((c) => c.Estado === 'Firmado' || c.Estado === 'En ejecución' || c.Estado === 'Terminado');
+  const tot = firm.reduce((s, c) => s + usd(c.Monto, c.Moneda), 0);
+  const paid = PG.filter((p) => p.Estado === 'Pagado').reduce((s, p) => s + usd(p.Monto, p.Moneda), 0);
+  const paidWeek = PG.filter((p) => p.Estado === 'Pagado' && p['Fecha de pago'] && p['Fecha de pago'] >= x.as && p['Fecha de pago'] <= x.ae);
+  const frSin = [...new Set(O.filter((o) => o.Estado === 'En evaluación' && o.Monto).map((o) => o.Frente))];
+  const adj = frSin.map((fid) => O.filter((o) => o.Frente === fid && o.Estado === 'En evaluación' && o.Monto).sort((a, b) => usd(b.Monto, b.Moneda) - usd(a.Monto, a.Moneda))[0]).reduce((s, o) => s + usd(o.Monto, o.Moneda), 0);
+  const avances = BIT.filter((b) => { const d = parseStamp(b['Fecha y hora']); return d && d >= x.as && d <= x.ae && !/^Creación del archivo|^Nuevas hojas|^Nueva hoja/i.test(b.Cambio || ''); }).map((b) => b.Cambio);
+  const extra = String(REP.extra || '').split('\n').map((l) => l.replace(/^[-•*]\s*/, '').trim()).filter(Boolean);
+  const crit = openPend().filter((d) => d.Prioridad === 'Alta');
+  const plan = [];
+  A.filter((a) => a.Estado !== 'Cumplido' && a.Estado !== 'Cancelado' && a.Fecha && a.Fecha <= x.pe).forEach((a) => plan.push({ f: a.Fecha, t: a.Actividad, who: a.Responsable, k: 'Actividad' }));
+  openPend().filter((d) => d['Fecha límite'] && d['Fecha límite'] <= x.pe && d.Prioridad !== 'Alta').forEach((d) => plan.push({ f: d['Fecha límite'], t: d.Pendiente, who: d.Responsable, k: 'Pendiente' }));
+  F.filter((f) => f['Fecha próximo hito'] && f['Fecha próximo hito'] >= x.ps && f['Fecha próximo hito'] <= x.pe).forEach((f) => plan.push({ f: f['Fecha próximo hito'], t: f['Próximo hito'], who: f.Frente, k: 'Hito' }));
+  AS.filter((t) => t.Completada !== 'Sí' && ((t.Inicio && t.Inicio >= x.ps && t.Inicio <= x.pe) || (t.Fin && t.Fin >= x.ps && t.Fin <= x.pe))).forEach((t) => plan.push({ f: t.Inicio && t.Inicio >= x.ps ? t.Inicio : t.Fin, t: (t.Inicio && t.Inicio >= x.ps ? 'Inicia: ' : 'Termina: ') + t.Tarea, who: 'Cronograma (Asana)', k: 'Asana' }));
+  const key = (t) => t.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9 ]/g, '').replace(/\s+/g, ' ').slice(0, 30);
+  const seen = new Set(); const planU = plan.sort((a, b) => a.f.localeCompare(b.f)).filter((p) => { const k = key(p.t); if (seen.has(k)) return false; seen.add(k); return true; });
+  const late = planU.filter((p) => p.f < x.ps), week = planU.filter((p) => p.f >= x.ps);
+  const planShow = late.slice(0, Math.max(3, 8 - week.length)).concat(week).slice(0, 8);
+  return { x, tot, paid, adj, paidWeek, avances, extra, crit, plan: planShow, lateN: late.length, lateShown: Math.min(late.length, planShow.filter((p) => p.f < x.ps).length) };
+}
+function repSheet() {
+  const r = repData(), x = r.x; const pct = r.tot ? r.paid / r.tot : 0;
+  const msg = REP.msg != null ? REP.msg : (P['Comentario de estado'] || '');
+  const sg = { 'En tiempo': '#2F9447', 'Atención': '#B07800', 'Crítico': '#C2352B', 'En espera': '#6A51B5', 'Completado': '#2F9447', 'No iniciado': '#7A889E' };
+  const pillR = (s) => `<span class="rp-pill" style="color:${sg[s] || '#7A889E'};border-color:${sg[s] || '#7A889E'}">${esc(s || '')}</span>`;
+  const chainR = (txt) => String(txt || '').split('>').map((s) => s.trim()).filter(Boolean).map((s, i, a) => { const k = s.indexOf(':'); return `<span class="rp-ch${i === a.length - 1 && a.length > 1 ? ' last' : ''}"><b>${esc(k > 0 ? s.slice(0, k) : s)}</b>${k > 0 ? ' ' + esc(s.slice(k + 1).trim()) : ''}</span>`; }).join('<span class="rp-arr">→</span>');
+  const av = r.extra.concat(r.paidWeek.map((p) => `Pago registrado: ${p.Concepto} del contrato ${p.Contrato} (${money(p.Monto, p.Moneda)}).`)).concat(r.avances);
+  return `<div class="rp-page" id="rp-page">
+    <div class="rp-head"><img src="icons/logo.png" alt=""><div class="rp-ht"><div class="rp-k">Empresa Hondureña de Generación, S.A. de C.V.</div><div class="rp-t">Reporte ejecutivo semanal · Proyecto Solar Guaruma 50 MW</div></div>
+      <div class="rp-meta"><b>${x.num}</b><span>Semana del ${fd(x.ps)} al ${fd(x.pe, 1)}</span><span>Avances del ${fd(x.as)} al ${fd(x.ae)}</span></div></div>
+    <div class="rp-status">${pillR(P['Estado general'])}<p>${esc(msg)}</p></div>
+    <div class="rp-fin">
+      <div><span>Comprometido</span><b>US$ ${nf0.format(r.tot)}</b></div>
+      <div><span>Pagado</span><b>US$ ${nf0.format(r.paid)}</b><i style="--w:${(pct * 100).toFixed(1)}%"></i><small>${Math.round(pct * 100)} %</small></div>
+      <div><span>Por pagar</span><b>US$ ${nf0.format(r.tot - r.paid)}</b></div>
+      <div><span>Por adjudicar</span><b>≈ US$ ${nf0.format(r.adj)}</b></div></div>
+    <div class="rp-sec"><h3>Crítico por definir</h3>${r.crit.length ? r.crit.map((d) => { const late = d['Fecha límite'] && d['Fecha límite'] < TODAY;
+      return `<div class="rp-crit"><div class="rp-ct"><b>${esc(d.Pendiente)}</b><span class="${late ? 'late' : ''}">${d['Fecha límite'] ? (late ? 'Vencido ' : 'Para el ') + fd(d['Fecha límite']) : 'Sin fecha'}</span></div><div class="rp-who">Decide / responsable: ${esc(d.Responsable || '—')}</div>${d['Qué atrasa'] ? `<div class="rp-chain">${chainR(d['Qué atrasa'])}</div>` : ''}</div>`; }).join('') : '<p class="rp-empty">No hay pendientes de prioridad alta.</p>'}</div>
+    <div class="rp-cols">
+      <div class="rp-sec"><h3>Avances de la semana</h3>${av.length ? `<ul>${av.slice(0, 10).map((a) => `<li>${esc(a)}</li>`).join('')}</ul>` : '<p class="rp-empty">Sin avances registrados en la plataforma en estas fechas.</p>'}</div>
+      <div class="rp-sec"><h3>Plan de la semana${r.lateN ? ` <span style="color:#C2352B;font-weight:600;font-size:10.5px">· ${r.lateN} atrasado${r.lateN > 1 ? 's' : ''}</span>` : ''}</h3>${r.plan.length ? `<table class="rp-tb">${r.plan.map((p) => `<tr><td class="${p.f < x.ps ? 'late' : ''}">${p.f < x.ps ? 'Atrasado' : fd(p.f)}</td><td>${esc(p.t)}<div class="rp-who">${esc(p.who || '')}</div></td></tr>`).join('')}</table>${r.lateN > r.lateShown ? `<p class="rp-who" style="margin-top:4px">y ${r.lateN - r.lateShown} atrasado${r.lateN - r.lateShown > 1 ? 's' : ''} más en la plataforma.</p>` : ''}` : '<p class="rp-empty">Sin actividades con fecha esta semana.</p>'}</div>
+    </div>
+    <div class="rp-sec"><h3>Estado de los frentes</h3><table class="rp-tb rp-fr">${F.map((f) => `<tr><td>${pillR(f.Estado)}</td><td><b>${esc(f.Frente)}</b></td><td>${esc(f['Próximo hito'] || '')}${f['Fecha próximo hito'] ? ` · ${fd(f['Fecha próximo hito'])}` : ''}</td></tr>`).join('')}</table></div>
+    ${REP.note ? `<div class="rp-sec"><h3>Notas</h3><p>${esc(REP.note).replace(/\n/g, '<br>')}</p></div>` : ''}
+    <div class="rp-foot">Generado desde la Plataforma Guaruma 50 MW el ${fd(TODAY, 1)} · Ing. Cristhyan Vallejos, Jefe de Proyectos EHGSA</div>
+  </div>`;
+}
+function vReporte() {
+  const x = repCtx(); const msg = REP.msg != null ? REP.msg : (P['Comentario de estado'] || '');
+  return `<section class="cover"><div><h1 class="h1">Reporte semanal</h1><div class="loc">Una hoja para gerencia: avances, lo crítico por definir y el plan de la semana. Pensado para enviarse los lunes.</div></div></section>
+  <div class="rep-wrap">
+    <section class="panel rep-ctl"><div class="ph"><h2 class="h2">Preparar envío</h2></div><div class="pb" style="display:grid;gap:12px">
+      <div class="fld"><label for="r-ps">Semana a planificar (lunes)</label><input id="r-ps" type="date" value="${x.ps}"><span class="help">Avances: ${fd(x.as)} al ${fd(x.ae, 1)}</span></div>
+      <div class="fld"><label for="r-msg">Mensaje principal</label><textarea id="r-msg" rows="3">${esc(msg)}</textarea></div>
+      <div class="fld"><label for="r-extra">Avances adicionales (uno por línea)</label><textarea id="r-extra" rows="4" placeholder="Ej.: Se recibió el contrato de arrendamiento firmado.">${esc(REP.extra || '')}</textarea><span class="help">Se suman a los cambios registrados en la plataforma durante la semana.</span></div>
+      <div class="fld"><label for="r-note">Notas (opcional)</label><textarea id="r-note" rows="2">${esc(REP.note || '')}</textarea></div>
+      <div class="fld"><label>Destinatarios</label><div class="rcpts">${REP.to.map((m, i) => `<span class="rcpt">${esc(m)}<button type="button" data-rmto="${i}" aria-label="Quitar">✕</button></span>`).join('')}</div>
+        <div style="display:flex;gap:6px"><input id="r-add" type="email" placeholder="Agregar correo" style="flex:1"><button class="btn sm" type="button" data-addto="1">Agregar</button></div></div>
+      <div style="display:grid;gap:8px;grid-template-columns:1fr 1fr"><button class="btn" type="button" data-rep="pdf">Descargar PDF</button><button class="btn" type="button" data-rep="save">Guardar en OneDrive</button></div>
+      <button class="btn primary" type="button" data-rep="send" style="justify-content:center">Vista previa y enviar</button>
+    </div></section>
+    <div class="rep-prev"><div class="rep-scale" id="rep-scale">${repSheet()}</div></div>
+  </div>`;
+}
+function fitSheet() { const box = document.querySelector('.rep-prev'), sc = $('#rep-scale'); if (!box || !sc) return; const k = Math.min(1, (box.clientWidth - 2) / 816); sc.style.transform = `scale(${k})`; sc.style.height = (sc.firstElementChild.offsetHeight * k) + 'px'; }
+addEventListener('resize', fitSheet);
+function refreshSheet() { const sc = $('#rep-scale'); if (sc) { sc.innerHTML = repSheet(); fitSheet(); } }
+document.addEventListener('input', (e) => {
+  if (e.target.id === 'r-msg') { REP.msg = e.target.value; refreshSheet(); }
+  else if (e.target.id === 'r-extra') { REP.extra = e.target.value; refreshSheet(); }
+  else if (e.target.id === 'r-note') { REP.note = e.target.value; refreshSheet(); }
+});
+document.addEventListener('change', (e) => { if (e.target.id === 'r-ps' && e.target.value) { REP.planStart = e.target.value; render(); } });
+function loadLib(src, test) { return test() ? Promise.resolve() : new Promise((ok, ko) => { const s = document.createElement('script'); s.src = src; s.onload = ok; s.onerror = () => ko(new Error('No se pudo cargar ' + src)); document.head.append(s); }); }
+async function makePdf() {
+  await loadLib('https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js', () => window.html2canvas);
+  await loadLib('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js', () => window.jspdf);
+  const src = $('#rp-page'); const host = document.createElement('div'); host.style.cssText = 'position:fixed;left:-10000px;top:0;width:816px;z-index:-1';
+  host.innerHTML = src.outerHTML; host.firstElementChild.id = 'rp-print'; document.body.append(host);
+  try {
+    await (document.fonts && document.fonts.ready);
+    const cv = await html2canvas(host.firstElementChild, { scale: 2, backgroundColor: '#ffffff', useCORS: true, windowWidth: 816 });
+    const pdf = new jspdf.jsPDF({ unit: 'pt', format: 'letter' }); const W = pdf.internal.pageSize.getWidth(), H = pdf.internal.pageSize.getHeight();
+    const pxPerPt = cv.width / W, pageH = Math.floor(H * pxPerPt); let y = 0, first = true;
+    if (cv.height <= pageH * 1.3) { // cabe en una hoja: se ajusta a la altura de la página
+      const k = Math.min(1, pageH / cv.height), w = W * k, h = (cv.height / pxPerPt) * k;
+      pdf.addImage(cv.toDataURL('image/jpeg', 0.9), 'JPEG', (W - w) / 2, 0, w, h); return pdf.output('blob');
+    }
+    while (y < cv.height) {
+      const h = Math.min(pageH, cv.height - y); const c2 = document.createElement('canvas'); c2.width = cv.width; c2.height = h; c2.getContext('2d').drawImage(cv, 0, y, cv.width, h, 0, 0, cv.width, h);
+      if (!first) pdf.addPage(); pdf.addImage(c2.toDataURL('image/jpeg', 0.9), 'JPEG', 0, 0, W, h / pxPerPt); first = false; y += h;
+    }
+    return pdf.output('blob');
+  } finally { host.remove(); }
+}
+const blobB64 = (b) => new Promise((ok) => { const fr = new FileReader(); fr.onload = () => ok(String(fr.result).split(',')[1]); fr.readAsDataURL(b); });
+async function tokenFor(scopes) {
+  const req = { scopes, account: ACCOUNT };
+  try { return (await MS.acquireTokenSilent(req)).accessToken; } catch (e) { return (await MS.acquireTokenPopup(req)).accessToken; }
+}
+async function repAction(kind) {
+  const x = repCtx(); const fname = `${x.num}_Reporte_Ejecutivo_Guaruma.pdf`;
+  try {
+    if (kind === 'pdf') { toast('Generando PDF…'); const b = await makePdf(); const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = fname; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 4000); toast('PDF descargado.'); return; }
+    if (kind === 'save') { toast('Generando PDF…'); const b = await makePdf(); await ensureFolder(REP_FOLDER); await uploadFile(REP_FOLDER, new File([b], fname, { type: 'application/pdf' })); await logChange(`Reporte ejecutivo ${x.num} guardado en ${REP_FOLDER}`); toast('Guardado en OneDrive: ' + REP_FOLDER); return; }
+    if (kind === 'send') { if (!REP.to.length) { toast('Agrega al menos un destinatario.'); return; } toast('Preparando vista previa…'); const b = await makePdf(); openSendDialog(b, fname, x); }
+  } catch (e) { console.error(e); toast('No se pudo completar: ' + e.message); }
+}
+function mailBody(x) {
+  const crit = openPend().filter((d) => d.Prioridad === 'Alta');
+  const msg = REP.msg != null ? REP.msg : (P['Comentario de estado'] || '');
+  return `Buen día,\n\nAdjunto el reporte ejecutivo semanal ${x.num} del Proyecto Solar Guaruma 50 MW (semana del ${fd(x.ps)} al ${fd(x.pe, 1)}).\n\n${msg}\n\nCrítico por definir:\n${crit.map((d) => '• ' + d.Pendiente + (d.Responsable ? ' (' + d.Responsable + ')' : '')).join('\n') || '• Sin pendientes críticos.'}\n\nSaludos,\nIng. Cristhyan Vallejos\nJefe de Proyectos · Empresa Hondureña de Generación, S.A. de C.V.`;
+}
+let SEND = null;
+function openSendDialog(blob, fname, x) {
+  const url = URL.createObjectURL(blob); SEND = { blob, fname, x, url };
+  const dlg = $('#dlg');
+  dlg.innerHTML = `<form method="dialog" id="snd" style="grid-template-rows:auto minmax(0,1fr) auto"><div class="dlg-h"><h2>Vista previa y envío · ${esc(x.num)}</h2><button class="ebtn" type="button" data-close="1" aria-label="Cerrar">✕</button></div>
+    <div class="dlg-b" style="grid-template-columns:1fr">
+      <div class="fld"><label>Para</label><div class="rcpts">${REP.to.map((m) => `<span class="rcpt">${esc(m)}</span>`).join('')}</div></div>
+      <div class="fld"><label for="s-sub">Asunto</label><input id="s-sub" value="${esc(`Reporte ejecutivo semanal ${x.num} · Proyecto Solar Guaruma 50 MW`)}"></div>
+      <div class="fld"><label for="s-body">Mensaje</label><textarea id="s-body" rows="9">${esc(mailBody(x))}</textarea></div>
+      <div class="fld"><label>Adjunto · ${esc(fname)} (${Math.max(1, Math.round(blob.size / 1024))} KB)</label><iframe src="${url}" title="Vista previa del PDF" style="width:100%;height:420px;border:1px solid var(--line);border-radius:8px;background:#fff"></iframe></div>
+      <label class="small" style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="s-save" checked> Guardar también una copia en OneDrive (${esc(REP_FOLDER)})</label>
+    </div>
+    <div class="dlg-f"><span class="err" id="snd-err"></span><span style="display:flex;gap:8px"><button class="btn" type="button" data-close="1">Cancelar</button><button class="btn primary" type="submit" id="snd-ok">Enviar a ${REP.to.length} destinatario${REP.to.length > 1 ? 's' : ''}</button></span></div></form>`;
+  dlg.querySelectorAll('[data-close]').forEach((b) => b.onclick = () => dlg.close());
+  dlg.addEventListener('close', () => { if (SEND) { URL.revokeObjectURL(SEND.url); } }, { once: true });
+  $('#snd').onsubmit = (e) => { e.preventDefault(); sendReport(); };
+  dlg.showModal();
+}
+async function sendReport() {
+  const { blob, fname, x } = SEND; const ok = $('#snd-ok'); ok.disabled = true; ok.textContent = 'Enviando…'; $('#snd-err').textContent = '';
+  try {
+    const t = await tokenFor(['Mail.Send']);
+    const body = $('#s-body').value, subject = $('#s-sub').value;
+    const html = esc(body).replace(/\n/g, '<br>');
+    const msg = { message: { subject, body: { contentType: 'HTML', content: `<div style="font-family:Segoe UI,Arial,sans-serif;font-size:14px;color:#13223A">${html}</div>` }, toRecipients: REP.to.map((a) => ({ emailAddress: { address: a } })), attachments: [{ '@odata.type': '#microsoft.graph.fileAttachment', name: fname, contentType: 'application/pdf', contentBytes: await blobB64(blob) }] }, saveToSentItems: true };
+    const r = await fetch(GRAPH + '/me/sendMail', { method: 'POST', headers: { Authorization: 'Bearer ' + t, 'Content-Type': 'application/json' }, body: JSON.stringify(msg) });
+    if (!r.ok) { let m = 'HTTP ' + r.status; try { const j = await r.json(); m = j.error.message; } catch (_) {} throw new Error(m); }
+    if ($('#s-save').checked) { try { await ensureFolder(REP_FOLDER); await uploadFile(REP_FOLDER, new File([blob], fname, { type: 'application/pdf' })); } catch (e) { console.warn(e); } }
+    await logChange(`Reporte ejecutivo ${x.num} enviado a ${REP.to.join(', ')}`);
+    $('#dlg').close(); toast('Reporte enviado. Queda en tus Elementos enviados de Outlook.');
+  } catch (e) { ok.disabled = false; ok.textContent = 'Enviar'; $('#snd-err').textContent = 'No se pudo enviar: ' + e.message; }
+}
+document.addEventListener('click', (e) => {
+  const rp = e.target.closest('[data-rep]'); if (rp) { repAction(rp.dataset.rep); return; }
+  const rm = e.target.closest('[data-rmto]'); if (rm) { REP.to.splice(+rm.dataset.rmto, 1); saveRepPrefs(); render(); return; }
+  if (e.target.closest('[data-addto]')) { const v = ($('#r-add').value || '').trim().toLowerCase(); if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)) { toast('Escribe un correo válido.'); return; } if (!REP.to.includes(v)) REP.to.push(v); saveRepPrefs(); render(); }
+});
+document.addEventListener('keydown', (e) => { if (e.key === 'Enter' && e.target.id === 'r-add') { e.preventDefault(); document.querySelector('[data-addto]').click(); } });
 
 // ================= Asana (en vivo, opcional) =================
 const ASANA_PROJECT = '1219127034886298'; // "Resumen Proyecto Solar CAHSA"
