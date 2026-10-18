@@ -1,6 +1,6 @@
 // Service worker · Cronograma Licencia Ambiental (módulo de la Plataforma Guaruma)
 // Sube VERSION cada vez que publiques cambios.
-const VERSION = 'guaruma-eia-v1.1.0';
+const VERSION = 'guaruma-eia-v1.1.1';
 const SHELL = ['./', './index.html', './manifest.json', '../icons/logo.png', '../icons/icon-192.png', '../icons/icon-512.png'];
 const CDN = ['https://cdn.jsdelivr.net/', 'https://fonts.googleapis.com/', 'https://fonts.gstatic.com/'];
 self.addEventListener('install', (e) => { e.waitUntil(caches.open(VERSION).then((c) => c.addAll(SHELL)).then(() => self.skipWaiting())); });
