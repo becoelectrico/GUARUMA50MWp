@@ -449,6 +449,8 @@ function renderResumen(){
     <p class="computed" style="margin:8px 0 0">Las actividades con ▸ tienen subactividades; toca la flecha para verlas. El avance de la principal se calcula de sus subactividades.</p>
   </section>
   <div style="height:12px"></div>
+  ${contratosPanel(W)}
+  <div style="height:12px"></div>
   <div class="cols2">
     <section class="panel"><h2>Ruta crítica pendiente</h2>
       <div class="list">${critList.map(t=>`<div class="li" data-open="${t.id}"><span>${W[t.id]} · ${esc(t.nombre)}</span><span class="num">${fd(t.ini)} → ${fd(t.fin)}</span></div>`).join('')||'<span class="empty">Sin actividades críticas pendientes.</span>'}</div>
@@ -462,10 +464,26 @@ function renderResumen(){
   </div>`;
 }
 
+function contratosPanel(W){
+  const ks=flat(false).map(r=>r.t).filter(t=>(+t.cp)||(t.pagos||[]).length);
+  const pag=[];for(const t of state.tasks)for(const p of (t.pagos||[]))pag.push({t,p});
+  pag.sort((a,b)=>a.p.fecha<b.p.fecha?1:-1);
+  const own=(t,k)=>{const a=amt(t,k);return t.cpMon==='HNL'?a.h:a.u};
+  return `<section class="panel"><h2>Contratos y pagos</h2>
+  ${ks.length?`<div class="twrap" style="max-height:none"><table><thead><tr><th>#</th><th>Actividad</th><th>Proveedor</th><th>Contrato</th><th>Pagado</th><th></th><th>Saldo</th><th>Pagos</th></tr></thead><tbody>
+  ${ks.map(t=>{const c=+t.cp||0,pd=own(t,'cr'),pc=pct(pd,c);return `<tr data-open="${t.id}" style="cursor:pointer">
+    <td class="num" style="color:var(--muted)">${W[t.id]}</td><td style="white-space:normal;min-width:200px">${esc(t.nombre)}${t.contrato?`<div class="computed">Contrato ${esc(t.contrato)}</div>`:''}</td>
+    <td style="white-space:normal">${esc(t.prov||'—')}</td><td><span class="ro">${c?money(c,t.cpMon):'—'}</span></td>
+    <td><span class="ro">${money(pd,t.cpMon)}</span></td><td style="min-width:110px"><div class="meter" style="margin:0"><i style="width:${Math.min(100,pc)}%;background:var(--ok)"></i></div><span class="computed">${pc}%</span></td>
+    <td><span class="ro">${c?money(c-pd,t.cpMon):'—'}</span></td><td class="computed" style="white-space:normal">${(t.pagos||[]).map(p=>esc(p.concepto)+' '+fd(p.fecha)).join('<br>')||'Sin pagos'}</td></tr>`}).join('')}
+  </tbody></table></div>`:'<p class="empty" style="margin:0">Todavía no hay contratos. Abre una actividad y pon el monto del contrato y sus pagos.</p>'}
+  ${pag.length?`<h2 style="font-size:16px;margin:16px 0 6px">Últimos pagos</h2><div class="list">${pag.slice(0,8).map(({t,p})=>`<div class="li" data-open="${t.id}"><span><span class="num">${fd(p.fecha)}</span> · ${esc(p.concepto)} · ${W[t.id]} ${esc(t.nombre)}</span><span class="num">${money(p.monto,p.mon)}</span></div>`).join('')}</div>`:''}
+  </section>`;
+}
 function progRow(t,lvl,W){const[e,c]=estado(t);const p=planned(t);const ch=kids(t.id);const op=resOpen.has(t.id);
   return `<div class="prog${lvl?' subp':''}" data-open="${t.id}">
     <span class="wbs">${ch.length?`<button class="caret" data-rtog="${t.id}" aria-label="Ver subactividades">${op?'▾':'▸'}</button>`:''}${W[t.id]}</span>
-    <span class="pname" style="padding-left:${lvl*14}px">${esc(t.nombre)}<small>${fd(t.ini)} → ${fd(t.fin)} · ${dur(t)} días · ${esc(t.resp||'Sin asignar')}${ch.length?' · '+ch.length+' subactividades':''}${t.ejemplo?' · ejemplo':''}</small></span>
+    <span class="pname" style="padding-left:${lvl*14}px">${esc(t.nombre)}<small>${fd(t.ini)} → ${fd(t.fin)} · ${dur(t)} días · ${esc(t.resp||'Sin asignar')}${ch.length?' · '+ch.length+' subactividades':''}${(()=>{const c=costOf(t,'cp'),r=costOf(t,'cr');return c.u?' · pagado '+pct(r.u,c.u)+'% de '+money(t.cpMon==='HNL'?c.h:c.u,t.cpMon||'USD'):''})()}</small></span>
     <span class="pmeter"><div class="meter"><i style="width:${t.avance}%"></i><b style="left:${p}%"></b></div><div class="legend"><span class="num">${t.avance}% real · ${p}% esperado</span></div></span>
     <span class="st ${c}">${e}</span>
   </div>${op?ch.map(k=>progRow(k,lvl+1,W)).join(''):''}`}
