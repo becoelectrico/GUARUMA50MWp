@@ -188,6 +188,13 @@ tfoot td{position:sticky;bottom:0;background:var(--surface2);font-weight:600;bor
 .dep .n{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .dep input{width:56px;border:1px solid var(--line);border-radius:4px;padding:2px 4px;background:var(--surface);font-family:var(--f-mono);font-size:12px}
 .x{border:0;background:none;color:var(--muted);font-size:16px;line-height:1;padding:0 2px}
+.pago{display:grid;grid-template-columns:132px minmax(0,1fr) 110px 64px auto;gap:6px;align-items:center}
+.pago input,.pago select{border:1px solid var(--line);background:var(--surface2);border-radius:6px;padding:5px 6px;width:100%;min-width:0;font-size:13px}
+.pago input[type=number]{text-align:right;font-variant-numeric:tabular-nums}
+@media (max-width:460px){.pago{grid-template-columns:1fr 1fr}.pago .x,.pago .btn{justify-self:end}}
+.row3x{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;margin-top:6px}
+.row3x>div{display:flex;flex-direction:column;gap:1px}
+.quick{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
 .adddep{display:grid;grid-template-columns:1fr auto;gap:6px}
 .adddep select{border:1px solid var(--line);background:var(--surface2);border-radius:6px;padding:6px}
 .hist{font-size:13px;color:var(--muted);display:flex;flex-direction:column;gap:4px}
@@ -374,8 +381,12 @@ function estado(t){
 const toUSD=(v,m)=>v==null||v===''?0:(m==='HNL'?+v/state.tc:+v);
 const toHNL=(v,m)=>v==null||v===''?0:(m==='USD'?+v*state.tc:+v);
 const money=(v,m)=>(m==='HNL'?'L ':'US$ ')+Number(v).toLocaleString('es-HN',{minimumFractionDigits:2,maximumFractionDigits:2});
-function costOf(t,kind){const ls=leavesOf(t.id).map(T);let u=0,h=0;for(const l of ls){u+=toUSD(l[kind],l[kind+'Mon']);h+=toHNL(l[kind],l[kind+'Mon'])}return{u,h}}
-function totals(kind){let u=0,h=0;for(const l of leaves()){u+=toUSD(l[kind],l[kind+'Mon']);h+=toHNL(l[kind],l[kind+'Mon'])}return{u,h}}
+function amt(l,kind){if(kind==='cr'){let u=0,h=0;for(const p of (l.pagos||[])){u+=toUSD(p.monto,p.mon);h+=toHNL(p.monto,p.mon)}return{u,h}}return{u:toUSD(l.cp,l.cpMon),h:toHNL(l.cp,l.cpMon)}}
+function sumAmt(ls,kind){let u=0,h=0;for(const l of ls){const a=amt(l,kind);u+=a.u;h+=a.h}return{u,h}}
+function costOf(t,kind){return sumAmt(leavesOf(t.id).map(T),kind)}
+function totals(kind){return sumAmt(leaves(),kind)}
+const pct=(a,b)=>b?Math.round(a/b*100):0;
+const CONCEPTOS=['Anticipo','Estimación / avance','Pago final','Liberación de retención','Otro'];
 function colTotal(c){let u=0,h=0;for(const l of leaves()){const v=l.extra[c.id];if(v!=null&&v!==''){u+=toUSD(v,c.mon);h+=toHNL(v,c.mon)}}return{u,h}}
 
 /* ---------- historial y avisos ---------- */
@@ -426,8 +437,9 @@ function renderResumen(){
       <div class="legend"><span><i></i>Real ${av}%</span><span><b></b>Esperado a hoy ${pl}%</span></div>
     </div>
     <div class="kpi"><span class="lbl">Fin estimado</span><span class="big">${fd(last.fin)}</span><span class="sm">${esc(last.nombre)} · faltan <span class="num">${days}</span> días</span></div>
-    <div class="kpi"><span class="lbl">Presupuesto</span><span class="big num" style="font-size:22px">${money(cp.u,'USD')}</span><span class="sm num">${money(cp.h,'HNL')}</span></div>
-    <div class="kpi"><span class="lbl">Costo real</span><span class="big num" style="font-size:22px">${money(cr.u,'USD')}</span><span class="sm num">${money(cr.h,'HNL')} · ${cp.u?Math.round(cr.u/cp.u*100):0}% del presupuesto</span></div>
+    <div class="kpi"><span class="lbl">Contratado / presupuesto</span><span class="big num" style="font-size:22px">${money(cp.u,'USD')}</span><span class="sm num">${money(cp.h,'HNL')}</span></div>
+    <div class="kpi"><span class="lbl">Pagado</span><span class="big num" style="font-size:22px">${money(cr.u,'USD')}</span><span class="sm num">${money(cr.h,'HNL')} · ${pct(cr.u,cp.u)}% de lo contratado</span><div class="meter"><i style="width:${Math.min(100,pct(cr.u,cp.u))}%;background:var(--ok)"></i></div></div>
+    <div class="kpi"><span class="lbl">Saldo por pagar</span><span class="big num" style="font-size:22px">${money(cp.u-cr.u,'USD')}</span><span class="sm num">${money(cp.h-cr.h,'HNL')}</span></div>
     <div class="kpi"><span class="lbl">Requieren atención</span><span class="big" style="color:${prob.length?'var(--risk)':'var(--ok)'}">${prob.length}</span><span class="sm">Atrasadas o en riesgo a hoy</span></div>
   </div>
   <div style="height:12px"></div>
@@ -532,7 +544,7 @@ function renderTabla(){
     return `<input ${a} value="${esc(v)}">`};
   return `
   <div class="twrap"><table>
-    <thead><tr><th>#</th><th>Actividad</th><th>Origen</th><th>Responsable</th><th>Inicio</th><th>Fin</th><th>Días</th><th>Depende de</th><th>Avance %</th><th>Estado</th><th>Costo presup.</th><th></th><th>Costo real</th><th></th>${state.cols.map(c=>`<th>${esc(c.nombre)}</th>`).join('')}</tr></thead>
+    <thead><tr><th>#</th><th>Actividad</th><th>Origen</th><th>Responsable</th><th>Inicio</th><th>Fin</th><th>Días</th><th>Depende de</th><th>Avance %</th><th>Estado</th><th>Contrato / presup.</th><th></th><th>Pagado</th><th>Saldo</th>${state.cols.map(c=>`<th>${esc(c.nombre)}</th>`).join('')}</tr></thead>
     <tbody>${rows.map(({t,lvl})=>{const par=isPar(t),[e,c]=estado(t);const cps=costOf(t,'cp'),crs=costOf(t,'cr');return `
       <tr class="${par?'par':''}">
         <td class="num" style="color:var(--muted)">${W[t.id]}</td>
@@ -545,21 +557,21 @@ function renderTabla(){
         <td><button class="link" data-open="${t.id}">${t.deps.length?t.deps.map(d=>W[d.id]+(+d.lag?(d.lag>0?'+':'')+d.lag+'d':'')).join(', '):'—'}</button></td>
         <td>${par?`<span class="ro">${t.avance}</span>`:`<input type="number" min="0" max="100" data-f="avance" data-id="${t.id}" value="${t.avance}" style="width:72px" aria-label="Avance">`}</td>
         <td><span class="st ${c}">${e}</span></td>
-        ${par?`<td><span class="ro">${cps.u?money(cps.u,'USD'):''}</span></td><td class="computed">${cps.u?money(cps.h,'HNL'):''}</td><td><span class="ro">${crs.u?money(crs.u,'USD'):''}</span></td><td class="computed">${crs.u?money(crs.h,'HNL'):''}</td>`
+        ${par?`<td><span class="ro">${cps.u?money(cps.u,'USD'):''}</span></td><td class="computed">${cps.u?money(cps.h,'HNL'):''}</td><td><span class="ro">${crs.u?money(crs.u,'USD')+' · '+pct(crs.u,cps.u)+'%':''}</span></td><td><span class="ro">${cps.u?money(cps.u-crs.u,'USD'):''}</span></td>`
         :`<td><input type="number" step="any" data-f="cp" data-id="${t.id}" value="${t.cp??''}" style="width:120px" aria-label="Costo presupuestado"></td><td>${mon(t,'cp')}</td>
-          <td><input type="number" step="any" data-f="cr" data-id="${t.id}" value="${t.cr??''}" style="width:120px" aria-label="Costo real"></td><td>${mon(t,'cr')}</td>`}
+          <td><button class="link" data-open="${t.id}">${(t.pagos||[]).length?money(crs.u,'USD')+' · '+pct(crs.u,cps.u)+'%':'Registrar pago'}</button>${(t.pagos||[]).length?`<div class="computed">${t.pagos.length} pago${t.pagos.length>1?'s':''}</div>`:''}</td><td><span class="ro">${cps.u?money(cps.u-crs.u,'USD'):''}</span></td>`}
         ${state.cols.map(c=>`<td>${cell(t,c)}</td>`).join('')}
       </tr>`}).join('')}</tbody>
     <tfoot><tr><td></td><td>Totales (tipo de cambio L ${state.tc.toFixed(2)} por US$)</td><td colspan="8"></td>
       <td><span class="ro">${money(cp.u,'USD')}</span></td><td class="computed">${money(cp.h,'HNL')}</td>
-      <td><span class="ro">${money(cr.u,'USD')}</span></td><td class="computed">${money(cr.h,'HNL')}</td>
+      <td><span class="ro">${money(cr.u,'USD')}<br>${money(cr.h,'HNL')}</span></td><td><span class="ro">${money(cp.u-cr.u,'USD')}<br>${money(cp.h-cr.h,'HNL')}</span></td>
       ${state.cols.map(c=>{if(c.tipo!=='moneda')return'<td></td>';const x=colTotal(c);return `<td><span class="ro">${money(x.u,'USD')}<br>${money(x.h,'HNL')}</span></td>`}).join('')}</tr></tfoot>
   </table></div>
   <div style="height:12px"></div>
   <div class="totals">
-    <div class="kpi"><span class="lbl">Presupuestado</span><span class="big num" style="font-size:22px">${money(cp.u,'USD')}</span><span class="sm num">${money(cp.h,'HNL')}</span></div>
-    <div class="kpi"><span class="lbl">Real</span><span class="big num" style="font-size:22px">${money(cr.u,'USD')}</span><span class="sm num">${money(cr.h,'HNL')}</span></div>
-    <div class="kpi"><span class="lbl">Por ejecutar</span><span class="big num" style="font-size:22px">${money(cp.u-cr.u,'USD')}</span><span class="sm num">${money(cp.h-cr.h,'HNL')}</span></div>
+    <div class="kpi"><span class="lbl">Contratado / presupuesto</span><span class="big num" style="font-size:22px">${money(cp.u,'USD')}</span><span class="sm num">${money(cp.h,'HNL')}</span></div>
+    <div class="kpi"><span class="lbl">Pagado · ${pct(cr.u,cp.u)}%</span><span class="big num" style="font-size:22px">${money(cr.u,'USD')}</span><span class="sm num">${money(cr.h,'HNL')}</span></div>
+    <div class="kpi"><span class="lbl">Saldo por pagar</span><span class="big num" style="font-size:22px">${money(cp.u-cr.u,'USD')}</span><span class="sm num">${money(cp.h-cr.h,'HNL')}</span></div>
   </div>`;
 }
 
@@ -585,9 +597,16 @@ function renderDrawer(){
       </div>
       <div class="computed">${dur(t)} días calendario · holgura ${slack[t.id]<=0?'<b style="color:var(--crit)">0 días (ruta crítica)</b>':slack[t.id]+' días'}${t.base?` · en Asana: ${fd(t.base.ini)} → ${fd(t.base.fin)}`:''}${par?' · fechas calculadas de las subactividades':''}</div>
       <div class="f"><label for="d-av">Avance: ${t.avance}% ${par?'(calculado)':''} · esperado a hoy ${planned(t)}%</label><input id="d-av" type="range" min="0" max="100" step="5" data-f="avance" data-id="${t.id}" value="${t.avance}" ${par||present?'disabled':''}></div>
-      ${par?`<div class="row2"><div class="f"><span class="flbl">Costo presupuestado</span><span class="num">${money(cps.u,'USD')}<br>${money(cps.h,'HNL')}</span></div><div class="f"><span class="flbl">Costo real</span><span class="num">${money(crs.u,'USD')}<br>${money(crs.h,'HNL')}</span></div></div>`
-      :`<div class="f"><label for="d-cp">Costo presupuestado</label><div class="row3"><input id="d-cp" type="number" step="any" data-f="cp" data-id="${t.id}" value="${t.cp??''}" ${ro}><select data-f="cpMon" data-id="${t.id}" aria-label="Moneda" ${ro}><option value="USD" ${t.cpMon==='USD'?'selected':''}>US$</option><option value="HNL" ${t.cpMon==='HNL'?'selected':''}>L</option></select></div>${t.cp?`<span class="computed num">≈ ${t.cpMon==='USD'?money(toHNL(t.cp,'USD'),'HNL'):money(toUSD(t.cp,'HNL'),'USD')}</span>`:''}</div>
-        <div class="f"><label for="d-cr">Costo real</label><div class="row3"><input id="d-cr" type="number" step="any" data-f="cr" data-id="${t.id}" value="${t.cr??''}" ${ro}><select data-f="crMon" data-id="${t.id}" aria-label="Moneda" ${ro}><option value="USD" ${t.crMon==='USD'?'selected':''}>US$</option><option value="HNL" ${t.crMon==='HNL'?'selected':''}>L</option></select></div></div>`}
+      ${par?`<div class="f"><span class="flbl">Contratos y pagos de sus subactividades</span><div class="row3x"><div><span class="computed">Contratado</span><b class="num">${money(cps.u,'USD')}</b><span class="computed num">${money(cps.h,'HNL')}</span></div><div><span class="computed">Pagado · ${pct(crs.u,cps.u)}%</span><b class="num">${money(crs.u,'USD')}</b><span class="computed num">${money(crs.h,'HNL')}</span></div><div><span class="computed">Saldo</span><b class="num">${money(cps.u-crs.u,'USD')}</b><span class="computed num">${money(cps.h-crs.h,'HNL')}</span></div></div></div>`
+      :`<div class="f"><label for="d-cp">Monto del contrato o presupuesto</label><div class="row3"><input id="d-cp" type="number" step="any" data-f="cp" data-id="${t.id}" value="${t.cp??''}" ${ro}><select data-f="cpMon" data-id="${t.id}" aria-label="Moneda" ${ro}><option value="USD" ${t.cpMon==='USD'?'selected':''}>US$</option><option value="HNL" ${t.cpMon==='HNL'?'selected':''}>L</option></select></div>${t.cp?`<span class="computed num">≈ ${t.cpMon==='USD'?money(toHNL(t.cp,'USD'),'HNL'):money(toUSD(t.cp,'HNL'),'USD')}</span>`:''}</div>
+        <div class="row2"><div class="f"><label for="d-prov">Proveedor / contratista</label><input id="d-prov" data-f="prov" data-id="${t.id}" value="${esc(t.prov||'')}" placeholder="Ej. consultora ambiental" ${ro}></div>
+          <div class="f"><label for="d-ctr">No. de contrato u orden</label><input id="d-ctr" data-f="contrato" data-id="${t.id}" value="${esc(t.contrato||'')}" ${ro}></div></div>
+        <div class="f"><span class="flbl">Pagos realizados</span>
+          ${cps.u?`<div class="meter"><i style="width:${Math.min(100,pct(crs.u,cps.u))}%;background:var(--ok)"></i></div><div class="row3x"><div><span class="computed">Pagado · ${pct(crs.u,cps.u)}%</span><b class="num">${money(crs.u,'USD')}</b><span class="computed num">${money(crs.h,'HNL')}</span></div><div><span class="computed">Saldo por pagar</span><b class="num">${money(cps.u-crs.u,'USD')}</b><span class="computed num">${money(cps.h-crs.h,'HNL')}</span></div></div>`:'<span class="computed">Pon primero el monto del contrato para ver el porcentaje pagado y el saldo.</span>'}
+          <div class="deps">${(t.pagos||[]).map((p,i)=>`<div class="pago"><input type="date" data-pago="${i}" data-pf="fecha" value="${esc(p.fecha)}" aria-label="Fecha del pago" ${ro}><select data-pago="${i}" data-pf="concepto" aria-label="Concepto" ${ro}>${CONCEPTOS.map(c=>`<option ${c===p.concepto?'selected':''}>${c}</option>`).join('')}</select><input type="number" step="any" data-pago="${i}" data-pf="monto" value="${p.monto}" aria-label="Monto" ${ro}><select data-pago="${i}" data-pf="mon" aria-label="Moneda" ${ro}><option value="USD" ${p.mon==='USD'?'selected':''}>US$</option><option value="HNL" ${p.mon==='HNL'?'selected':''}>L</option></select><button class="x edit-only" data-delpago="${i}" aria-label="Quitar pago" title="Quitar">×</button></div>`).join('')||'<span class="computed">Sin pagos registrados.</span>'}</div>
+          <div class="pago edit-only"><input type="date" id="np-fecha" value="${TODAY}" aria-label="Fecha del nuevo pago"><select id="np-con" aria-label="Concepto">${CONCEPTOS.map(c=>`<option>${c}</option>`).join('')}</select><input type="number" step="any" id="np-monto" placeholder="Monto" aria-label="Monto del nuevo pago"><select id="np-mon" aria-label="Moneda"><option value="USD" ${t.cpMon==='USD'?'selected':''}>US$</option><option value="HNL" ${t.cpMon==='HNL'?'selected':''}>L</option></select><button class="btn sm" id="d-addpago">Agregar</button></div>
+          ${cps.u?`<div class="quick edit-only"><span class="computed">Rápido:</span>${[30,50].map(q=>`<button class="btn sm" data-qpago="${q}">Anticipo ${q}%</button>`).join('')}<button class="btn sm" data-qpago="saldo">Pagar saldo</button></div>`:''}
+        </div>`}
       ${state.cols.map(cl=>{const v=t.extra[cl.id]??'',a=`id="d-${cl.id}" data-x="${cl.id}" data-id="${t.id}" ${ro}`;return `<div class="f"><label for="d-${cl.id}">${esc(cl.nombre)}</label>${cl.tipo==='opciones'?`<select ${a}><option value=""></option>${cl.opciones.map(o=>`<option ${o===v?'selected':''}>${esc(o)}</option>`).join('')}</select>`:`<input ${a} type="${cl.tipo==='fecha'?'date':(cl.tipo==='texto'?'text':'number')}" value="${esc(v)}">`}</div>`}).join('')}
       <div class="f"><span class="flbl">No puede iniciar hasta que termine</span>
         <span class="computed">Si una de estas se atrasa, esta actividad se corre automáticamente. "Días de espera" es el tiempo extra entre que termina la anterior y empieza esta (0 = al día siguiente).</span>
@@ -645,13 +664,14 @@ function setField(t,f,v){
     if(f==='ini'){const du=D(t.fin)-D(t.ini);t.ini=v;t.fin=S(D(v)+du)}else{t.fin=D(v)<D(t.ini)?t.ini:v}
     return commit(t,(f==='ini'?'Inicio':'Fin')+': '+fd(f==='ini'?old:old)+' → '+fd(t[f]),sn)}
   t[f]=v;
-  const lbl={nombre:'Nombre',resp:'Responsable',avance:'Avance',cp:'Costo presupuestado',cr:'Costo real',cpMon:'Moneda presupuesto',crMon:'Moneda costo real',coment:'Comentario'}[f];
+  const lbl={nombre:'Nombre',resp:'Responsable',avance:'Avance',cp:'Monto del contrato',prov:'Proveedor',contrato:'No. de contrato',cpMon:'Moneda presupuesto',crMon:'Moneda costo real',coment:'Comentario'}[f];
   commit(t,f==='coment'?'Comentario actualizado':lbl+': '+(old??'—')+' → '+(f==='avance'?v+'%':(v??'—')),sn);
 }
 document.addEventListener('change',ev=>{
   const el=ev.target;
   if(el.dataset.f&&el.dataset.id){setField(T(el.dataset.id),el.dataset.f,el.value);return}
   if(el.dataset.x&&el.dataset.id){const t=T(el.dataset.id),c=state.cols.find(c=>c.id===el.dataset.x);t.extra[c.id]=(c.tipo==='numero'||c.tipo==='moneda')&&el.value!==''?+el.value:el.value;log(t,c.nombre+': '+(el.value||'—'));render();return}
+  if(el.dataset.pago!==undefined){const t=T(openId),p=t.pagos[+el.dataset.pago],f=el.dataset.pf;p[f]=f==='monto'?(+el.value||0):el.value;log(t,'Pago editado: '+p.concepto+' '+money(p.monto,p.mon));render();return}
   if(el.dataset.lag!==undefined){const t=T(openId),sn=snap();t.deps[+el.dataset.lag].lag=+el.value||0;commit(t,'Desfase de dependencia: '+(+el.value||0)+' días',sn)}
 });
 document.addEventListener('input',ev=>{if(ev.target.id==='d-av'){const l=ev.target.previousElementSibling;if(l)l.firstChild.textContent='Avance: '+ev.target.value+'% '}});
@@ -666,6 +686,9 @@ document.addEventListener('click',ev=>{
   if(el.dataset.mclose){closeModal();return}
   if(el.dataset.deldep!==undefined){const t=T(openId),d=t.deps.splice(+el.dataset.deldep,1)[0];log(t,'Quitada dependencia de '+T(d.id).nombre);commit(null,null,snap());return}
   if(el.dataset.delp!==undefined){state.people.splice(+el.dataset.delp,1);render();respModal();return}
+  if(el.dataset.delpago!==undefined){const t=T(openId),p=t.pagos.splice(+el.dataset.delpago,1)[0];log(t,'Pago quitado: '+p.concepto+' '+money(p.monto,p.mon));render();return}
+  if(el.dataset.qpago){const t=T(openId);t.pagos=t.pagos||[];const tot=+t.cp||0;const paidIn=amt(t,'cr')[t.cpMon==='HNL'?'h':'u'];const q=el.dataset.qpago;const m=q==='saldo'?Math.max(0,tot-paidIn):tot*(+q)/100;if(!m){toast('No hay saldo pendiente');return}
+    t.pagos.push({fecha:TODAY,concepto:q==='saldo'?'Pago final':'Anticipo',monto:Math.round(m*100)/100,mon:t.cpMon});log(t,'Pago registrado: '+(q==='saldo'?'Pago final ':'Anticipo '+q+'% ')+money(m,t.cpMon));render();toast('Pago registrado. Corrige la fecha si no fue hoy.');return}
   if(el.dataset.delcol){state.cols=state.cols.filter(c=>c.id!==el.dataset.delcol);render();colsModal();return}
   const id=el.id;
   if(id==='b-add'){const t={id:nid(),parent:null,origen:'agregada',nombre:'Nueva actividad',resp:'Cristhyan Vallejo',ini:TODAY,fin:S(D(TODAY)+13),deps:[],avance:0,cp:null,cpMon:'USD',cr:null,crMon:'USD',coment:'',base:null,extra:{}};state.tasks.push(t);log(t,'Actividad principal agregada');openId=t.id;commit(null,null,snap());setTimeout(()=>$('#d-nombre')?.select(),30);return}
@@ -678,6 +701,7 @@ document.addEventListener('click',ev=>{
     try{if(present)document.documentElement.requestFullscreen?.().catch(()=>{});else if(document.fullscreenElement)document.exitFullscreen?.().catch(()=>{})}catch(e){}render();return}
   if(id==='c-add'){const n=$('#c-n').value.trim();if(!n){$('#c-n').focus();return}const tp=$('#c-t').value;state.cols.push({id:'c'+(++uid),nombre:n,tipo:tp,mon:$('#c-m').value,opciones:$('#c-o').value.split(',').map(s=>s.trim()).filter(Boolean)});log(null,'Columna agregada: '+n);render();colsModal();toast('Columna "'+n+'" agregada');return}
   if(id==='tc-save'){const v=+$('#tc-v').value;if(v>0){state.tc=v;state.tcFecha=$('#tc-f').value||state.tcFecha;log(null,'Tipo de cambio: L '+v.toFixed(4))}closeModal();render();return}
+  if(id==='d-addpago'){const m=+$('#np-monto').value;if(!m){$('#np-monto').focus();return}const t=T(openId);t.pagos=t.pagos||[];const p={fecha:$('#np-fecha').value||TODAY,concepto:$('#np-con').value,monto:m,mon:$('#np-mon').value};t.pagos.push(p);t.pagos.sort((a,b)=>a.fecha<b.fecha?-1:1);log(t,'Pago registrado: '+p.concepto+' '+money(m,p.mon));render();return}
   if(id==='d-adddep'){const v=$('#d-newdep').value;if(!v)return;const t=T(openId),sn=snap();t.deps.push({id:v,lag:0});commit(t,'Nueva predecesora: '+T(v).nombre,sn);return}
   if(id==='d-sub'){const p=T(openId);const t={id:nid(),parent:p.id,origen:'agregada',nombre:'Nueva subactividad',resp:p.resp,ini:p.ini,fin:S(D(p.ini)+6),deps:[],avance:0,cp:null,cpMon:'USD',cr:null,crMon:'USD',coment:'',base:null,extra:{}};state.tasks.push(t);collapsed.delete(p.id);log(t,'Subactividad agregada en '+p.nombre);openId=t.id;commit(null,null,snap());setTimeout(()=>$('#d-nombre')?.select(),30);return}
   if(id==='d-up'||id==='d-down'){const t=T(openId),sib=kids(t.parent),i=sib.indexOf(t),j=id==='d-up'?i-1:i+1;if(j<0||j>=sib.length)return;const a=state.tasks.indexOf(t),b=state.tasks.indexOf(sib[j]);[state.tasks[a],state.tasks[b]]=[state.tasks[b],state.tasks[a]];render();return}
@@ -753,7 +777,7 @@ function applyRemote(o){
   state.tc=+o.tc||state.tc;state.tcFecha=o.tcFecha||state.tcFecha;
   state.people=Array.isArray(o.people)?o.people:state.people;
   state.cols=Array.isArray(o.cols)?o.cols:[];state.tasks=Array.isArray(o.tasks)?o.tasks:[];state.hist=Array.isArray(o.hist)?o.hist:[];
-  for(const t of state.tasks){t.deps=t.deps||[];t.extra=t.extra||{}}
+  for(const t of state.tasks){t.deps=t.deps||[];t.extra=t.extra||{};if(!t.pagos){t.pagos=t.cr?[{fecha:TODAY,concepto:'Otro',monto:+t.cr,mon:t.crMon||'USD'}]:[]}delete t.cr;delete t.crMon}
   const nums=[...state.tasks.map(t=>t.id),...state.cols.map(c=>c.id)].map(x=>+String(x).replace(/\D/g,'')||0);
   uid=Math.max(100,...nums);
 }
