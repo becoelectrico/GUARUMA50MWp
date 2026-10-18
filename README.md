@@ -18,3 +18,9 @@ Plataforma de seguimiento del Proyecto Solar Guaruma 50 MW (Empresa Hondureña d
 ## Azure (registro de la app)
 En *Autenticación*, plataforma **Aplicación de página única (SPA)**, Redirect URI exactamente igual a la dirección de GitHub Pages, con `/` al final.
 Permisos delegados de Microsoft Graph: `User.Read`, `Files.ReadWrite`.
+
+## Módulo: Cronograma Licencia Ambiental (`cronograma-eia/`)
+Cronograma detallado (Gantt, tabla, costos en L y US$) de la sección *Licencia ambiental* de Asana. Asana se mantiene como resumen; este módulo no escribe en Asana.
+- **Datos:** `Proyecto CAHSA 50 MW/Estudio de Impacto Ambiental/App Cronograma EIA/cronograma.json` (la app crea la carpeta y el archivo la primera vez), con subcarpetas `respaldos/` (copia semanal automática), `importaciones/` e `informes/`.
+- **Azure:** agregar como Redirect URI (SPA) la dirección del módulo, con `/` al final: `https://becoelectrico.github.io/<repositorio>/cronograma-eia/`.
+- **Service worker propio:** `cronograma-eia/sw.js` (subir `VERSION` en cada cambio).

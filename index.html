@@ -591,6 +591,7 @@ function drawNav(route) {
     `<button class="nav" id="frbtn" aria-expanded="${frOpen}" data-tip-c="Frentes">${ic('layers')}<span class="lbl">Frentes</span><span class="cnt">${F.length}</span>${ic('chev', 'chev')}</button>` +
     `<div class="sub" ${frOpen ? '' : 'hidden'}>${frItems}<a class="nav" href="#frentes" ${route === 'frentes' ? 'aria-current="page"' : ''}><span class="lbl faint">Ver todos</span></a></div>` +
     grp('Control') + ROUTES.slice(2, 6).map((r) => item(r)).join('') +
+    `<a class="nav" href="cronograma-eia/" data-tip-side="right" data-tip-c="Licencia ambiental · cronograma">${ic('cal')}<span class="lbl">Licencia ambiental</span><span class="cnt">Detalle</span></a>` +
     grp('Archivo') + ROUTES.slice(6).map((r) => item(r)).join('');
   $('#frbtn').onclick = () => { frOpen = !frOpen; drawNav(route); };
 }
