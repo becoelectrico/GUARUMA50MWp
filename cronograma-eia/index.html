@@ -760,8 +760,9 @@ const CFG={
   clientId:'f6cd3474-bcc7-4387-8046-30157ab7704f',
   tenantId:'79702418-9618-4959-9b30-5ccee5296be9',
   driveId:'b!odPVE-52iUujQ51urc-Lo313bV6eZH1Ou3oQ1j-14VSu1HnnnNkLSKc1U1wiIZh2',
-  parent:'Proyecto CAHSA 50 MW/Estudio de Impacto Ambiental',
-  folder:'App Cronograma EIA',
+  parent:'Proyecto CAHSA 50 MW/00_Plataforma',
+  folder:'Cronograma Licencia Ambiental',
+  oldDir:'Proyecto CAHSA 50 MW/Estudio de Impacto Ambiental/App Cronograma EIA',
   file:'cronograma.json',
   scopes:['User.Read','Files.ReadWrite']
 };
@@ -818,6 +819,15 @@ async function load(quiet){
     let meta;
     try{meta=await itemMeta(rel)}
     catch(e){
+      if(e.status===404&&!load.moved){
+        load.moved=1;
+        try{
+          const old=await itemMeta(CFG.oldDir);const par=await itemMeta(CFG.parent);
+          try{await itemMeta(DIR())}catch(e3){if(e3.status!==404)throw e3;
+            await graph(`${BASE}/items/${old.id}`,{method:'PATCH',json:true,body:JSON.stringify({parentReference:{id:par.id},name:CFG.folder})});
+            toast('Moví el cronograma a 00_Plataforma\\'+CFG.folder);return load(quiet)}
+        }catch(e2){if(e2.status!==404)throw e2}
+      }
       if(e.status===404){
         await ensureFolder();
         schedule();loaded=true;await saveNow(true);
