@@ -24,3 +24,10 @@ Cronograma detallado (Gantt, tabla, costos en L y US$) de la sección *Licencia 
 - **Datos:** `Proyecto CAHSA 50 MW/00_Plataforma/Cronograma Licencia Ambiental/cronograma.json` (la app crea la carpeta y el archivo la primera vez), con subcarpetas `respaldos/` (copia semanal automática), `importaciones/` e `informes/`.
 - **Azure:** agregar como Redirect URI (SPA) la dirección del módulo, con `/` al final: `https://becoelectrico.github.io/<repositorio>/cronograma-eia/`.
 - **Service worker propio:** `cronograma-eia/sw.js` (subir `VERSION` en cada cambio).
+
+## Módulo: Consultas (`#consultas` en `index.html`)
+Matriz de consultas del EsIA (EHG-SOL-001) y de cualquier otro frente, con la respuesta y los documentos que la respaldan.
+- **Datos:** hojas `Consultas` (tabla `tConsultas`, una fila por consulta, columna `Frente`) y `Consulta docs` (tabla `tConsultaDocs`, una fila por documento ligado) del Excel maestro.
+- **Códigos en `tConsultaDocs`:** el de la consulta (L1, AP6…); `H01`–`H13` = documento de la hoja completa; `GEN` = general del EsIA; `OTROS` = otros documentos.
+- Se edita desde la plataforma (estado, respuesta, quién respondió, documentos ligados); cada cambio queda en la Bitácora. "Descargar Excel" exporta la matriz con los filtros aplicados.
+

@@ -455,6 +455,45 @@ a.btn{text-decoration:none;color:inherit}
 .seg button{border:0;background:none;padding:6px 12px;cursor:pointer;font-size:12.5px;color:var(--ink-2)}
 .seg button[aria-pressed="true"]{background:var(--navy);color:#fff}
 
+/* Consultas EIA */
+.cq-st{display:flex;height:10px;border-radius:999px;overflow:hidden;background:var(--track)}
+.cq-st>i{display:block;height:100%}
+.cq-c-ok{background:var(--ok)}.cq-c-info{background:var(--info)}.cq-c-warn{background:var(--amber)}.cq-c-hold{background:var(--hold)}.cq-c-bad{background:var(--bad)}
+.cq-leg{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:12px;color:var(--ink-2);padding:0 18px 14px}
+.cq-leg span{display:inline-flex;align-items:center;gap:6px}.cq-leg i{width:9px;height:9px;border-radius:3px;display:inline-block}
+.cq-rows{display:grid}
+.cq-row{display:grid;grid-template-columns:34px minmax(0,1.3fr) minmax(90px,1fr) 64px;gap:12px;align-items:center;padding:9px 18px;border-bottom:1px solid var(--line-2);cursor:pointer;font-size:13px}
+.cq-row:last-child{border-bottom:0}.cq-row:hover,.cq-row.on{background:var(--surface-2)}
+.cq-row .n{font-variant-numeric:tabular-nums;color:var(--ink-3);font-size:12px}
+.cq-row .r{text-align:right;font-variant-numeric:tabular-nums;font-size:12.5px;color:var(--ink-2)}
+.cq-resp{grid-template-columns:minmax(0,1fr) 40px minmax(80px,140px)}
+.cq-filters{display:flex;flex-wrap:wrap;gap:8px;padding:12px 18px;border-bottom:1px solid var(--line-2);align-items:center}
+.cq-filters input,.cq-filters select{font:inherit;font-size:13px;color:var(--ink);background:var(--surface-2);border:1px solid var(--line);border-radius:8px;height:34px;padding:0 10px;min-width:0}
+.cq-filters input{flex:1 1 220px}
+.cq-filters select{flex:0 1 180px}
+.cq-code{font-weight:650;font-variant-numeric:tabular-nums;white-space:nowrap}
+.cq-dn{display:inline-flex;align-items:center;gap:4px;font-size:12px;color:var(--ink-3);white-space:nowrap}
+.cq-dn svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:1.8}
+.dlg.wide{width:min(1180px,calc(100vw - 24px))}
+.cq-dlg{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);min-height:0;overflow:hidden}
+.cq-info{padding:16px 20px;overflow:auto;display:grid;gap:14px;align-content:start;border-right:1px solid var(--line-2)}
+.cq-info h3{font-size:12px;font-weight:600;color:var(--ink-3);margin:0 0 4px;text-transform:uppercase;letter-spacing:.04em}
+.cq-info p{margin:0;font-size:13.5px;white-space:pre-wrap}
+.cq-q{font-size:15px;font-weight:550;line-height:1.4}
+.cq-meta{display:grid;grid-template-columns:1fr 1fr;gap:10px 16px;font-size:13px}
+.cq-meta .k{display:block;font-size:11.5px;color:var(--ink-3)}
+.cq-docs{display:grid;border:1px solid var(--line-2);border-radius:8px;overflow:hidden}
+.cq-doc{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:10px;align-items:center;padding:8px 10px;border-bottom:1px solid var(--line-2);cursor:pointer;font-size:13px}
+.cq-doc:last-child{border-bottom:0}.cq-doc:hover,.cq-doc.on{background:var(--surface-2)}
+.cq-doc .dn{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cq-doc .dm{font-size:11.5px;color:var(--ink-3);white-space:normal}
+.cq-pv{display:grid;grid-template-rows:auto minmax(0,1fr);min-height:420px;background:var(--surface-2)}
+.cq-pv iframe{width:100%;height:100%;border:0;background:#fff}
+.cq-pick{display:grid;gap:10px;align-content:start}
+.cq-pick .dcrumbs{flex-wrap:wrap;row-gap:2px}
+.cq-pick .doclist{max-height:46vh;border:1px solid var(--line-2);border-radius:8px}
+@media (max-width:860px){.cq-dlg{grid-template-columns:1fr;overflow:auto}.cq-info{border-right:0;border-bottom:1px solid var(--line-2);overflow:visible}.cq-pv{min-height:60vh}.cq-row{grid-template-columns:28px minmax(0,1fr) 54px}.cq-row .cq-st{grid-column:2/-1;grid-row:2}}
+
 /* Mobile */
 @media (max-width:860px){
   .app,.app.collapsed{grid-template-columns:minmax(0,1fr)}
@@ -510,6 +549,7 @@ a.btn{text-decoration:none;color:inherit}
 <div class="tip" id="tip" role="tooltip"></div>
 <dialog class="dlg" id="dlg"></dialog>
 <input type="file" id="upl" multiple hidden>
+<input type="file" id="cq-upl" hidden>
 
 <script>
 (() => {
@@ -545,6 +585,9 @@ const ICON = {
   report: '<path d="M5 3h14v18H5z"/><path d="M9 8h6M9 12h6M9 16h3"/>',
   folder: '<path d="M3 6h6l2 2h10v11H3z"/>',
   clock: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+  quest: '<path d="M4 5h16v11H9l-5 4z"/><path d="M10 9a2 2 0 1 1 2.8 1.8c-.5.3-.8.7-.8 1.2M12 13.5v.3"/>',
+  link: '<path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/>',
+  dl: '<path d="M12 4v11M7 10l5 5 5-5"/><path d="M5 20h14"/>',
   chev: '<path d="m9 6 6 6-6 6"/>', plus: '<path d="M12 5v14M5 12h14"/>', ext: '<path d="M14 4h6v6M20 4l-9 9"/><path d="M18 14v6H4V6h6"/>', edit: '<path d="M4 20h4L19 9l-4-4L4 16z"/>'
 };
 const ic = (n, cls = '') => `<svg viewBox="0 0 24 24" class="${cls}">${ICON[n]}</svg>`;
@@ -552,7 +595,7 @@ const ic = (n, cls = '') => `<svg viewBox="0 0 24 24" class="${cls}">${ICON[n]}<
 // Status → tone
 const TONE = {
   'En tiempo':'ok','Completado':'ok','Cerrada':'ok','Firmado':'ok','Pagado':'ok','Adjudicada':'ok','Cumplido':'ok','Tomada':'ok','Mitigado':'ok','Cerrado':'ok','Terminado':'ok',
-  'En curso':'info','En ejecución':'info','En evaluación':'info','Recibida':'info','Programado':'info',
+  'En curso':'info','En ejecución':'info','En proceso':'info','En espera de formato':'hold','Sin respuesta':'bad','En evaluación':'info','Recibida':'info','Programado':'info',
   'Atención':'warn','Pendiente':'warn','Medio':'warn','Solicitada':'warn','Abierto':'warn',
   'Crítico':'bad','Alto':'bad','Descartada':'mute',
   'En espera':'hold','Borrador':'hold',
@@ -562,11 +605,12 @@ const tone = (s) => TONE[s] || 'mute';
 const pill = (s, tip) => `<span class="pill s-${tone(s)}"${tip ? ` data-tip="${esc(tip)}"` : ''}>${esc(s)}</span>`;
 const ext = (n) => { const e = (n.split('.').pop() || '').toLowerCase(); const map = { pdf: 'pdf', docx: 'docx', doc: 'docx', xlsx: 'xlsx', pptx: 'pptx', dwg: 'dwg' }; return [map[e] || 'other', e.slice(0, 4).toUpperCase()]; };
 
-let HIST = [], P = {}, FX = 27.0272, F = [], C = [], PG = [], O = [], A = [], R = [], DC = [], INF = [], BIT = [], PRES = [], PZ = [], AS = [], fById = {};
+let CQ = [], CD = [], HIST = [], P = {}, FX = 27.0272, F = [], C = [], PG = [], O = [], A = [], R = [], DC = [], INF = [], BIT = [], PRES = [], PZ = [], AS = [], fById = {};
 function applyData(D) {
   DATA = D; P = D.Proyecto || {}; FX = Number(P['Tasa de cambio de referencia (L por US$)']) || 27.0272;
   F = D.Frentes || []; C = D.Contratos || []; PG = D.Pagos || []; O = D.Ofertas || []; A = D.Actividades || []; R = D.Riesgos || []; DC = D.Pendientes || []; INF = D.Informes || []; BIT = D['Bitácora'] || []; PRES = D.Presupuesto || []; PZ = (D.Plazos || []).map((p) => ({ ...p })); AS = D['Cronograma Asana'] || [];
   fById = Object.fromEntries(F.map((f) => [f.ID, f])); HIST = D['Historial avance'] || [];
+  CQ = D.Consultas || []; CD = D['Consulta docs'] || [];
 }
 const contractsOf = (id) => C.filter((c) => c.Frente === id);
 const paysOf = (n) => PG.filter((p) => p.Contrato === n);
@@ -579,7 +623,7 @@ const fin = (id) => {
 // ---------- Nav ----------
 const ROUTES = [
   ['resumen', 'Resumen', 'home'], ['frentes', 'Frentes', 'layers'], ['contratos', 'Contratos y pagos', 'contract'], ['ofertas', 'Ofertas', 'tag'],
-  ['cronograma', 'Cronograma', 'cal'], ['pendientes', 'Pendientes y riesgos', 'alert'], ['reporte', 'Reporte semanal', 'send'], ['informes', 'Informes semanales', 'report'], ['documentos', 'Documentos', 'folder'], ['bitacora', 'Bitácora', 'clock']
+  ['cronograma', 'Cronograma', 'cal'], ['pendientes', 'Pendientes y riesgos', 'alert'], ['consultas', 'Consultas', 'quest'], ['reporte', 'Reporte semanal', 'send'], ['informes', 'Informes semanales', 'report'], ['documentos', 'Documentos', 'folder'], ['bitacora', 'Bitácora', 'clock']
 ];
 let frOpen = (() => { try { return localStorage.getItem('guaruma.frOpen') === '1'; } catch (_) { return false; } })();
 function drawNav(route) {
@@ -591,9 +635,9 @@ function drawNav(route) {
   nav.innerHTML = grp('Proyecto') + item(ROUTES[0]) +
     `<button class="nav" id="frbtn" aria-expanded="${frShow}" data-tip-c="Frentes">${ic('layers')}<span class="lbl">Frentes</span><span class="cnt">${F.length}</span>${ic('chev', 'chev')}</button>` +
     `<div class="sub" ${frShow ? '' : 'hidden'}>${frItems}<a class="nav" href="#frentes" ${route === 'frentes' ? 'aria-current="page"' : ''}><span class="lbl faint">Ver todos</span></a></div>` +
-    grp('Control') + ROUTES.slice(2, 6).map((r) => item(r)).join('') +
+    grp('Control') + ROUTES.slice(2, 6).map((r) => item(r)).join('') + item(ROUTES[6], CQ.length ? `<span class="cnt" data-tip="Consultas abiertas">${CQ.filter((q) => q.Estado !== 'Cerrada').length}</span>` : '') +
     `<a class="nav" href="cronograma-eia/" data-tip-side="right" data-tip-c="Licencia ambiental · cronograma">${ic('cal')}<span class="lbl">Licencia ambiental</span><span class="cnt">Detalle</span></a>` +
-    grp('Archivo') + ROUTES.slice(6).map((r) => item(r)).join('');
+    grp('Archivo') + ROUTES.slice(7).map((r) => item(r)).join('');
   $('#frbtn').onclick = () => { frOpen = !frOpen; try { localStorage.setItem('guaruma.frOpen', frOpen ? '1' : '0'); } catch (_) {} drawNav(route); };
 }
 
@@ -737,7 +781,7 @@ function vFrente(id) {
       <section class="panel"><div class="ph"><h2 class="h2">Pendientes y riesgos</h2></div>
         <div class="pd-list">${dcs.map((d) => pendCard(d)).join('')}</div><div class="list">
         ${rs.map((r) => `<div class="li"><span class="tag">${r.ID}</span><div class="what"><b>${esc(r.Tema)}.</b> ${esc(r.Impacto)}<div class="faint small">Acción: ${esc(r['Acción propuesta'])}</div></div>${pill(r.Nivel)}</div>`).join('')}
-        ${!rs.length && !dcs.length ? '<div class="empty">Sin pendientes ni riesgos abiertos.</div>' : ''}</div></section></div>`;
+        ${!rs.length && !dcs.length ? '<div class="empty">Sin pendientes ni riesgos abiertos.</div>' : ''}</div></section></div>${cqFrentePanel(id)}`;
   } else if (fTab === 'ofertas') {
     body = `<section class="panel"><div class="ph"><div><h2 class="h2">Ofertas</h2>${pres ? `<p>Presupuesto de la partida: US$ ${nf.format(pres['Presupuesto US$'])}</p>` : ''}</div><button class="btn" type="button" data-new="Ofertas" data-preset="${encodeURIComponent('Frente=' + id)}">${ic('plus')}Agregar oferta</button></div>
       ${ofs.length ? `<div class="tbl-wrap"><table class="t"><thead><tr><th>Proveedor</th><th>Referencia</th><th class="num">Monto</th><th>Vs. presupuesto</th><th>Alcance</th><th>Estado</th><th></th></tr></thead><tbody>
@@ -931,21 +975,282 @@ function vBit() {
     ${BIT.slice().reverse().map((b) => `<tr><td class="nowrap tnum"><b>${esc(b['Fecha y hora'])}</b></td><td>${esc(b.Cambio)}</td><td class="small">${esc(b['Hecho por'])}</td></tr>`).join('')}</tbody></table></div></section>`;
 }
 
+// ---------- Consultas (matriz EHG-SOL-001 y otras) ----------
+const CQ_EST = ['Sin respuesta', 'Pendiente', 'En proceso', 'En espera de formato', 'Cerrada'];
+const CQ_ORDER = ['Cerrada', 'En proceso', 'Pendiente', 'En espera de formato', 'Sin respuesta'];
+const CQ_TONE = { Cerrada: 'ok', 'En proceso': 'info', Pendiente: 'warn', 'En espera de formato': 'hold', 'Sin respuesta': 'bad' };
+const uniq = (a) => [...new Set(a.filter((x) => x != null && String(x).trim() !== '').map((x) => String(x).trim()))].sort((x, y) => x.localeCompare(y, 'es'));
+const hojaCode = (h) => h == null || h === '' ? '' : 'H' + String(h).padStart(2, '0');
+const cqByCode = (c) => CQ.find((q) => String(q['Código']) === String(c));
+const docsOf = (q) => CD.filter((d) => String(d['Código']) === String(q['Código']));
+const hojaDocsOf = (q) => { const h = hojaCode(q.Hoja); return h ? CD.filter((d) => d['Código'] === h) : []; };
+const CQF = { q: '', fr: '', hoja: '', est: '', resp: '' };
+let CQSEL = null, CQPV = null, CQPK = null;
+function cqCounts(rows) { const c = { total: rows.length }; CQ_ORDER.forEach((e) => { c[e] = rows.filter((q) => q.Estado === e).length; }); return c; }
+function cqBar(c, tipPre = '') {
+  const t = c.total || 1;
+  return `<span class="cq-st" data-tip="${esc(tipPre)}${CQ_ORDER.filter((e) => c[e]).map((e) => `${c[e]} ${e.toLowerCase()}`).join('<br>')}">${CQ_ORDER.map((e) => c[e] ? `<i class="cq-c-${CQ_TONE[e]}" style="width:${c[e] / t * 100}%"></i>` : '').join('')}</span>`;
+}
+function cqFiltered() {
+  const q = CQF.q.trim().toLowerCase();
+  return CQ.filter((r) => (!CQF.fr || r.Frente === CQF.fr) && (!CQF.hoja || String(r.Hoja) === CQF.hoja) && (!CQF.est || (CQF.est === 'Abiertas' ? r.Estado !== 'Cerrada' : r.Estado === CQF.est)) && (!CQF.resp || r['Responsable actual'] === CQF.resp)
+    && (!q || ['Código', 'Consulta', 'Respuesta', 'Área', 'Responsable actual', 'Respondió', 'Siguiente acción', 'Observaciones'].some((k) => String(r[k] ?? '').toLowerCase().includes(q))));
+}
+function vConsultas() {
+  const c = cqCounts(CQ), pct = c.total ? c.Cerrada / c.total : 0;
+  const hojas = uniq(CQ.map((q) => q.Hoja)).map(Number).sort((a, b) => a - b);
+  const open = CQ.filter((q) => q.Estado !== 'Cerrada');
+  const resp = uniq(open.map((q) => q['Responsable actual'])).map((r) => ({ r, rows: open.filter((q) => q['Responsable actual'] === r) })).sort((a, b) => b.rows.length - a.rows.length);
+  const otros = CD.filter((d) => d['Código'] === 'GEN' || d['Código'] === 'OTROS');
+  const kpi = (k, v, n, extra = '', est = '') => `<div class="kpi"${est ? ` style="cursor:pointer" data-cqest="${esc(est)}"` : ''}><div class="k">${k}</div><div class="v">${v}</div>${extra}<div class="n">${n}</div></div>`;
+  if (!CQ.length) return `<section class="cover"><div><h1 class="h1">Consultas</h1><div class="loc">Todavía no hay consultas en la hoja "Consultas" del archivo maestro.</div></div><div class="status-card"><button class="btn primary" type="button" data-new="Consultas" data-preset="${encodeURIComponent('Frente=F02')}">${ic('plus')}Agregar consulta</button></div></section>`;
+  return `<section class="cover"><div><h1 class="h1">Consultas</h1><div class="loc">Lo que nos piden la consultora y los demás frentes, la respuesta recibida y los documentos que la respaldan. Se guarda en la hoja "Consultas" del archivo maestro.</div></div>
+    <div class="status-card" style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn" type="button" data-cqexport="1">${ic('dl')}Descargar Excel</button><button class="btn primary" type="button" data-new="Consultas" data-preset="${encodeURIComponent('Frente=' + (CQF.fr || 'F02') + (CQF.hoja ? '&Hoja=' + CQF.hoja : ''))}">${ic('plus')}Agregar consulta</button></div></section>
+    <section class="panel band">
+      ${kpi('Cerradas', `${c.Cerrada}<small style="margin-left:4px">de ${c.total}</small>`, `${Math.round(pct * 100)} % respondidas`, `<div class="meter thin"><span style="width:${pct * 100}%;background:var(--ok)"></span></div>`, 'Cerrada')}
+      ${kpi('Sin respuesta', c['Sin respuesta'], 'Hojas enviadas sin contestar', '', 'Sin respuesta')}
+      ${kpi('Pendientes', c.Pendiente, 'Sin respuesta o reasignadas', '', 'Pendiente')}
+      ${kpi('En proceso', c['En proceso'], 'Respuesta parcial o depende de algo', '', 'En proceso')}
+      ${kpi('En espera de formato', c['En espera de formato'], 'Esperan el formato de la consultora', '', 'En espera de formato')}
+    </section>
+    <div class="grid2">
+      <section class="panel"><div class="ph"><div><h2 class="h2">Avance por hoja</h2><p>Toca una hoja para ver sus consultas.</p></div></div>
+        <div class="cq-leg" style="padding-top:12px">${CQ_ORDER.map((e) => `<span><i class="cq-c-${CQ_TONE[e]}"></i>${e}</span>`).join('')}</div>
+        <div class="cq-rows">${hojas.map((h) => { const rs = CQ.filter((q) => Number(q.Hoja) === h), k = cqCounts(rs);
+          return `<div class="cq-row${CQF.hoja === String(h) ? ' on' : ''}" data-cqhoja="${h}" tabindex="0"><span class="n">${String(h).padStart(2, '0')}</span><span>${esc(rs[0]['Área'] || '')}</span>${cqBar(k)}<span class="r">${k.Cerrada}/${k.total}</span></div>`; }).join('')}</div></section>
+      <section class="panel"><div class="ph"><div><h2 class="h2">Abiertas por responsable</h2><p>${open.length} consultas sin cerrar. Toca un responsable para filtrar.</p></div></div>
+        <div class="cq-rows">${resp.map(({ r, rows }) => `<div class="cq-row cq-resp${CQF.resp === r ? ' on' : ''}" data-cqresp="${esc(r)}" tabindex="0"><span>${esc(r)}</span><span class="r"><b>${rows.length}</b></span>${cqBar({ ...cqCounts(rows), total: rows.length })}</div>`).join('')}</div></section>
+    </div>
+    <section class="panel" id="cq-list">
+      <div class="ph"><div><h2 class="h2">Todas las consultas</h2><p id="cq-n"></p></div><button class="btn sm" type="button" data-cqclear="1">Quitar filtros</button></div>
+      <div class="cq-filters">
+        <input id="cq-q" type="search" placeholder="Buscar código, consulta, respuesta, responsable…" value="${esc(CQF.q)}" aria-label="Buscar consultas">
+        <select data-cqsel="fr" aria-label="Frente"><option value="">Todos los frentes</option>${uniq(CQ.map((q) => q.Frente)).map((f) => `<option value="${esc(f)}"${CQF.fr === f ? ' selected' : ''}>${esc(f)} · ${esc(fById[f]?.Frente || '')}</option>`).join('')}</select>
+        <select data-cqsel="hoja" aria-label="Hoja"><option value="">Todas las hojas</option>${hojas.map((h) => `<option value="${h}"${CQF.hoja === String(h) ? ' selected' : ''}>Hoja ${h} · ${esc(CQ.find((q) => Number(q.Hoja) === h)['Área'] || '')}</option>`).join('')}</select>
+        <select data-cqsel="est" aria-label="Estado"><option value="">Todos los estados</option><option value="Abiertas"${CQF.est === 'Abiertas' ? ' selected' : ''}>Abiertas (no cerradas)</option>${CQ_ORDER.map((e) => `<option${CQF.est === e ? ' selected' : ''}>${e}</option>`).join('')}</select>
+        <select data-cqsel="resp" aria-label="Responsable"><option value="">Todos los responsables</option>${uniq(CQ.map((q) => q['Responsable actual'])).map((r) => `<option value="${esc(r)}"${CQF.resp === r ? ' selected' : ''}>${esc(r)}</option>`).join('')}</select>
+      </div>
+      <div id="cq-tbl"></div>
+    </section>
+    <section class="panel"><div class="ph"><div><h2 class="h2">Otros documentos</h2><p>Documentos generales del EsIA y otros que no responden a una consulta en particular.</p></div></div>
+      ${otros.length ? `<div class="list">${otros.map((d) => cqDocRow(d, 'otros')).join('')}</div>` : '<div class="empty">Sin documentos generales.</div>'}</section>`;
+}
+function drawCqTable() {
+  const box = document.getElementById('cq-tbl'); if (!box) return;
+  const rows = cqFiltered().slice().sort((a, b) => (Number(a.Hoja) || 99) - (Number(b.Hoja) || 99) || CQ.indexOf(a) - CQ.indexOf(b));
+  const n = document.getElementById('cq-n'); if (n) n.textContent = rows.length === CQ.length ? `${CQ.length} consultas. Toca una para ver la respuesta y sus documentos.` : `${rows.length} de ${CQ.length} consultas con los filtros aplicados.`;
+  box.innerHTML = rows.length ? `<div class="tbl-wrap"><table class="t"><thead><tr><th>Código</th><th>Consulta</th><th>Responsable actual</th><th>Estado</th><th>Actualizado</th><th>Docs.</th><th></th></tr></thead><tbody>
+    ${rows.map((q) => { const nd = docsOf(q).length;
+      return `<tr class="click" data-cq="${esc(q['Código'])}"><td><span class="cq-code">${esc(q['Código'])}</span><div class="faint small">Hoja ${esc(q.Hoja ?? '—')}</div></td><td style="min-width:260px">${esc(q.Consulta)}${q.Estado !== 'Cerrada' && q['Siguiente acción'] && q['Siguiente acción'] !== '—' ? `<div class="faint small">Sigue: ${esc(q['Siguiente acción'])}</div>` : ''}</td><td class="small" style="min-width:150px">${esc(q['Responsable actual'])}</td><td>${pill(q.Estado)}</td><td class="nowrap small">${fd(q.Actualizado, 1)}</td><td class="nowrap">${nd ? `<span class="cq-dn" data-tip="${nd} documento${nd > 1 ? 's' : ''} ligado${nd > 1 ? 's' : ''}">${ic('link')}${nd}</span>` : '<span class="faint">—</span>'}</td>
+      <td class="act">${q.Estado !== 'Cerrada' ? `<button class="qbtn" type="button" data-quick="${encodeURIComponent('Consultas|' + q['Código'] + '|Estado=Cerrada')}">Cerrar</button>` : ''}<button class="ebtn" type="button" data-edit="Consultas|${esc(q['Código'])}" data-tip="Editar">${EDI}</button></td></tr>`; }).join('')}</tbody></table></div>` : '<div class="empty">Ninguna consulta coincide con los filtros.</div>';
+}
+function cqDocRow(d, mode, on) {
+  const [k, e] = extOf(d.Archivo || '', false);
+  const folder = String(d.Ruta || '').split('/').slice(0, -1).pop() || '';
+  return `<div class="${mode === 'otros' ? 'li' : 'cq-doc'}${on ? ' on' : ''}" data-cqdoc="${esc(d.Ruta)}" data-cqcode="${esc(d['Código'])}" tabindex="0" style="cursor:pointer${mode === 'otros' ? ';grid-template-columns:auto minmax(0,1fr) auto' : ''}"><span class="ext x-${k}">${e}</span><span style="min-width:0"><span class="dn" style="display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${esc(d.Archivo)}">${esc(d.Archivo)}</span><span class="dm" style="font-size:11.5px;color:var(--ink-3)">${esc(d.Tipo || '')}${d.Fecha ? ' · ' + fd(d.Fecha, 1) : ''} · ${esc(folder)}${d.Nota ? ' · ' + esc(d.Nota) : ''}</span></span>
+    ${mode === 'own' ? `<button class="ebtn" type="button" data-cqunlink="${esc(d.Ruta)}" data-tip="Quitar de esta consulta (el archivo no se borra)">✕</button>` : mode === 'otros' ? `<span class="tag">${esc(d['Código'])}</span>` : '<span class="tag" data-tip="Documento de la hoja completa">Hoja</span>'}</div>`;
+}
+function cqFrentePanel(id) {
+  const rows = CQ.filter((q) => q.Frente === id); if (!rows.length) return '';
+  const c = cqCounts(rows);
+  return `<section class="panel" style="margin-top:20px"><div class="ph"><div><h2 class="h2">Consultas</h2><p>${c.Cerrada} de ${c.total} cerradas · ${c['Sin respuesta']} sin respuesta · ${c.total - c.Cerrada} abiertas</p></div><a class="btn sm" href="#consultas" data-cqfr="${esc(id)}">Ver las consultas</a></div><div class="pb">${cqBar(c)}</div></section>`;
+}
+// ---- Ficha de una consulta
+function openCq(code) {
+  const q = cqByCode(code); if (!q) { toast('No encontré la consulta ' + code + '.'); return; }
+  CQSEL = q['Código']; CQPK = null;
+  const first = docsOf(q)[0] || hojaDocsOf(q)[0]; CQPV = null;
+  drawCqDlg(); const dlg = $('#dlg'); dlg.classList.add('wide'); if (!dlg.open) dlg.showModal();
+  dlg.addEventListener('close', () => { dlg.classList.remove('wide'); CQSEL = null; CQPV = null; CQPK = null; }, { once: true });
+  if (first && !matchMedia('(max-width:860px)').matches) cqPreview(first.Ruta);
+}
+function drawCqDlg() {
+  const q = cqByCode(CQSEL); const dlg = $('#dlg'); if (!q) { dlg.close(); return; }
+  const own = docsOf(q), hd = hojaDocsOf(q);
+  const meta = (k, v) => `<div><span class="k">${k}</span>${v ? esc(v) : '<span class="faint">—</span>'}</div>`;
+  const sect = (t, v) => v && v !== '—' ? `<div><h3>${t}</h3><p>${esc(v)}</p></div>` : '';
+  let right;
+  if (CQPK) right = cqPickerHtml();
+  else if (!CQPV) right = `<div class="cq-pv" style="grid-template-rows:1fr;place-items:center"><div class="small muted" style="max-width:300px;text-align:center;padding:20px">${own.length || hd.length ? 'Elige un documento para verlo aquí.' : 'Esta consulta no tiene documentos ligados. Usa "Ligar documento" para agregar uno desde OneDrive.'}</div></div>`;
+  else {
+    const x = CQPV; let inner;
+    if (x.state === 'loading') inner = '<div class="loading"><span class="spin"></span>Preparando vista previa…</div>';
+    else if (x.err) inner = `<div class="empty">${esc(x.err)}</div>`;
+    else if (x.url) inner = `<iframe src="${esc(x.url)}" title="${esc(x.name)}" allowfullscreen></iframe>`;
+    else inner = '<div class="empty">Este tipo de archivo no tiene vista previa. Descárgalo o ábrelo en OneDrive.</div>';
+    right = `<div class="cq-pv"><div class="pv-bar"><b title="${esc(x.name)}">${esc(x.name)}</b><span style="display:flex;gap:6px">${x.webUrl ? `<a class="btn sm" href="${esc(x.webUrl)}" target="_blank" rel="noopener">${ic('ext')}Abrir en OneDrive</a>` : ''}${x.id ? `<button class="btn sm" type="button" data-cqdl="${esc(x.id)}">Descargar</button>` : ''}</span></div><div class="preview" style="min-height:0">${inner}</div></div>`;
+  }
+  dlg.innerHTML = `<form method="dialog" novalidate onsubmit="return false"><div class="dlg-h"><h2><span class="cq-code">${esc(q['Código'])}</span> · ${esc(q['Área'] || '')}</h2><span style="display:flex;gap:8px;align-items:center">${pill(q.Estado)}<button class="ebtn" type="button" data-cqclose="1" aria-label="Cerrar">✕</button></span></div>
+    <div class="cq-dlg"><div class="cq-info">
+      <div class="cq-q">${esc(q.Consulta)}</div>
+      <div class="cq-meta">${meta('Frente', q.Frente ? q.Frente + ' · ' + (fById[q.Frente]?.Frente || '') : '')}${meta('Hoja', q.Hoja != null ? 'Hoja ' + q.Hoja : '')}${meta('Responsable actual', q['Responsable actual'])}${q['Responsable original'] && q['Responsable original'] !== q['Responsable actual'] ? meta('Antes lo tenía', q['Responsable original']) : ''}${meta('Respondió', q['Respondió'])}${meta('Fecha respuesta · medio', [q['Fecha respuesta'] ? fd(q['Fecha respuesta'], 1) : '', q.Medio].filter(Boolean).join(' · '))}</div>
+      ${sect('Respuesta', q.Respuesta) || '<div><h3>Respuesta</h3><p class="faint">Todavía no hay respuesta.</p></div>'}${sect('Siguiente acción', q['Siguiente acción'])}${sect('Observaciones', q.Observaciones)}
+      <div><h3 style="display:flex;justify-content:space-between;align-items:center">Documentos ligados <button class="btn sm" type="button" data-cqpick="open">${ic('link')}Ligar documento</button></h3>
+        ${own.length ? `<div class="cq-docs">${own.map((d) => cqDocRow(d, 'own', CQPV && CQPV.path === d.Ruta)).join('')}</div>` : '<p class="faint small">Ninguno todavía.</p>'}</div>
+      ${hd.length ? `<div><h3>De la hoja ${esc(q.Hoja)} completa</h3><div class="cq-docs">${hd.map((d) => cqDocRow(d, 'hoja', CQPV && CQPV.path === d.Ruta)).join('')}</div></div>` : ''}
+      <div class="faint small">Actualizado ${fd(q.Actualizado, 1)}</div>
+    </div>${right}</div>
+    <div class="dlg-f"><span class="err" id="cq-err"></span><span style="display:flex;gap:8px;flex-wrap:wrap">${q.Estado !== 'Cerrada' ? `<button class="qbtn" type="button" data-quick="${encodeURIComponent('Consultas|' + q['Código'] + '|Estado=Cerrada')}" data-cqafter="1">Marcar cerrada</button>` : ''}<button class="btn" type="button" data-cqedit="${esc(q['Código'])}">${EDI.replace('<svg', '<svg width="14" height="14" style="stroke:currentColor;fill:none;stroke-width:1.8"')}Editar</button><button class="btn primary" type="button" data-cqclose="1">Listo</button></span></div></form>`;
+}
+async function cqPreview(path) {
+  const name = String(path).split('/').pop();
+  CQPV = { path, name, state: 'loading' }; CQPK = null; drawCqDlg();
+  const mine = CQPV;
+  try {
+    const it = await graph(`${BASE}/root:/${encPath(joinRel(CFG.root, path))}?$select=id,name,webUrl,size`);
+    Object.assign(mine, { id: it.id, webUrl: it.webUrl, name: it.name });
+    if (PREVIEWABLE.test(it.name)) { const r = await graph(`${BASE}/items/${it.id}/preview`, { method: 'POST', body: '{}' }); mine.url = r.getUrl; }
+    mine.state = 'ok';
+  } catch (e) { mine.state = 'err'; mine.err = e.status === 404 ? 'No encontré este archivo en OneDrive. Puede que se haya movido o renombrado; quítalo de la consulta y vuelve a ligarlo.' : 'No se pudo abrir: ' + e.message; }
+  if (CQPV === mine && $('#dlg').open) drawCqDlg();
+}
+// ---- Otros documentos (fuera de la ficha)
+function openDocDlg(path) {
+  const dlg = $('#dlg'); CQSEL = null; CQPK = null;
+  const draw = () => { const x = CQPV; let inner = '<div class="loading"><span class="spin"></span>Preparando vista previa…</div>';
+    if (x.err) inner = `<div class="empty">${esc(x.err)}</div>`; else if (x.url) inner = `<iframe src="${esc(x.url)}" title="${esc(x.name)}" allowfullscreen></iframe>`; else if (x.state === 'ok') inner = '<div class="empty">Este tipo de archivo no tiene vista previa.</div>';
+    dlg.innerHTML = `<form method="dialog" onsubmit="return false"><div class="dlg-h"><h2>${esc(x.name)}</h2><span style="display:flex;gap:6px">${x.webUrl ? `<a class="btn sm" href="${esc(x.webUrl)}" target="_blank" rel="noopener">${ic('ext')}Abrir en OneDrive</a>` : ''}<button class="ebtn" type="button" data-cqclose="1" aria-label="Cerrar">✕</button></span></div><div class="cq-pv" style="grid-template-rows:1fr;min-height:70vh">${inner}</div></form>`; };
+  CQPV = { path, name: String(path).split('/').pop(), state: 'loading' }; const mine = CQPV; draw();
+  dlg.classList.add('wide'); if (!dlg.open) dlg.showModal(); dlg.addEventListener('close', () => { dlg.classList.remove('wide'); CQPV = null; }, { once: true });
+  (async () => { try { const it = await graph(`${BASE}/root:/${encPath(joinRel(CFG.root, path))}?$select=id,name,webUrl`); Object.assign(mine, { id: it.id, webUrl: it.webUrl, name: it.name }); if (PREVIEWABLE.test(it.name)) mine.url = (await graph(`${BASE}/items/${it.id}/preview`, { method: 'POST', body: '{}' })).getUrl; mine.state = 'ok'; } catch (e) { mine.err = e.status === 404 ? 'No encontré este archivo en OneDrive.' : 'No se pudo abrir: ' + e.message; } if (CQPV === mine) draw(); })();
+}
+// ---- Ligar documento: explorador de OneDrive dentro de la ficha
+function cqStartFolder(q) {
+  const d = docsOf(q)[0] || hojaDocsOf(q)[0];
+  if (d) return String(d.Ruta).split('/').slice(0, -1).join('/');
+  return fById[q.Frente]?.Carpeta || '';
+}
+async function cqPickGo(rel) {
+  CQPK = { rel, items: null, err: null, sel: null }; const mine = CQPK; drawCqDlg();
+  try { mine.items = await listFolder(rel); } catch (e) { mine.err = e.message; }
+  if (CQPK === mine) drawCqDlg();
+}
+function cqPickerHtml() {
+  const st = CQPK, parts = st.rel ? st.rel.split('/') : [];
+  const crumbs = [`<button type="button" data-cqpick="nav" data-rel="">${esc(CFG.root)}</button>`].concat(parts.map((p, i) => `<span>/</span><button type="button" data-cqpick="nav" data-rel="${esc(parts.slice(0, i + 1).join('/'))}">${esc(p)}</button>`)).join('');
+  const linked = new Set(docsOf(cqByCode(CQSEL)).map((d) => d.Ruta));
+  let list;
+  if (st.err) list = `<div class="err-box">No se pudo leer la carpeta: ${esc(st.err)}</div>`;
+  else if (!st.items) list = '<div class="loading"><span class="spin"></span>Cargando…</div>';
+  else if (!st.items.length) list = '<div class="empty">Esta carpeta está vacía.</div>';
+  else list = st.items.map((x) => { const [k, e] = extOf(x.name, !!x.folder); const rel = joinRel(st.rel, x.name); const on = st.sel && st.sel.rel === rel, already = linked.has(rel);
+    return `<div class="doc${on ? ' on' : ''}" data-cqpick="${x.folder ? 'dir' : 'file'}" data-rel="${esc(rel)}" tabindex="0"${already ? ' style="opacity:.55" data-tip="Ya está ligado a esta consulta"' : ''}><span class="ext x-${k}">${x.folder ? '<svg viewBox="0 0 24 24" width="16" height="16" style="stroke:#fff;fill:none;stroke-width:1.8"><path d="M3 6h6l2 2h10v11H3z"/></svg>' : e}</span><span class="dn" title="${esc(x.name)}">${esc(x.name)}</span><span class="dm">${x.folder ? x.folder.childCount + ' elementos' : fd(x.lastModifiedDateTime.slice(0, 10), 1) + ' · ' + fsize(x.size)}</span></div>`; }).join('');
+  const sel = st.sel ? `<div class="dlg-b" style="padding:0;grid-template-columns:1fr 1fr">
+      <div class="fld w2"><label>Archivo</label><div class="cur"><b>${esc(st.sel.name)}</b></div></div>
+      <div class="fld"><label for="cqk-tipo">Tipo</label><select id="cqk-tipo">${['Respuesta', 'Respaldo', 'Formato', 'Otro'].map((t) => `<option${t === 'Respaldo' ? ' selected' : ''}>${t}</option>`).join('')}</select></div>
+      <div class="fld"><label for="cqk-fecha">Fecha</label><input id="cqk-fecha" type="date" value="${TODAY}"></div>
+      <div class="fld w2"><label for="cqk-nota">Nota</label><input id="cqk-nota" placeholder="Opcional: p. ej. enviado a IADS el 14 oct"></div>
+      <div class="fld w2" style="display:flex;gap:8px;justify-content:flex-end"><button class="btn primary" type="button" data-cqpick="link" id="cqk-ok">${ic('link')}Ligar a ${esc(CQSEL)}</button></div></div>` : '<div class="faint small">Elige un archivo de la lista, o sube uno nuevo a esta carpeta.</div>';
+  return `<div class="cq-pv" style="grid-template-rows:auto minmax(0,1fr)"><div class="pv-bar"><b>Ligar documento a ${esc(CQSEL)}</b><span style="display:flex;gap:6px"><button class="btn sm" type="button" data-cqpick="upload">${ic('plus')}Subir aquí</button><button class="btn sm" type="button" data-cqpick="cancel">Volver</button></span></div>
+    <div class="pb cq-pick" style="overflow:auto"><div class="dcrumbs" style="padding:0">${crumbs}</div><div class="doclist">${list}</div>${sel}</div></div>`;
+}
+async function cqLink() {
+  const q = cqByCode(CQSEL), st = CQPK; if (!q || !st || !st.sel) return;
+  const ok = $('#cqk-ok'); ok.disabled = true; ok.textContent = 'Guardando…';
+  const rec = { 'Código': q['Código'], Archivo: st.sel.name, Ruta: st.sel.rel, Tipo: $('#cqk-tipo').value, Fecha: $('#cqk-fecha').value || '', Nota: $('#cqk-nota').value.trim() };
+  try {
+    const mid = await masterId();
+    const rng = await graph(`${BASE}/items/${mid}/workbook/tables/tConsultaDocs/range?$select=address,values`);
+    const head = rng.values[0].map((h) => String(h).trim());
+    await graph(`${BASE}/items/${mid}/workbook/tables/tConsultaDocs/rows/add`, { method: 'POST', body: JSON.stringify({ index: null, values: [head.map((h) => toCell(h, rec[h]))] }) });
+    await logChange(`Consulta ${q['Código']}: ligado el documento ${rec.Archivo} (${rec.Tipo}).`);
+    CD.push(rec); cqSaveCache(); CQPK = null; toast('Documento ligado a ' + q['Código'] + '.'); cqPreview(rec.Ruta); cqRefreshBg();
+  } catch (e) { ok.disabled = false; ok.textContent = 'Ligar a ' + CQSEL; const er = $('#cq-err'); if (er) er.textContent = writeErr(e); }
+}
+async function cqUnlink(path) {
+  const q = cqByCode(CQSEL); if (!q) return;
+  const d = docsOf(q).find((x) => x.Ruta === path); if (!d) return;
+  if (!confirm(`¿Quitar "${d.Archivo}" de la consulta ${q['Código']}?\nEl archivo se queda en OneDrive; solo se quita el enlace.`)) return;
+  try {
+    const mid = await masterId();
+    const rng = await graph(`${BASE}/items/${mid}/workbook/tables/tConsultaDocs/range?$select=address,values`);
+    const head = rng.values[0].map((h) => String(h).trim()), ci = head.indexOf('Código'), ri0 = head.indexOf('Ruta');
+    const ri = rng.values.findIndex((v, i) => i > 0 && String(v[ci]) === String(q['Código']) && String(v[ri0]) === path);
+    if (ri < 1) throw new Error('no encontré el enlace en la hoja (toca Actualizar)');
+    try { await graph(`${BASE}/items/${mid}/workbook/tables/tConsultaDocs/rows/itemAt(index=${ri - 1})`, { method: 'DELETE' }); }
+    catch (e1) {
+      const m = rng.address.match(/^(.*)!([A-Z]+)(\d+):([A-Z]+)(\d+)$/); const sheet = m[1].replace(/^'|'$/g, '').replace(/''/g, "'"), r = Number(m[3]) + ri;
+      await graph(`${BASE}/items/${mid}/workbook/worksheets/${encodeURIComponent(sheet)}/range(address='${m[2]}${r}:${m[4]}${r}')/delete`, { method: 'POST', body: JSON.stringify({ shift: 'Up' }) });
+    }
+    await logChange(`Consulta ${q['Código']}: se quitó el documento ${d.Archivo}.`);
+    CD.splice(CD.indexOf(d), 1); cqSaveCache(); if (CQPV && CQPV.path === path) CQPV = null; drawCqDlg(); toast('Documento quitado de ' + q['Código'] + '.'); cqRefreshBg();
+  } catch (e) { const er = $('#cq-err'); if (er) er.textContent = writeErr(e); else toast(writeErr(e)); }
+}
+function cqSaveCache() { try { DATA.Consultas = CQ; DATA['Consulta docs'] = CD; localStorage.setItem(CACHE_KEY, JSON.stringify({ D: DATA, META })); } catch (_) {} }
+function cqRefreshBg() { if ((location.hash || '').slice(1) === 'consultas') { const y = scrollY; $('#view').innerHTML = vConsultas(); drawCqTable(); scrollTo({ top: y }); drawNav('consultas'); } }
+// ---- Exportar a Excel (formato de la matriz)
+function cqExport() {
+  if (!window.XLSX) { toast('No se pudo cargar la librería de Excel.'); return; }
+  const H = ['Hoja', 'Área', 'Código', 'Consulta', 'Responsable original', 'Responsable actual', 'Estado', 'Respuesta', 'Fecha respuesta', 'Respondió', 'Medio', 'Siguiente acción', 'Actualizado', 'Observaciones', 'Frente', 'Documentos'];
+  const d2 = (s) => s ? s.split('-').reverse().join('/') : '';
+  const rows = cqFiltered().map((q) => H.map((h) => h === 'Documentos' ? docsOf(q).map((d) => d.Archivo).join('; ') : (h === 'Fecha respuesta' || h === 'Actualizado') ? d2(q[h]) : (q[h] ?? '')));
+  const filt = [CQF.fr && 'frente ' + CQF.fr, CQF.hoja && 'hoja ' + CQF.hoja, CQF.est && CQF.est.toLowerCase(), CQF.resp, CQF.q && '"' + CQF.q + '"'].filter(Boolean).join(', ');
+  const ws = XLSX.utils.aoa_to_sheet([['EHG-SOL-001 · Matriz de seguimiento de consultas — Proyecto Solar GUARUMA 50 MW'], [`Empresa Hondureña de Generación, S.A. de C.V. · Exportado de la plataforma el ${d2(TODAY)}${filt ? ' · Filtro: ' + filt : ''}`], [], H, ...rows]);
+  ws['!cols'] = [6, 24, 8, 50, 28, 28, 14, 55, 12, 24, 11, 36, 12, 45, 8, 45].map((w) => ({ wch: w }));
+  ws['!autofilter'] = { ref: `A4:${XLSX.utils.encode_col(H.length - 1)}${rows.length + 4}` };
+  const DH = ['Código', 'Archivo', 'Ruta', 'Tipo', 'Fecha', 'Nota'];
+  const ws2 = XLSX.utils.aoa_to_sheet([DH, ...CD.map((d) => DH.map((h) => h === 'Fecha' ? d2(d[h]) : (d[h] ?? '')))]);
+  ws2['!cols'] = [8, 45, 90, 11, 11, 50].map((w) => ({ wch: w }));
+  const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, 'Matriz'); XLSX.utils.book_append_sheet(wb, ws2, 'Documentos');
+  XLSX.writeFile(wb, `Matriz_Consultas_EIA_${TODAY}.xlsx`);
+  toast(`Descargando ${rows.length} consultas en Excel.`);
+}
+// ---- Eventos del módulo
+function cqClick(e) {
+  const t = e.target;
+  const g = (sel) => t.closest(sel);
+  let el;
+  if ((el = g('[data-cqclose]'))) { $('#dlg').close(); return true; }
+  if ((el = g('[data-cqexport]'))) { cqExport(); return true; }
+  if ((el = g('[data-cqfr]'))) { Object.assign(CQF, { q: '', fr: el.dataset.cqfr, hoja: '', est: '', resp: '' }); return false; }
+  if ((el = g('[data-cqclear]'))) { Object.assign(CQF, { q: '', fr: '', hoja: '', est: '', resp: '' }); cqRefreshBg(); return true; }
+  if ((el = g('[data-cqhoja]'))) { CQF.hoja = CQF.hoja === el.dataset.cqhoja ? '' : el.dataset.cqhoja; cqRefreshBg(); document.getElementById('cq-list')?.scrollIntoView({ behavior: 'smooth', block: 'start' }); return true; }
+  if ((el = g('[data-cqresp]'))) { CQF.resp = CQF.resp === el.dataset.cqresp ? '' : el.dataset.cqresp; cqRefreshBg(); document.getElementById('cq-list')?.scrollIntoView({ behavior: 'smooth', block: 'start' }); return true; }
+  if ((el = g('[data-cqest]'))) { CQF.est = CQF.est === el.dataset.cqest ? '' : el.dataset.cqest; cqRefreshBg(); document.getElementById('cq-list')?.scrollIntoView({ behavior: 'smooth', block: 'start' }); return true; }
+  if ((el = g('[data-cqedit]'))) { const c = el.dataset.cqedit; $('#dlg').close(); setTimeout(() => openForm('Consultas', c), 0); return true; }
+  if ((el = g('[data-cqunlink]'))) { e.stopPropagation(); cqUnlink(el.dataset.cqunlink); return true; }
+  if ((el = g('[data-cqdl]'))) { (async () => { try { const r = await graph(`${BASE}/items/${el.dataset.cqdl}`); const u = r['@microsoft.graph.downloadUrl']; if (u) location.href = u; } catch (er) { toast('No se pudo descargar: ' + er.message); } })(); return true; }
+  if ((el = g('[data-cqdoc]'))) { if (CQSEL) cqPreview(el.dataset.cqdoc); else openDocDlg(el.dataset.cqdoc); return true; }
+  if ((el = g('[data-cqpick]'))) {
+    const a = el.dataset.cqpick, q = cqByCode(CQSEL);
+    if (a === 'open') cqPickGo(cqStartFolder(q));
+    else if (a === 'cancel') { CQPK = null; drawCqDlg(); }
+    else if (a === 'nav' || a === 'dir') cqPickGo(el.dataset.rel);
+    else if (a === 'file') { const rel = el.dataset.rel; if (docsOf(q).some((d) => d.Ruta === rel)) { toast('Ese archivo ya está ligado a ' + CQSEL + '.'); return true; } CQPK.sel = { rel, name: rel.split('/').pop() }; drawCqDlg(); }
+    else if (a === 'link') cqLink();
+    else if (a === 'upload') $('#cq-upl').click();
+    return true;
+  }
+  if ((el = g('[data-quick]')) && el.dataset.cqafter) { e.preventDefault(); quick(decodeURIComponent(el.dataset.quick)).then(() => { if (CQSEL) drawCqDlg(); }); return true; }
+  if ((el = g('tr[data-cq]')) && !g('button,a')) { openCq(el.dataset.cq); return true; }
+  return false;
+}
+document.addEventListener('input', (e) => { if (e.target.id === 'cq-q') { CQF.q = e.target.value; drawCqTable(); } });
+document.addEventListener('change', (e) => { const s = e.target.closest?.('[data-cqsel]'); if (s) { CQF[s.dataset.cqsel] = s.value; cqRefreshBg(); } });
+document.addEventListener('keydown', (e) => { if (e.key === 'Enter' && e.target.closest?.('[data-cqhoja],[data-cqresp],[data-cqdoc],[data-cqpick]')) e.target.click(); });
+$('#cq-upl').addEventListener('change', async (e) => {
+  const f = e.target.files[0]; e.target.value = ''; if (!f || !CQPK) return;
+  const folder = CQPK.rel;
+  try { toast(`Subiendo ${f.name}…`); const up = await uploadFile(folder, f, (p) => toast(`Subiendo ${f.name}… ${Math.round(p * 100)} %`)); await logChange(`Subido a ${joinRel(CFG.root, folder)}: ${up.name}`); await cqPickGo(folder); if (CQPK) { CQPK.sel = { rel: joinRel(folder, up.name), name: up.name }; drawCqDlg(); } toast('Archivo subido. Revisa el tipo y toca "Ligar".'); }
+  catch (er) { toast('No se pudo subir: ' + er.message); }
+});
+
 // ---------- Router ----------
 function render() {
   if (!DATA) return;
   let route = (location.hash || '#resumen').slice(1);
-  const views = { resumen: vResumen, frentes: vFrentes, contratos: vContratos, ofertas: vOfertas, cronograma: vCrono, pendientes: vRiesgos, riesgos: vRiesgos, reporte: vReporte, informes: vInformes, documentos: vDocs, bitacora: vBit };
+  const views = { resumen: vResumen, frentes: vFrentes, contratos: vContratos, ofertas: vOfertas, cronograma: vCrono, pendientes: vRiesgos, riesgos: vRiesgos, consultas: vConsultas, reporte: vReporte, informes: vInformes, documentos: vDocs, bitacora: vBit };
   let html, crumb;
   if (route.startsWith('frente-')) { const id = route.slice(7); html = vFrente(id); crumb = `<span>Frentes</span>${ic('chev').replace('<svg', '<svg width="12" height="12" style="stroke:currentColor;fill:none;stroke-width:2"')}<b>${esc(fById[id]?.Frente || '')}</b>`; }
   else { if (!views[route]) route = 'resumen'; html = views[route](); crumb = `<span>Guaruma 50 MW</span>${ic('chev').replace('<svg', '<svg width="12" height="12" style="stroke:currentColor;fill:none;stroke-width:2"')}<b>${(ROUTES.find((r) => r[0] === route) || ROUTES.find((r) => r[0] === 'pendientes'))[1]}</b>`; }
   $('#view').innerHTML = html; $('#crumbs').innerHTML = crumb; drawNav(route);
   $('#app').classList.remove('mopen');
-  mountDocs(); if (route === 'reporte') requestAnimationFrame(fitSheet);
+  mountDocs(); if (route === 'reporte') requestAnimationFrame(fitSheet); if (route === 'consultas') drawCqTable();
 }
 let lastRoute = '';
 window.addEventListener('hashchange', () => { const r = location.hash; if (r !== lastRoute) { fTab = 'resumen'; docSel = 0; lastRoute = r; } render(); window.scrollTo({ top: 0 }); });
 document.addEventListener('click', (e) => {
+  if (cqClick(e)) return;
   const go = e.target.closest('[data-go]'); if (go && !e.target.closest('a,button')) { location.hash = go.dataset.go; return; }
   const ft = e.target.closest('[data-ftab]'); if (ft) { fTab = ft.dataset.ftab; docSel = 0; render(); return; }
   const ed = e.target.closest('[data-edit]'); if (ed) { e.preventDefault(); e.stopPropagation(); const [t, id] = ed.dataset.edit.split('|'); openForm(t, id, presetOf(ed)); return; }
@@ -962,7 +1267,7 @@ document.addEventListener('keydown', (e) => { if (e.key === 'Enter' && e.target.
 $('#tg').onclick = () => { if (matchMedia('(max-width:860px)').matches) $('#app').classList.toggle('mopen'); else $('#app').classList.toggle('collapsed'); };
 $('#scrim').onclick = () => $('#app').classList.remove('mopen');
 $('#theme').onclick = () => { const r = document.documentElement; const dark = r.dataset.theme ? r.dataset.theme === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches; r.dataset.theme = dark ? 'light' : 'dark'; try { localStorage.setItem('guaruma.theme', r.dataset.theme); } catch (_) {} };
-$('#q').addEventListener('keydown', (e) => { if (e.key !== 'Enter') return; const q = e.target.value.trim().toLowerCase(); if (!q) return; const f = F.find((x) => (x.Frente + ' ' + x['Proveedor / contraparte']).toLowerCase().includes(q)); if (f) location.hash = 'frente-' + f.ID; else { const c = C.find((x) => (x['N.º'] + ' ' + x.Contratista).toLowerCase().includes(q)); if (c) location.hash = 'frente-' + c.Frente; } });
+$('#q').addEventListener('keydown', (e) => { if (e.key !== 'Enter') return; const q = e.target.value.trim().toLowerCase(); if (!q) return; const cq = CQ.find((x) => String(x['Código']).toLowerCase() === q); if (cq) { location.hash = 'consultas'; setTimeout(() => openCq(cq['Código']), 0); return; } const f = F.find((x) => (x.Frente + ' ' + x['Proveedor / contraparte']).toLowerCase().includes(q)); if (f) location.hash = 'frente-' + f.ID; else { const c = C.find((x) => (x['N.º'] + ' ' + x.Contratista).toLowerCase().includes(q)); if (c) location.hash = 'frente-' + c.Frente; } });
 
 // ---------- Tooltip ----------
 const tip = $('#tip'); let tipEl = null;
@@ -990,9 +1295,10 @@ const TABLES = {
   Ofertas: { t: 'tOfertas', id: 'ID', prefix: 'O', pad: 2, label: 'oferta', name: 'Proveedor' },
   Actividades: { t: 'tActividades', id: 'ID', prefix: 'A', pad: 2, label: 'actividad', name: 'Actividad' },
   Riesgos: { t: 'tRiesgos', id: 'ID', prefix: 'R', pad: 2, label: 'riesgo', name: 'Tema' },
-  Pendientes: { t: 'tPendientes', id: 'ID', prefix: 'PD', pad: 2, label: 'pendiente', name: 'Pendiente' }
+  Pendientes: { t: 'tPendientes', id: 'ID', prefix: 'PD', pad: 2, label: 'pendiente', name: 'Pendiente' },
+  Consultas: { t: 'tConsultas', id: 'Código', prefix: '', pad: 0, label: 'consulta', name: 'Consulta', manual: 1, auto: ['Actualizado'] }
 };
-const rowsOf = (tb) => ({ Frentes: F, Contratos: C, Pagos: PG, Ofertas: O, Actividades: A, Riesgos: R, Pendientes: DC })[tb];
+const rowsOf = (tb) => ({ Frentes: F, Contratos: C, Pagos: PG, Ofertas: O, Actividades: A, Riesgos: R, Pendientes: DC, Consultas: CQ })[tb];
 const frOpts = () => F.map((f) => [f.ID, f.ID + ' · ' + f.Frente]);
 const ctOpts = () => C.map((c) => [c['N.º'], c['N.º'] + ' · ' + c.Contratista]);
 const SCHEMA = {
@@ -1002,6 +1308,7 @@ const SCHEMA = {
   Pagos: [{ k: 'Contrato', t: 'select', o: ctOpts, req: 1 }, { k: 'Concepto', t: 'text', req: 1 }, { k: '%', t: 'percent' }, { k: 'Monto', t: 'number', req: 1 }, { k: 'Moneda', t: 'select', o: ['USD', 'HNL'], req: 1 }, { k: 'Estado', t: 'select', o: ['Pagado', 'Pendiente', 'Programado', 'No aplica aún'], req: 1 }, { k: 'Fecha de pago', t: 'date' }, { k: 'Condición / hito', t: 'text', w: 2 }, { k: 'Notas', t: 'textarea', w: 2 }],
   Contratos: [{ k: 'N.º', t: 'text', req: 1, newOnly: 1 }, { k: 'Frente', t: 'select', o: frOpts, req: 1 }, { k: 'Contratista', t: 'text', req: 1, w: 2 }, { k: 'Objeto', t: 'textarea', w: 2 }, { k: 'Monto', t: 'number', req: 1 }, { k: 'Moneda', t: 'select', o: ['USD', 'HNL'], req: 1 }, { k: 'Estado', t: 'select', o: ['Borrador', 'Firmado', 'En ejecución', 'Terminado', 'Anulado'], req: 1 }, { k: 'Fecha firma', t: 'date' }, { k: 'Plazo', t: 'text', w: 2 }, { k: 'Archivo', t: 'file', w: 2, help: 'Se guarda en la carpeta del frente.' }, { k: 'Notas', t: 'textarea', w: 2 }],
   Frentes: [{ k: 'Frente', t: 'text', req: 1, w: 2 }, { k: 'Estado', t: 'select', o: ['En tiempo', 'Atención', 'Crítico', 'En espera', 'Completado', 'No iniciado'], req: 1 }, { k: 'Avance %', t: 'percent' }, { k: 'Responsable EHG', t: 'text' }, { k: 'Proveedor / contraparte', t: 'text' }, { k: 'Inicio', t: 'date' }, { k: 'Fin previsto', t: 'date' }, { k: 'Próximo hito', t: 'text', w: 2 }, { k: 'Fecha próximo hito', t: 'date' }, { k: 'Carpeta', t: 'text', help: 'Ruta dentro de "Proyecto CAHSA 50 MW". Si no existe, se crea.' }, { k: 'Notas', t: 'textarea', w: 2 }],
+  Consultas: [{ k: 'Código', t: 'text', req: 1, newOnly: 1, help: 'Clave única: L1, AP6, SO2…' }, { k: 'Frente', t: 'select', o: frOpts, req: 1 }, { k: 'Hoja', t: 'number' }, { k: 'Área', t: 'text', dl: () => uniq(CQ.map((q) => q['Área'])) }, { k: 'Consulta', t: 'textarea', req: 1, w: 2 }, { k: 'Estado', t: 'select', o: CQ_EST, req: 1 }, { k: 'Responsable actual', t: 'text', dl: () => uniq(CQ.map((q) => q['Responsable actual'])) }, { k: 'Responsable original', t: 'text', dl: () => uniq(CQ.map((q) => q['Responsable original'])) }, { k: 'Respuesta', t: 'textarea', w: 2 }, { k: 'Fecha respuesta', t: 'date' }, { k: 'Medio', t: 'select', o: ['Correo', 'Reunión', 'Documento', 'WhatsApp', 'Llamada'] }, { k: 'Respondió', t: 'text', w: 2, dl: () => uniq(CQ.map((q) => q['Respondió'])) }, { k: 'Siguiente acción', t: 'textarea', w: 2 }, { k: 'Observaciones', t: 'textarea', w: 2 }],
   Riesgos: [{ k: 'Tema', t: 'text', req: 1, w: 2 }, { k: 'Frente', t: 'select', o: frOpts, req: 1 }, { k: 'Nivel', t: 'select', o: ['Alto', 'Medio', 'Bajo'], req: 1 }, { k: 'Estado', t: 'select', o: ['Abierto', 'Mitigado', 'Cerrado'], req: 1 }, { k: 'Impacto', t: 'textarea', w: 2 }, { k: 'Acción propuesta', t: 'textarea', w: 2 }]
 };
 const presetOf = (el) => { const p = {}; const raw = el.dataset.preset ? decodeURIComponent(el.dataset.preset) : ''; raw.split('&').filter(Boolean).forEach((kv) => { const i = kv.indexOf('='); p[kv.slice(0, i)] = kv.slice(i + 1); }); return p; };
@@ -1034,6 +1341,7 @@ function openForm(tb, id, preset = {}) {
     else if (f.t === 'number') inp = `<input id="${fid}" type="number" step="0.01" inputmode="decimal" data-k="${esc(f.k)}" value="${v ?? ''}">`;
     else if (f.t === 'percent') inp = `<input id="${fid}" type="number" step="1" min="0" max="100" data-k="${esc(f.k)}" data-pct="1" value="${v === '' || v == null ? '' : Math.round(Number(v) * 100)}" placeholder="0 – 100">`;
     else if (f.t === 'file') inp = `${v ? `<div class="cur">Actual: ${esc(v)}</div>` : ''}<input id="${fid}" type="file" data-file="${esc(f.k)}">`;
+    else if (f.dl) inp = `<input id="${fid}" data-k="${esc(f.k)}" value="${esc(v ?? '')}" list="${fid}_dl" autocomplete="off"><datalist id="${fid}_dl">${f.dl().map((x) => `<option value="${esc(x)}">`).join('')}</datalist>`;
     else inp = `<input id="${fid}" data-k="${esc(f.k)}" value="${esc(v ?? '')}">`;
     return `<div class="fld${f.w ? ' w2' : ''}">${lab}${inp}${f.help ? `<span class="help">${esc(f.help)}</span>` : ''}</div>`;
   };
@@ -1054,7 +1362,8 @@ async function saveForm() {
   sc.forEach((f) => { if (f.req && !(f.newOnly && cur) && (vals[f.k] === '' || vals[f.k] == null)) missing.push(f.k); });
   if (missing.length) { $('#frm-err').textContent = 'Falta: ' + missing.join(', ') + '.'; return; }
   const rec = { ...(cur || {}), ...vals };
-  if (!cur) { if (tb === 'Contratos') { rec['N.º'] = vals['N.º']; if (C.some((c) => c['N.º'] === rec['N.º'])) { $('#frm-err').textContent = 'Ya existe el contrato ' + rec['N.º'] + '.'; return; } } else rec[T.id] = nextId(tb); }
+  if (!cur) { if (tb === 'Contratos' || T.manual) { rec[T.id] = vals[T.id]; if (rowsOf(tb).some((c) => String(c[T.id]).toLowerCase() === String(rec[T.id]).toLowerCase())) { $('#frm-err').textContent = 'Ya existe ' + (tb === 'Contratos' ? 'el contrato ' : 'la ' + T.label + ' ') + rec[T.id] + '.'; return; } } else rec[T.id] = nextId(tb); }
+  (T.auto || []).forEach((k) => { if (k === 'Actualizado') rec[k] = TODAY; });
   const ok = $('#frm-ok'); ok.disabled = true; ok.textContent = 'Guardando…'; $('#frm-err').textContent = '';
   try {
     const fileEl = dlg.querySelector('[data-file]');
@@ -1078,7 +1387,7 @@ async function saveForm() {
 async function quick(spec) {
   const [tb, id, kv] = spec.split('|'); const T = TABLES[tb]; const cur = rowsOf(tb).find((r) => String(r[T.id]) === id); if (!cur) return;
   const i = kv.indexOf('='); const k = kv.slice(0, i), v = kv.slice(i + 1);
-  const rec = { ...cur, [k]: v };
+  const rec = { ...cur, [k]: v }; (T.auto || []).forEach((a) => { if (a === 'Actualizado') rec[a] = TODAY; });
   toast('Guardando…');
   try { await writeRow(tb, rec, false); await logChange(`${T.label[0].toUpperCase() + T.label.slice(1)} ${id} (${String(cur[T.name] || '').slice(0, 80)}): ${k} = ${v}`); applyLocal(tb, rec, false); toast('Listo: ' + T.label + ' ' + id + ' marcado como ' + v.toLowerCase() + '.'); }
   catch (e) { toast(writeErr(e)); }
@@ -1105,7 +1414,7 @@ async function writeRow(tb, rec, isNew) {
   const ri = rng.values.findIndex((v, i) => i > 0 && String(v[idc]) === String(rec[id]));
   if (ri < 1) throw new Error(`no encontré ${id} ${rec[id]} en la hoja`);
   const old = rng.values[ri];
-  const row = head.map((h, j) => (h in rec && SCHEMA[tb].some((f) => f.k === h || h === id)) ? toCell(h, rec[h]) : old[j]);
+  const row = head.map((h, j) => (h in rec && (SCHEMA[tb].some((f) => f.k === h) || h === id || (TABLES[tb].auto || []).includes(h))) ? toCell(h, rec[h]) : old[j]);
   return patchRow(mid, rng.address, ri, row);
 }
 async function patchRow(mid, address, ri, row) {
@@ -1510,7 +1819,7 @@ async function openFolderWeb(rel) {
   catch (e) { toast('No se pudo abrir la carpeta: ' + e.message); }
 }
 // Excel maestro -> objetos
-const DATE_COLS = new Set(['Fecha foto', 'Fecha límite', 'Inicio', 'Fin previsto', 'Fecha próximo hito', 'Fecha firma', 'Fecha de pago', 'Fecha', 'Fecha de emisión', 'Fecha de inicio', 'Fin estimado', 'Fin máximo', 'Inicio Asana', 'Fin Asana', 'Fin']);
+const DATE_COLS = new Set(['Fecha foto', 'Fecha límite', 'Inicio', 'Fin previsto', 'Fecha próximo hito', 'Fecha firma', 'Fecha de pago', 'Fecha', 'Fecha de emisión', 'Fecha de inicio', 'Fin estimado', 'Fin máximo', 'Inicio Asana', 'Fin Asana', 'Fin', 'Fecha respuesta', 'Actualizado']);
 const serial = (n) => new Date(Math.round((n - 25569) * 864e5)).toISOString().slice(0, 10);
 function readSheet(wb, name) {
   const ws = wb.Sheets[name]; if (!ws) return [];
@@ -1523,12 +1832,12 @@ function readSheet(wb, name) {
 function parseMaster(buf) {
   const wb = XLSX.read(buf, { type: 'array' });
   const D = {};
-  for (const n of ['Frentes', 'Contratos', 'Pagos', 'Ofertas', 'Presupuesto', 'Actividades', 'Riesgos', 'Pendientes', 'Informes', 'Plazos', 'Cronograma Asana', 'Bitácora']) D[n] = readSheet(wb, n);
+  for (const n of ['Frentes', 'Contratos', 'Pagos', 'Ofertas', 'Presupuesto', 'Actividades', 'Riesgos', 'Pendientes', 'Informes', 'Plazos', 'Cronograma Asana', 'Bitácora', 'Consultas', 'Consulta docs']) D[n] = readSheet(wb, n);
   D.Proyecto = Object.fromEntries(readSheet(wb, 'Proyecto').map((r) => [r.Campo, r.Valor]));
   return D;
 }
 // Lectura directa de las tablas del Excel (siempre al día, incluso segundos después de editar)
-const TABLE_SHEETS = { tHistorial: 'Historial avance', tProyecto: 'Proyecto', tFrentes: 'Frentes', tContratos: 'Contratos', tPagos: 'Pagos', tOfertas: 'Ofertas', tPresupuesto: 'Presupuesto', tActividades: 'Actividades', tRiesgos: 'Riesgos', tPendientes: 'Pendientes', tInformes: 'Informes', tPlazos: 'Plazos', tAsana: 'Cronograma Asana', tBitacora: 'Bitácora' };
+const TABLE_SHEETS = { tHistorial: 'Historial avance', tProyecto: 'Proyecto', tFrentes: 'Frentes', tContratos: 'Contratos', tPagos: 'Pagos', tOfertas: 'Ofertas', tPresupuesto: 'Presupuesto', tActividades: 'Actividades', tRiesgos: 'Riesgos', tPendientes: 'Pendientes', tInformes: 'Informes', tPlazos: 'Plazos', tAsana: 'Cronograma Asana', tBitacora: 'Bitácora', tConsultas: 'Consultas', tConsultaDocs: 'Consulta docs' };
 async function readTables(mid) {
   const names = Object.keys(TABLE_SHEETS);
   const body = { requests: names.map((t, i) => ({ id: String(i), method: 'GET', url: `${BASE}/items/${mid}/workbook/tables/${t}/range?$select=values` })) };
