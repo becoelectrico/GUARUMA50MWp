@@ -1006,6 +1006,11 @@ const SCHEMA = {
 const presetOf = (el) => { const p = {}; const raw = el.dataset.preset ? decodeURIComponent(el.dataset.preset) : ''; raw.split('&').filter(Boolean).forEach((kv) => { const i = kv.indexOf('='); p[kv.slice(0, i)] = kv.slice(i + 1); }); return p; };
 function nextId(tb) {
   const { id, prefix, pad } = TABLES[tb];
+  if (tb === 'Contratos') {
+    // Número corrido + año: 00005-2026, 00006-2027… (la secuencia no se reinicia con el año)
+    const nums = C.map((r) => parseInt(String(r[id] || '').split('-')[0], 10)).filter((n) => !isNaN(n));
+    return String((nums.length ? Math.max(...nums) : 0) + 1).padStart(pad, '0') + '-' + TODAY.slice(0, 4);
+  }
   const nums = rowsOf(tb).map((r) => String(r[id] || '')).filter((v) => v.startsWith(prefix)).map((v) => parseInt(v.slice(prefix.length), 10)).filter((n) => !isNaN(n));
   return prefix + String((nums.length ? Math.max(...nums) : 0) + 1).padStart(pad, '0');
 }
@@ -1107,6 +1112,13 @@ async function patchRow(mid, address, ri, row) {
   const m = address.match(/^(.*)!([A-Z]+)(\d+):([A-Z]+)(\d+)$/); if (!m) throw new Error('dirección de tabla inesperada: ' + address);
   const sheet = m[1].replace(/^'|'$/g, '').replace(/''/g, "'"), r = Number(m[3]) + ri;
   return graph(`${BASE}/items/${mid}/workbook/worksheets/${encodeURIComponent(sheet)}/range(address='${m[2]}${r}:${m[4]}${r}')`, { method: 'PATCH', body: JSON.stringify({ values: [row] }) });
+}
+// Escribe una sola celda de una tabla (no toca fórmulas ni el resto de la fila)
+async function patchCell(mid, address, ri, cj, value) {
+  const m = address.match(/^(.*)!([A-Z]+)(\d+):([A-Z]+)(\d+)$/); if (!m) throw new Error('dirección de tabla inesperada: ' + address);
+  const sheet = m[1].replace(/^'|'$/g, '').replace(/''/g, "'"), r = Number(m[3]) + ri;
+  let n = 0; for (const ch of m[2]) n = n * 26 + (ch.charCodeAt(0) - 64); n += cj; let col = ''; while (n > 0) { const k = (n - 1) % 26; col = String.fromCharCode(65 + k) + col; n = Math.floor((n - 1) / 26); }
+  return graph(`${BASE}/items/${mid}/workbook/worksheets/${encodeURIComponent(sheet)}/range(address='${col}${r}')`, { method: 'PATCH', body: JSON.stringify({ values: [[value]] }) });
 }
 function stampNow() { const d = new Date(); const p = (n) => String(n).padStart(2, '0'); return `${p(d.getDate())}/${p(d.getMonth() + 1)}/${d.getFullYear()} ${p(d.getHours())}:${p(d.getMinutes())}`; }
 async function logChange(txt) {
@@ -1393,6 +1405,29 @@ async function ensureSchema(mid, D) {
       await graph(`${BASE}/items/${mid}/workbook/tables/${tb.id}`, { method: 'PATCH', body: JSON.stringify({ name: 'tHistorial' }) });
       done.push('hoja "Historial avance"');
     }
+  }
+  // Numeración de contratos con año: 00001 -> 00001-2026 (también en la hoja Pagos)
+  const ctRng = await graph(`${BASE}/items/${mid}/workbook/tables/tContratos/range?$select=address,values`);
+  const ch = ctRng.values[0].map((h) => String(h).trim()), ci = ch.indexOf('N.º'), fi = ch.indexOf('Fecha firma');
+  const ren = {};
+  ctRng.values.forEach((row, i) => { if (i === 0 || ci < 0) return; const n = String(row[ci] ?? '').trim(); if (!/^\d{1,5}$/.test(n)) return;
+    const f = row[fi]; let y = 2026; if (typeof f === 'number' && f > 0) y = new Date(Math.round((f - 25569) * 864e5)).getUTCFullYear(); else if (/^\d{4}-/.test(String(f || ''))) y = Number(String(f).slice(0, 4));
+    ren[n] = n.padStart(5, '0') + '-' + y; });
+  if (Object.keys(ren).length) {
+    // respaldo del Excel antes de tocarlo
+    const raw = await graph(`${BASE}/items/${mid}/content`, { raw: true }); const buf = await raw.arrayBuffer();
+    const bk = encPath(joinRel(CFG.root, '00_Plataforma/Respaldos/Plataforma_Guaruma_antes_numeracion_' + TODAY + '.xlsx'));
+    await graph(`${BASE}/root:/${bk}:/content?@microsoft.graph.conflictBehavior=replace`, { method: 'PUT', body: buf, headers: { 'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' } });
+    for (let i = 1; i < ctRng.values.length; i++) { const n = String(ctRng.values[i][ci] ?? '').trim(); if (ren[n]) { await patchCell(mid, ctRng.address, i, ci, ren[n]); } }
+    done.push('números de contrato con año (' + Object.entries(ren).map(([a, b]) => a + ' → ' + b).join(', ') + '), también en Pagos; respaldo en 00_Plataforma/Respaldos');
+  }
+  // Pagos que todavía apunten a un número sin año (00001) pasan al número completo del contrato
+  if (ci >= 0) {
+    const full = {}; ctRng.values.slice(1).forEach((row) => { const n = String(row[ci] ?? '').trim(); const v = ren[n] || n; const m = v.match(/^(\d+)-\d{4}$/); if (m) full[String(+m[1])] = v; });
+    const pgRng = await graph(`${BASE}/items/${mid}/workbook/tables/tPagos/range?$select=address,values`);
+    const pi = pgRng.values[0].map((h) => String(h).trim()).indexOf('Contrato'); let np = 0;
+    if (pi >= 0) for (let i = 1; i < pgRng.values.length; i++) { const n = String(pgRng.values[i][pi] ?? '').trim(); if (/^\d{1,5}$/.test(n) && full[String(+n)]) { await patchCell(mid, pgRng.address, i, pi, full[String(+n)]); np++; } }
+    if (np) done.push(np + ' pagos ligados al número de contrato con año');
   }
   if (done.length) { await logChange('Ajuste automático del archivo maestro: ' + done.join('; ') + '.'); toast('Se actualizó el archivo maestro: ' + done.join('; ') + '.'); setTimeout(() => load(), 1500); }
 }

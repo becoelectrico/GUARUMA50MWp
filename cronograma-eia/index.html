@@ -192,6 +192,11 @@ tfoot td{position:sticky;bottom:0;background:var(--surface2);font-weight:600;bor
 .pago input,.pago select{border:1px solid var(--line);background:var(--surface2);border-radius:6px;padding:5px 6px;width:100%;min-width:0;font-size:13px}
 .pago input[type=number]{text-align:right;font-variant-numeric:tabular-nums}
 @media (max-width:460px){.pago{grid-template-columns:1fr 1fr}.pago .x,.pago .btn{justify-self:end}}
+.ctcard{border:1px solid var(--line);border-radius:8px;padding:10px 12px;display:flex;flex-direction:column;gap:6px;background:var(--surface2)}
+.ctl{display:flex;justify-content:space-between;gap:8px;align-items:center}
+.paylist{display:flex;flex-direction:column;border-top:1px solid var(--line);margin-top:4px}
+.payrow{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:10px;align-items:start;padding:6px 0;border-bottom:1px dashed var(--line);font-size:13px}
+.payrow>span:last-child{text-align:right}
 .row3x{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;margin-top:6px}
 .row3x>div{display:flex;flex-direction:column;gap:1px}
 .quick{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
@@ -299,7 +304,7 @@ const $=s=>document.querySelector(s);
 let uid=100;const nid=()=>'t'+(++uid);
 
 /* ---------- datos iniciales (9 actividades de Asana + ejemplos) ---------- */
-const A=(id,nombre,ini,fin,deps,avance,extra={})=>Object.assign({id,parent:null,origen:'asana',nombre,resp:'Cristhyan Vallejo',ini,fin,deps:deps.map(d=>({id:d,lag:0})),avance,cp:null,cpMon:'USD',cr:null,crMon:'USD',coment:'',base:{ini,fin},extra:{}},extra);
+const A=(id,nombre,ini,fin,deps,avance,extra={})=>Object.assign({id,parent:null,origen:'asana',nombre,resp:'Cristhyan Vallejo',ini,fin,deps:deps.map(d=>({id:d,lag:0})),avance,ct:id==='t7'?'00001-2026':'',coment:'',base:{ini,fin},extra:{}},extra);
 const E=(id,nombre,ini,fin,deps,avance,cp,cpMon)=>({id,parent:'t7',origen:'consultor',ejemplo:true,nombre,resp:'Consultor EIA',ini,fin,deps:deps.map(d=>({id:d,lag:0})),avance,cp,cpMon,cr:null,crMon:cpMon,coment:'',base:null,extra:{}});
 const state={
   tc:27.0272, tcFecha:'2026-10-18',
@@ -381,12 +386,36 @@ function estado(t){
 const toUSD=(v,m)=>v==null||v===''?0:(m==='HNL'?+v/state.tc:+v);
 const toHNL=(v,m)=>v==null||v===''?0:(m==='USD'?+v*state.tc:+v);
 const money=(v,m)=>(m==='HNL'?'L ':'US$ ')+Number(v).toLocaleString('es-HN',{minimumFractionDigits:2,maximumFractionDigits:2});
-function amt(l,kind){if(kind==='cr'){let u=0,h=0;for(const p of (l.pagos||[])){u+=toUSD(p.monto,p.mon);h+=toHNL(p.monto,p.mon)}return{u,h}}return{u:toUSD(l.cp,l.cpMon),h:toHNL(l.cp,l.cpMon)}}
-function sumAmt(ls,kind){let u=0,h=0;for(const l of ls){const a=amt(l,kind);u+=a.u;h+=a.h}return{u,h}}
+let CT=[],PG=[],MONEY={ok:false,err:null,at:null};
+const nOf=x=>String(x??'').trim();
+const baseN=x=>nOf(x).split('-')[0].replace(/^0+/,'');
+function ctOf(t){if(!t||!t.ct)return null;const k=nOf(t.ct);return CT.find(c=>nOf(c['N.º'])===k)||CT.find(c=>baseN(c['N.º'])===baseN(k))||null}
+function paysOf(c){const n=nOf(c['N.º']);return PG.filter(p=>nOf(p.Contrato)===n||baseN(p.Contrato)===baseN(n))}
+const isPaid=p=>String(p.Estado||'').toLowerCase()==='pagado';
+function ctAmt(c,kind){if(kind==='cp')return{u:toUSD(c.Monto,c.Moneda),h:toHNL(c.Monto,c.Moneda)};let u=0,h=0;for(const p of paysOf(c))if(isPaid(p)){u+=toUSD(p.Monto,p.Moneda);h+=toHNL(p.Monto,p.Moneda)}return{u,h}}
+function sumAmt(ls,kind){const seen=new Set();let u=0,h=0;for(const l of ls){const c=ctOf(l);if(!c||seen.has(nOf(c['N.º'])))continue;seen.add(nOf(c['N.º']));const a=ctAmt(c,kind);u+=a.u;h+=a.h}return{u,h}}
+const amt=(l,kind)=>sumAmt([l],kind);
 function costOf(t,kind){return sumAmt([t,...desc(t.id).map(T)],kind)}
 function totals(kind){return sumAmt(state.tasks,kind)}
 const pct=(a,b)=>b?Math.round(a/b*100):0;
-const CONCEPTOS=['Anticipo','Estimación / avance','Pago final','Liberación de retención','Otro'];
+const ctLabel=c=>nOf(c['N.º'])+' · '+nOf(c.Contratista);
+const pill=(st)=>{const k=String(st||'').toLowerCase();const c=k==='pagado'||k==='firmado'||k==='terminado'?'ok':k==='en ejecución'?'run':k==='anulado'?'late':k==='pendiente'||k==='programado'?'risk':'wait';return `<span class="st ${c}">${esc(st||'—')}</span>`};
+function ctSel(t,attrs){const cur=ctOf(t);return `<select data-f="ct" data-id="${t.id}" ${attrs}><option value="">Sin contrato</option>${CT.map(c=>`<option value="${esc(nOf(c['N.º']))}" ${cur&&nOf(cur['N.º'])===nOf(c['N.º'])?'selected':''}>${esc(ctLabel(c))}</option>`).join('')}${t.ct&&!cur?`<option value="${esc(t.ct)}" selected>${esc(t.ct)} (no encontrado)</option>`:''}</select>`}
+function ctCard(t,ro){
+  const c=ctOf(t);
+  const head=`<div class="f"><label for="d-ct">Contrato vinculado</label>${ctSel(t,'id="d-ct" '+ro)}
+    <span class="computed">Los contratos y pagos se registran en la plataforma, en <a class="back" href="../#contratos" style="font-size:12px">Contratos y pagos</a>. Aquí se muestran tal como están en el Excel.</span></div>`;
+  if(!MONEY.ok)return head+`<span class="computed">${MONEY.err?'No se pudo leer el Excel de la plataforma: '+esc(MONEY.err):'Leyendo contratos de la plataforma…'}</span>`;
+  if(!c)return head;
+  const cp=ctAmt(c,'cp'),cr=ctAmt(c,'cr'),own=c.Moneda==='HNL'?'h':'u',pc=pct(cr.u,cp.u);
+  return head+`<div class="ctcard">
+    <div class="ctl"><b>${esc(c.Contratista)}</b>${pill(c.Estado)}</div>
+    ${c.Objeto?`<div class="computed">${esc(c.Objeto)}</div>`:''}
+    <div class="meter"><i style="width:${Math.min(100,pc)}%;background:var(--ok)"></i></div>
+    <div class="row3x"><div><span class="computed">Monto</span><b class="num">${money(c.Monto||0,c.Moneda)}</b></div><div><span class="computed">Pagado · ${pc}%</span><b class="num">${money(cr[own],c.Moneda)}</b></div><div><span class="computed">Saldo</span><b class="num">${money(cp[own]-cr[own],c.Moneda)}</b></div></div>
+    <div class="paylist">${paysOf(c).map(p=>`<div class="payrow"><span>${esc(p.Concepto||'Pago')}${p['%']?` <span class="computed">${Math.round(+p['%']*100)}%</span>`:''}${p['Condición / hito']?`<div class="computed">${esc(p['Condición / hito'])}</div>`:''}</span><span class="num">${money(p.Monto||0,p.Moneda)}</span><span>${pill(p.Estado)}${p['Fecha de pago']?`<div class="computed num">${fd(p['Fecha de pago'])}</div>`:''}</span></div>`).join('')||'<span class="computed">Sin pagos en la plataforma.</span>'}</div>
+  </div>`;
+}
 function colTotal(c){let u=0,h=0;for(const l of leaves()){const v=l.extra[c.id];if(v!=null&&v!==''){u+=toUSD(v,c.mon);h+=toHNL(v,c.mon)}}return{u,h}}
 
 /* ---------- historial y avisos ---------- */
@@ -465,25 +494,25 @@ function renderResumen(){
 }
 
 function contratosPanel(W){
-  const ks=flat(false).map(r=>r.t).filter(t=>(+t.cp)||(t.pagos||[]).length);
-  const pag=[];for(const t of state.tasks)for(const p of (t.pagos||[]))pag.push({t,p});
-  pag.sort((a,b)=>a.p.fecha<b.p.fecha?1:-1);
-  const own=(t,k)=>{const a=amt(t,k);return t.cpMon==='HNL'?a.h:a.u};
-  return `<section class="panel"><h2>Contratos y pagos</h2>
-  ${ks.length?`<div class="twrap" style="max-height:none"><table><thead><tr><th>#</th><th>Actividad</th><th>Proveedor</th><th>Contrato</th><th>Pagado</th><th></th><th>Saldo</th><th>Pagos</th></tr></thead><tbody>
-  ${ks.map(t=>{const c=+t.cp||0,pd=own(t,'cr'),pc=pct(pd,c);return `<tr data-open="${t.id}" style="cursor:pointer">
-    <td class="num" style="color:var(--muted)">${W[t.id]}</td><td style="white-space:normal;min-width:200px">${esc(t.nombre)}${t.contrato?`<div class="computed">Contrato ${esc(t.contrato)}</div>`:''}</td>
-    <td style="white-space:normal">${esc(t.prov||'—')}</td><td><span class="ro">${c?money(c,t.cpMon):'—'}</span></td>
-    <td><span class="ro">${money(pd,t.cpMon)}</span></td><td style="min-width:110px"><div class="meter" style="margin:0"><i style="width:${Math.min(100,pc)}%;background:var(--ok)"></i></div><span class="computed">${pc}%</span></td>
-    <td><span class="ro">${c?money(c-pd,t.cpMon):'—'}</span></td><td class="computed" style="white-space:normal">${(t.pagos||[]).map(p=>esc(p.concepto)+' '+fd(p.fecha)).join('<br>')||'Sin pagos'}</td></tr>`}).join('')}
-  </tbody></table></div>`:'<p class="empty" style="margin:0">Todavía no hay contratos. Abre una actividad y pon el monto del contrato y sus pagos.</p>'}
-  ${pag.length?`<h2 style="font-size:16px;margin:16px 0 6px">Últimos pagos</h2><div class="list">${pag.slice(0,8).map(({t,p})=>`<div class="li" data-open="${t.id}"><span><span class="num">${fd(p.fecha)}</span> · ${esc(p.concepto)} · ${W[t.id]} ${esc(t.nombre)}</span><span class="num">${money(p.monto,p.mon)}</span></div>`).join('')}</div>`:''}
+  const ks=flat(false).map(r=>r.t).filter(t=>ctOf(t));
+  const pag=[];const seen=new Set();for(const t of ks){const c=ctOf(t);if(seen.has(nOf(c['N.º'])))continue;seen.add(nOf(c['N.º']));for(const p of paysOf(c))if(isPaid(p))pag.push({t,c,p})}
+  pag.sort((a,b)=>String(a.p['Fecha de pago']||'')<String(b.p['Fecha de pago']||'')?1:-1);
+  const note=MONEY.ok?'':`<p class="computed" style="margin:0 0 8px">${MONEY.err?'No se pudo leer el Excel de la plataforma: '+esc(MONEY.err):'Leyendo contratos de la plataforma…'}</p>`;
+  return `<section class="panel"><h2>Contratos y pagos</h2><p class="computed" style="margin:-4px 0 10px">Datos del Excel de la plataforma (hojas Contratos y Pagos). Para registrar un pago, hazlo en <a class="back" href="../#contratos" style="font-size:12px">Contratos y pagos</a>.</p>${note}
+  ${ks.length?`<div class="twrap" style="max-height:none"><table><thead><tr><th>#</th><th>Actividad</th><th>Contrato</th><th>Contratista</th><th>Monto</th><th>Pagado</th><th></th><th>Saldo</th><th>Pagos</th></tr></thead><tbody>
+  ${ks.map(t=>{const c=ctOf(t),cp=ctAmt(c,'cp'),cr=ctAmt(c,'cr'),o=c.Moneda==='HNL'?'h':'u',pc=pct(cr.u,cp.u);return `<tr data-open="${t.id}" style="cursor:pointer">
+    <td class="num" style="color:var(--muted)">${W[t.id]}</td><td style="white-space:normal;min-width:200px">${esc(t.nombre)}</td><td class="num">${esc(nOf(c['N.º']))}</td>
+    <td style="white-space:normal;min-width:160px">${esc(c.Contratista)}</td><td><span class="ro">${money(c.Monto||0,c.Moneda)}</span></td>
+    <td><span class="ro">${money(cr[o],c.Moneda)}</span></td><td style="min-width:110px"><div class="meter" style="margin:0"><i style="width:${Math.min(100,pc)}%;background:var(--ok)"></i></div><span class="computed">${pc}%</span></td>
+    <td><span class="ro">${money(cp[o]-cr[o],c.Moneda)}</span></td><td class="computed" style="white-space:normal">${paysOf(c).map(p=>esc(p.Concepto||'Pago')+' · '+esc(p.Estado||'')+(p['Fecha de pago']?' '+fd(p['Fecha de pago']):'')).join('<br>')||'Sin pagos'}</td></tr>`}).join('')}
+  </tbody></table></div>`:'<p class="empty" style="margin:0">Ninguna actividad tiene contrato vinculado. Abre una actividad y elige su contrato en “Contrato vinculado”.</p>'}
+  ${pag.length?`<h2 style="font-size:16px;margin:16px 0 6px">Últimos pagos</h2><div class="list">${pag.slice(0,8).map(({t,c,p})=>`<div class="li" data-open="${t.id}"><span><span class="num">${fd(p['Fecha de pago'])}</span> · ${esc(p.Concepto||'Pago')} · contrato ${esc(nOf(c['N.º']))} · ${W[t.id]} ${esc(t.nombre)}</span><span class="num">${money(p.Monto||0,p.Moneda)}</span></div>`).join('')}</div>`:''}
   </section>`;
 }
 function progRow(t,lvl,W){const[e,c]=estado(t);const p=planned(t);const ch=kids(t.id);const op=resOpen.has(t.id);
   return `<div class="prog${lvl?' subp':''}" data-open="${t.id}">
     <span class="wbs">${ch.length?`<button class="caret" data-rtog="${t.id}" aria-label="Ver subactividades">${op?'▾':'▸'}</button>`:''}${W[t.id]}</span>
-    <span class="pname" style="padding-left:${lvl*14}px">${esc(t.nombre)}<small>${fd(t.ini)} → ${fd(t.fin)} · ${dur(t)} días · ${esc(t.resp||'Sin asignar')}${ch.length?' · '+ch.length+' subactividades':''}${(()=>{const c=costOf(t,'cp'),r=costOf(t,'cr');return c.u?' · pagado '+pct(r.u,c.u)+'% de '+money(t.cpMon==='HNL'?c.h:c.u,t.cpMon||'USD'):''})()}</small></span>
+    <span class="pname" style="padding-left:${lvl*14}px">${esc(t.nombre)}<small>${fd(t.ini)} → ${fd(t.fin)} · ${dur(t)} días · ${esc(t.resp||'Sin asignar')}${ch.length?' · '+ch.length+' subactividades':''}${(()=>{const c=costOf(t,'cp'),r=costOf(t,'cr');const k=ctOf(t);return c.u?' · pagado '+pct(r.u,c.u)+'% de '+(k&&!kids(t.id).length?money(k.Monto||0,k.Moneda):money(c.u,'USD')):''})()}</small></span>
     <span class="pmeter"><div class="meter"><i style="width:${t.avance}%"></i><b style="left:${p}%"></b></div><div class="legend"><span class="num">${t.avance}% real · ${p}% esperado</span></div></span>
     <span class="st ${c}">${e}</span>
   </div>${op?ch.map(k=>progRow(k,lvl+1,W)).join(''):''}`}
@@ -562,7 +591,7 @@ function renderTabla(){
     return `<input ${a} value="${esc(v)}">`};
   return `
   <div class="twrap"><table>
-    <thead><tr><th>#</th><th>Actividad</th><th>Origen</th><th>Responsable</th><th>Inicio</th><th>Fin</th><th>Días</th><th>Depende de</th><th>Avance %</th><th>Estado</th><th>Contrato / presup.</th><th></th><th>Pagado</th><th>Saldo</th>${state.cols.map(c=>`<th>${esc(c.nombre)}</th>`).join('')}</tr></thead>
+    <thead><tr><th>#</th><th>Actividad</th><th>Origen</th><th>Responsable</th><th>Inicio</th><th>Fin</th><th>Días</th><th>Depende de</th><th>Avance %</th><th>Estado</th><th>Contrato</th><th>Monto</th><th>Pagado</th><th>Saldo</th>${state.cols.map(c=>`<th>${esc(c.nombre)}</th>`).join('')}</tr></thead>
     <tbody>${rows.map(({t,lvl})=>{const par=isPar(t),[e,c]=estado(t);const cps=costOf(t,'cp'),crs=costOf(t,'cr');return `
       <tr class="${par?'par':''}">
         <td class="num" style="color:var(--muted)">${W[t.id]}</td>
@@ -575,13 +604,12 @@ function renderTabla(){
         <td><button class="link" data-open="${t.id}">${t.deps.length?t.deps.map(d=>W[d.id]+(+d.lag?(d.lag>0?'+':'')+d.lag+'d':'')).join(', '):'—'}</button></td>
         <td>${par?`<span class="ro">${t.avance}</span>`:`<input type="number" min="0" max="100" data-f="avance" data-id="${t.id}" value="${t.avance}" style="width:72px" aria-label="Avance">`}</td>
         <td><span class="st ${c}">${e}</span></td>
-        ${par?`<td><span class="ro">${cps.u?money(cps.u,'USD'):''}</span></td><td class="computed">${cps.u?money(cps.h,'HNL'):''}</td><td><span class="ro">${crs.u?money(crs.u,'USD')+' · '+pct(crs.u,cps.u)+'%':''}</span></td><td><span class="ro">${cps.u?money(cps.u-crs.u,'USD'):''}</span></td>`
-        :`<td><input type="number" step="any" data-f="cp" data-id="${t.id}" value="${t.cp??''}" style="width:120px" aria-label="Costo presupuestado"></td><td>${mon(t,'cp')}</td>
-          <td><button class="link" data-open="${t.id}">${(t.pagos||[]).length?money(crs.u,'USD')+' · '+pct(crs.u,cps.u)+'%':'Registrar pago'}</button>${(t.pagos||[]).length?`<div class="computed">${t.pagos.length} pago${t.pagos.length>1?'s':''}</div>`:''}</td><td><span class="ro">${cps.u?money(cps.u-crs.u,'USD'):''}</span></td>`}
+        ${par?`<td>${ctSel(t,'style="min-width:200px" aria-label="Contrato vinculado"')}</td><td><span class="ro">${cps.u?money(cps.u,'USD'):''}</span></td><td><span class="ro">${crs.u?money(crs.u,'USD')+' · '+pct(crs.u,cps.u)+'%':''}</span></td><td><span class="ro">${cps.u?money(cps.u-crs.u,'USD'):''}</span></td>`
+        :`<td>${ctSel(t,'style="min-width:200px" aria-label="Contrato vinculado"')}</td><td><span class="ro">${cps.u?money(cps.u,'USD'):''}</span></td><td><span class="ro">${crs.u?money(crs.u,'USD')+' · '+pct(crs.u,cps.u)+'%':''}</span></td><td><span class="ro">${cps.u?money(cps.u-crs.u,'USD'):''}</span></td>`}
         ${state.cols.map(c=>`<td>${cell(t,c)}</td>`).join('')}
       </tr>`}).join('')}</tbody>
     <tfoot><tr><td></td><td>Totales (tipo de cambio L ${state.tc.toFixed(2)} por US$)</td><td colspan="8"></td>
-      <td><span class="ro">${money(cp.u,'USD')}</span></td><td class="computed">${money(cp.h,'HNL')}</td>
+      <td></td><td><span class="ro">${money(cp.u,'USD')}<br>${money(cp.h,'HNL')}</span></td>
       <td><span class="ro">${money(cr.u,'USD')}<br>${money(cr.h,'HNL')}</span></td><td><span class="ro">${money(cp.u-cr.u,'USD')}<br>${money(cp.h-cr.h,'HNL')}</span></td>
       ${state.cols.map(c=>{if(c.tipo!=='moneda')return'<td></td>';const x=colTotal(c);return `<td><span class="ro">${money(x.u,'USD')}<br>${money(x.h,'HNL')}</span></td>`}).join('')}</tr></tfoot>
   </table></div>
@@ -615,16 +643,8 @@ function renderDrawer(){
       </div>
       <div class="computed">${dur(t)} días calendario · holgura ${slack[t.id]<=0?'<b style="color:var(--crit)">0 días (ruta crítica)</b>':slack[t.id]+' días'}${t.base?` · en Asana: ${fd(t.base.ini)} → ${fd(t.base.fin)}`:''}${par?' · fechas calculadas de las subactividades':''}</div>
       <div class="f"><label for="d-av">Avance: ${t.avance}% ${par?'(calculado)':''} · esperado a hoy ${planned(t)}%</label><input id="d-av" type="range" min="0" max="100" step="5" data-f="avance" data-id="${t.id}" value="${t.avance}" ${par||present?'disabled':''}></div>
-      ${par?`<div class="f"><span class="flbl">Total de esta actividad y sus subactividades</span><div class="row3x"><div><span class="computed">Contratado</span><b class="num">${money(cps.u,'USD')}</b><span class="computed num">${money(cps.h,'HNL')}</span></div><div><span class="computed">Pagado · ${pct(crs.u,cps.u)}%</span><b class="num">${money(crs.u,'USD')}</b><span class="computed num">${money(crs.h,'HNL')}</span></div><div><span class="computed">Saldo</span><b class="num">${money(cps.u-crs.u,'USD')}</b><span class="computed num">${money(cps.h-crs.h,'HNL')}</span></div></div></div>`:''}
-      ${`<div class="f"><label for="d-cp">Monto del contrato o presupuesto${par?' (propio de esta actividad)':''}</label><div class="row3"><input id="d-cp" type="number" step="any" data-f="cp" data-id="${t.id}" value="${t.cp??''}" ${ro}><select data-f="cpMon" data-id="${t.id}" aria-label="Moneda" ${ro}><option value="USD" ${t.cpMon==='USD'?'selected':''}>US$</option><option value="HNL" ${t.cpMon==='HNL'?'selected':''}>L</option></select></div>${t.cp?`<span class="computed num">≈ ${t.cpMon==='USD'?money(toHNL(t.cp,'USD'),'HNL'):money(toUSD(t.cp,'HNL'),'USD')}</span>`:''}</div>
-        <div class="row2"><div class="f"><label for="d-prov">Proveedor / contratista</label><input id="d-prov" data-f="prov" data-id="${t.id}" value="${esc(t.prov||'')}" placeholder="Ej. consultora ambiental" ${ro}></div>
-          <div class="f"><label for="d-ctr">No. de contrato u orden</label><input id="d-ctr" data-f="contrato" data-id="${t.id}" value="${esc(t.contrato||'')}" ${ro}></div></div>
-        <div class="f"><span class="flbl">Pagos realizados</span>
-          ${cps.u?`<div class="meter"><i style="width:${Math.min(100,pct(crs.u,cps.u))}%;background:var(--ok)"></i></div><div class="row3x"><div><span class="computed">Pagado · ${pct(crs.u,cps.u)}%</span><b class="num">${money(crs.u,'USD')}</b><span class="computed num">${money(crs.h,'HNL')}</span></div><div><span class="computed">Saldo por pagar</span><b class="num">${money(cps.u-crs.u,'USD')}</b><span class="computed num">${money(cps.h-crs.h,'HNL')}</span></div></div>`:'<span class="computed">Pon primero el monto del contrato para ver el porcentaje pagado y el saldo.</span>'}
-          <div class="deps">${(t.pagos||[]).map((p,i)=>`<div class="pago"><input type="date" data-pago="${i}" data-pf="fecha" value="${esc(p.fecha)}" aria-label="Fecha del pago" ${ro}><select data-pago="${i}" data-pf="concepto" aria-label="Concepto" ${ro}>${CONCEPTOS.map(c=>`<option ${c===p.concepto?'selected':''}>${c}</option>`).join('')}</select><input type="number" step="any" data-pago="${i}" data-pf="monto" value="${p.monto}" aria-label="Monto" ${ro}><select data-pago="${i}" data-pf="mon" aria-label="Moneda" ${ro}><option value="USD" ${p.mon==='USD'?'selected':''}>US$</option><option value="HNL" ${p.mon==='HNL'?'selected':''}>L</option></select><button class="x edit-only" data-delpago="${i}" aria-label="Quitar pago" title="Quitar">×</button></div>`).join('')||'<span class="computed">Sin pagos registrados.</span>'}</div>
-          <div class="pago edit-only"><input type="date" id="np-fecha" value="${TODAY}" aria-label="Fecha del nuevo pago"><select id="np-con" aria-label="Concepto">${CONCEPTOS.map(c=>`<option>${c}</option>`).join('')}</select><input type="number" step="any" id="np-monto" placeholder="Monto" aria-label="Monto del nuevo pago"><select id="np-mon" aria-label="Moneda"><option value="USD" ${t.cpMon==='USD'?'selected':''}>US$</option><option value="HNL" ${t.cpMon==='HNL'?'selected':''}>L</option></select><button class="btn sm" id="d-addpago">Agregar</button></div>
-          ${cps.u?`<div class="quick edit-only"><span class="computed">Rápido:</span>${[30,50].map(q=>`<button class="btn sm" data-qpago="${q}">Anticipo ${q}%</button>`).join('')}<button class="btn sm" data-qpago="saldo">Pagar saldo</button></div>`:''}
-        </div>`}
+      ${par?`<div class="f"><span class="flbl">Total de los contratos de esta actividad y sus subactividades</span><div class="row3x"><div><span class="computed">Contratado</span><b class="num">${money(cps.u,'USD')}</b><span class="computed num">${money(cps.h,'HNL')}</span></div><div><span class="computed">Pagado · ${pct(crs.u,cps.u)}%</span><b class="num">${money(crs.u,'USD')}</b><span class="computed num">${money(crs.h,'HNL')}</span></div><div><span class="computed">Saldo</span><b class="num">${money(cps.u-crs.u,'USD')}</b><span class="computed num">${money(cps.h-crs.h,'HNL')}</span></div></div></div>`:''}
+      ${ctCard(t,ro)}
       ${state.cols.map(cl=>{const v=t.extra[cl.id]??'',a=`id="d-${cl.id}" data-x="${cl.id}" data-id="${t.id}" ${ro}`;return `<div class="f"><label for="d-${cl.id}">${esc(cl.nombre)}</label>${cl.tipo==='opciones'?`<select ${a}><option value=""></option>${cl.opciones.map(o=>`<option ${o===v?'selected':''}>${esc(o)}</option>`).join('')}</select>`:`<input ${a} type="${cl.tipo==='fecha'?'date':(cl.tipo==='texto'?'text':'number')}" value="${esc(v)}">`}</div>`}).join('')}
       <div class="f"><span class="flbl">No puede iniciar hasta que termine</span>
         <span class="computed">Si una de estas se atrasa, esta actividad se corre automáticamente. "Días de espera" es el tiempo extra entre que termina la anterior y empieza esta (0 = al día siguiente).</span>
@@ -661,7 +681,7 @@ function respModal(){
   <div style="display:flex;gap:8px;justify-content:flex-end"><button class="btn" data-mclose="1">Cerrar</button><button class="btn primary" id="p-add">Agregar</button></div>`);
 }
 function tcModal(){
-  modal(`<h3>Tipo de cambio</h3><p class="computed" style="margin:0">Se usa para convertir todos los costos y mostrar los totales en lempiras y dólares. Actualízalo con la referencia del BCH.</p>
+  modal(`<h3>Tipo de cambio</h3><p class="computed" style="margin:0">Se toma de la hoja Proyecto del Excel de la plataforma cada vez que abres el cronograma. Si lo cambias aquí, vale solo hasta la próxima carga; para cambiarlo de verdad, cámbialo en la plataforma.</p>
   <div class="row2"><div class="f"><label for="tc-v">Lempiras por US$</label><input id="tc-v" type="number" step="0.0001" value="${state.tc}"></div><div class="f"><label for="tc-f">Fecha</label><input id="tc-f" type="date" value="${state.tcFecha}"></div></div>
   <div style="display:flex;gap:8px;justify-content:flex-end"><button class="btn" data-mclose="1">Cancelar</button><button class="btn primary" id="tc-save">Guardar</button></div>`);
 }
@@ -677,19 +697,17 @@ function impModal(){
 function setField(t,f,v){
   const sn=snap();const old=t[f];
   if(f==='avance')v=Math.max(0,Math.min(100,Math.round(+v||0)));
-  if(f==='cp'||f==='cr')v=v===''?null:+v;
   if(f==='ini'||f==='fin'){if(!v)return render();
     if(f==='ini'){const du=D(t.fin)-D(t.ini);t.ini=v;t.fin=S(D(v)+du)}else{t.fin=D(v)<D(t.ini)?t.ini:v}
     return commit(t,(f==='ini'?'Inicio':'Fin')+': '+fd(f==='ini'?old:old)+' → '+fd(t[f]),sn)}
   t[f]=v;
-  const lbl={nombre:'Nombre',resp:'Responsable',avance:'Avance',cp:'Monto del contrato',prov:'Proveedor',contrato:'No. de contrato',cpMon:'Moneda presupuesto',crMon:'Moneda costo real',coment:'Comentario'}[f];
+  const lbl={nombre:'Nombre',resp:'Responsable',avance:'Avance',ct:'Contrato vinculado',cpMon:'Moneda presupuesto',crMon:'Moneda costo real',coment:'Comentario'}[f];
   commit(t,f==='coment'?'Comentario actualizado':lbl+': '+(old??'—')+' → '+(f==='avance'?v+'%':(v??'—')),sn);
 }
 document.addEventListener('change',ev=>{
   const el=ev.target;
   if(el.dataset.f&&el.dataset.id){setField(T(el.dataset.id),el.dataset.f,el.value);return}
   if(el.dataset.x&&el.dataset.id){const t=T(el.dataset.id),c=state.cols.find(c=>c.id===el.dataset.x);t.extra[c.id]=(c.tipo==='numero'||c.tipo==='moneda')&&el.value!==''?+el.value:el.value;log(t,c.nombre+': '+(el.value||'—'));render();return}
-  if(el.dataset.pago!==undefined){const t=T(openId),p=t.pagos[+el.dataset.pago],f=el.dataset.pf;p[f]=f==='monto'?(+el.value||0):el.value;log(t,'Pago editado: '+p.concepto+' '+money(p.monto,p.mon));render();return}
   if(el.dataset.lag!==undefined){const t=T(openId),sn=snap();t.deps[+el.dataset.lag].lag=+el.value||0;commit(t,'Desfase de dependencia: '+(+el.value||0)+' días',sn)}
 });
 document.addEventListener('input',ev=>{if(ev.target.id==='d-av'){const l=ev.target.previousElementSibling;if(l)l.firstChild.textContent='Avance: '+ev.target.value+'% '}});
@@ -704,12 +722,9 @@ document.addEventListener('click',ev=>{
   if(el.dataset.mclose){closeModal();return}
   if(el.dataset.deldep!==undefined){const t=T(openId),d=t.deps.splice(+el.dataset.deldep,1)[0];log(t,'Quitada dependencia de '+T(d.id).nombre);commit(null,null,snap());return}
   if(el.dataset.delp!==undefined){state.people.splice(+el.dataset.delp,1);render();respModal();return}
-  if(el.dataset.delpago!==undefined){const t=T(openId),p=t.pagos.splice(+el.dataset.delpago,1)[0];log(t,'Pago quitado: '+p.concepto+' '+money(p.monto,p.mon));render();return}
-  if(el.dataset.qpago){const t=T(openId);t.pagos=t.pagos||[];const tot=+t.cp||0;const paidIn=amt(t,'cr')[t.cpMon==='HNL'?'h':'u'];const q=el.dataset.qpago;const m=q==='saldo'?Math.max(0,tot-paidIn):tot*(+q)/100;if(!m){toast('No hay saldo pendiente');return}
-    t.pagos.push({fecha:TODAY,concepto:q==='saldo'?'Pago final':'Anticipo',monto:Math.round(m*100)/100,mon:t.cpMon});log(t,'Pago registrado: '+(q==='saldo'?'Pago final ':'Anticipo '+q+'% ')+money(m,t.cpMon));render();toast('Pago registrado. Corrige la fecha si no fue hoy.');return}
   if(el.dataset.delcol){state.cols=state.cols.filter(c=>c.id!==el.dataset.delcol);render();colsModal();return}
   const id=el.id;
-  if(id==='b-add'){const t={id:nid(),parent:null,origen:'agregada',nombre:'Nueva actividad',resp:'Cristhyan Vallejo',ini:TODAY,fin:S(D(TODAY)+13),deps:[],avance:0,cp:null,cpMon:'USD',cr:null,crMon:'USD',coment:'',base:null,extra:{}};state.tasks.push(t);log(t,'Actividad principal agregada');openId=t.id;commit(null,null,snap());setTimeout(()=>$('#d-nombre')?.select(),30);return}
+  if(id==='b-add'){const t={id:nid(),parent:null,origen:'agregada',nombre:'Nueva actividad',resp:'Cristhyan Vallejo',ini:TODAY,fin:S(D(TODAY)+13),deps:[],avance:0,ct:'',coment:'',base:null,extra:{}};state.tasks.push(t);log(t,'Actividad principal agregada');openId=t.id;commit(null,null,snap());setTimeout(()=>$('#d-nombre')?.select(),30);return}
   if(id==='b-cols')return colsModal();
   if(id==='b-resp')return respModal();
   if(id==='p-add'){const n=$('#p-n').value.trim();if(!n){$('#p-n').focus();return}if(!state.people.includes(n))state.people.push(n);log(null,'Responsable agregado: '+n);render();respModal();toast('"'+n+'" agregado a responsables');return}
@@ -719,9 +734,8 @@ document.addEventListener('click',ev=>{
     try{if(present)document.documentElement.requestFullscreen?.().catch(()=>{});else if(document.fullscreenElement)document.exitFullscreen?.().catch(()=>{})}catch(e){}render();return}
   if(id==='c-add'){const n=$('#c-n').value.trim();if(!n){$('#c-n').focus();return}const tp=$('#c-t').value;state.cols.push({id:'c'+(++uid),nombre:n,tipo:tp,mon:$('#c-m').value,opciones:$('#c-o').value.split(',').map(s=>s.trim()).filter(Boolean)});log(null,'Columna agregada: '+n);render();colsModal();toast('Columna "'+n+'" agregada');return}
   if(id==='tc-save'){const v=+$('#tc-v').value;if(v>0){state.tc=v;state.tcFecha=$('#tc-f').value||state.tcFecha;log(null,'Tipo de cambio: L '+v.toFixed(4))}closeModal();render();return}
-  if(id==='d-addpago'){const m=+$('#np-monto').value;if(!m){$('#np-monto').focus();return}const t=T(openId);t.pagos=t.pagos||[];const p={fecha:$('#np-fecha').value||TODAY,concepto:$('#np-con').value,monto:m,mon:$('#np-mon').value};t.pagos.push(p);t.pagos.sort((a,b)=>a.fecha<b.fecha?-1:1);log(t,'Pago registrado: '+p.concepto+' '+money(m,p.mon));render();return}
   if(id==='d-adddep'){const v=$('#d-newdep').value;if(!v)return;const t=T(openId),sn=snap();t.deps.push({id:v,lag:0});commit(t,'Nueva predecesora: '+T(v).nombre,sn);return}
-  if(id==='d-sub'){const p=T(openId);const t={id:nid(),parent:p.id,origen:'agregada',nombre:'Nueva subactividad',resp:p.resp,ini:p.ini,fin:S(D(p.ini)+6),deps:[],avance:0,cp:null,cpMon:'USD',cr:null,crMon:'USD',coment:'',base:null,extra:{}};state.tasks.push(t);collapsed.delete(p.id);log(t,'Subactividad agregada en '+p.nombre);openId=t.id;commit(null,null,snap());setTimeout(()=>$('#d-nombre')?.select(),30);return}
+  if(id==='d-sub'){const p=T(openId);const t={id:nid(),parent:p.id,origen:'agregada',nombre:'Nueva subactividad',resp:p.resp,ini:p.ini,fin:S(D(p.ini)+6),deps:[],avance:0,ct:'',coment:'',base:null,extra:{}};state.tasks.push(t);collapsed.delete(p.id);log(t,'Subactividad agregada en '+p.nombre);openId=t.id;commit(null,null,snap());setTimeout(()=>$('#d-nombre')?.select(),30);return}
   if(id==='d-up'||id==='d-down'){const t=T(openId),sib=kids(t.parent),i=sib.indexOf(t),j=id==='d-up'?i-1:i+1;if(j<0||j>=sib.length)return;const a=state.tasks.indexOf(t),b=state.tasks.indexOf(sib[j]);[state.tasks[a],state.tasks[b]]=[state.tasks[b],state.tasks[a]];render();return}
   if(id==='d-del'){if(el.dataset.armed!=='1'){el.dataset.armed='1';el.textContent=isPar(T(openId))?'Confirmar: borra también sus subactividades':'Confirmar eliminación';return}
     const t=T(openId),gone=new Set([t.id,...desc(t.id)]);state.tasks=state.tasks.filter(x=>!gone.has(x.id));state.tasks.forEach(x=>x.deps=x.deps.filter(d=>!gone.has(d.id)));log(null,'Eliminada: '+t.nombre);openId=null;commit(null,null,snap());toast('"'+t.nombre+'" eliminada');return}
@@ -762,6 +776,7 @@ const CFG={
   driveId:'b!odPVE-52iUujQ51urc-Lo313bV6eZH1Ou3oQ1j-14VSu1HnnnNkLSKc1U1wiIZh2',
   parent:'Proyecto CAHSA 50 MW/00_Plataforma',
   folder:'Cronograma Licencia Ambiental',
+  master:'Proyecto CAHSA 50 MW/00_Plataforma/Plataforma_Guaruma.xlsx',
   oldDir:'Proyecto CAHSA 50 MW/Estudio de Impacto Ambiental/App Cronograma EIA',
   file:'cronograma.json',
   scopes:['User.Read','Files.ReadWrite']
@@ -796,7 +811,7 @@ function applyRemote(o){
   state.tc=+o.tc||state.tc;state.tcFecha=o.tcFecha||state.tcFecha;
   state.people=Array.isArray(o.people)?o.people:state.people;
   state.cols=Array.isArray(o.cols)?o.cols:[];state.tasks=Array.isArray(o.tasks)?o.tasks:[];state.hist=Array.isArray(o.hist)?o.hist:[];
-  for(const t of state.tasks){t.deps=t.deps||[];t.extra=t.extra||{};if(!t.pagos){t.pagos=t.cr?[{fecha:TODAY,concepto:'Otro',monto:+t.cr,mon:t.crMon||'USD'}]:[]}delete t.cr;delete t.crMon}
+  for(const t of state.tasks){t.deps=t.deps||[];t.extra=t.extra||{};const had=(+t.cp)||(t.pagos&&t.pagos.length);for(const k of ['cp','cpMon','cr','crMon','pagos','prov','contrato'])delete t[k];if(had&&t.id==='t7'&&!t.ct)t.ct='00001-2026'}
   const nums=[...state.tasks.map(t=>t.id),...state.cols.map(c=>c.id)].map(x=>+String(x).replace(/\D/g,'')||0);
   uid=Math.max(100,...nums);
 }
@@ -837,18 +852,36 @@ async function load(quiet){
       if(BASE!=='/me/drive'&&(e.status===403||e.status===400)){BASE='/me/drive';return load(quiet)}
       throw e;
     }
-    if(quiet&&meta.eTag===ETAG){stamp();return}
+    if(quiet&&meta.eTag===ETAG){stamp();loadMoney();return}
     const r=await graph(`${BASE}/items/${meta.id}/content`,{raw:true});
     const txt=await r.text();
     applyRemote(JSON.parse(txt));
     ETAG=meta.eTag;META=meta;lastSaved=payload();pending=false;cacheLocal();
-    loaded=true;lastLoad=Date.now();schedule();$('#gate').hidden=true;render();stamp();
+    loaded=true;lastLoad=Date.now();schedule();$('#gate').hidden=true;render();stamp();loadMoney();
     if(quiet)toast('Se cargaron cambios recientes'+(meta.lastModifiedBy?.user?.displayName?' de '+meta.lastModifiedBy.user.displayName:''));
   }catch(e){
     console.error(e);
     if(loaded){setSync('err','Sin conexión');toast('No se pudo leer OneDrive: '+e.message)}
     else gateMsg('No se pudo abrir el cronograma: '+esc(e.message));
   }
+}
+const serial=n=>new Date(Math.round((n-25569)*864e5)).toISOString().slice(0,10);
+async function loadMoney(){
+  try{
+    const it=await itemMeta(CFG.master);
+    const names=['tContratos','tPagos','tProyecto'];
+    const res=await graph('/$batch',{method:'POST',json:true,body:JSON.stringify({requests:names.map((t,i)=>({id:String(i),method:'GET',url:`${BASE}/items/${it.id}/workbook/tables/${t}/range?$select=values`}))})});
+    const out={};
+    for(const r of res.responses||[]){const t=names[+r.id];if(r.status!==200){out[t]=null;continue}
+      const v=r.body.values||[],h=(v[0]||[]).map(x=>String(x).trim());
+      out[t]=v.slice(1).filter(row=>row.some(c=>c!==''&&c!==null)).map(row=>{const o={};h.forEach((k,j)=>{let c=row[j];if(c===''||c===undefined)c=null;o[k]=(/fecha/i.test(k)&&typeof c==='number')?serial(c):(typeof c==='string'?c.trim():c)});return o})}
+    if(!out.tContratos)throw new Error('no se pudo leer la tabla de contratos');
+    CT=out.tContratos;PG=out.tPagos||[];
+    const fx=(out.tProyecto||[]).find(r=>/tasa de cambio/i.test(String(r.Campo||'')));
+    if(fx&&+fx.Valor>0&&+fx.Valor!==state.tc){state.tc=+fx.Valor;state.tcFecha=TODAY}
+    MONEY={ok:true,err:null,at:Date.now()};
+  }catch(e){console.warn('contratos',e);MONEY={ok:false,err:e.message,at:Date.now()}}
+  if(loaded)render();
 }
 function stamp(){
   if(!META){setSync('ok','Guardado en OneDrive');return}
