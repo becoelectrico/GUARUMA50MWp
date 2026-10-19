@@ -581,19 +581,20 @@ const ROUTES = [
   ['resumen', 'Resumen', 'home'], ['frentes', 'Frentes', 'layers'], ['contratos', 'Contratos y pagos', 'contract'], ['ofertas', 'Ofertas', 'tag'],
   ['cronograma', 'Cronograma', 'cal'], ['pendientes', 'Pendientes y riesgos', 'alert'], ['reporte', 'Reporte semanal', 'send'], ['informes', 'Informes semanales', 'report'], ['documentos', 'Documentos', 'folder'], ['bitacora', 'Bitácora', 'clock']
 ];
-let frOpen = true;
+let frOpen = (() => { try { return localStorage.getItem('guaruma.frOpen') === '1'; } catch (_) { return false; } })();
 function drawNav(route) {
   const nav = $('#nav');
+  const frShow = frOpen || String(route || '').startsWith('frente-');
   const grp = (t) => `<div class="sb-group">${t}</div>`;
   const item = ([id, lbl, icon], extra = '') => `<a class="nav" href="#${id}" ${route === id ? 'aria-current="page"' : ''} data-tip-side="right" data-tip-c="${esc(lbl)}">${ic(icon)}<span class="lbl">${lbl}</span>${extra}</a>`;
   const frItems = F.map((f) => `<a class="nav" href="#frente-${f.ID}" ${route === 'frente-' + f.ID ? 'aria-current="page"' : ''}><i class="dot d-${tone(f.Estado)}"></i><span class="lbl">${esc(f.Frente)}</span></a>`).join('');
   nav.innerHTML = grp('Proyecto') + item(ROUTES[0]) +
-    `<button class="nav" id="frbtn" aria-expanded="${frOpen}" data-tip-c="Frentes">${ic('layers')}<span class="lbl">Frentes</span><span class="cnt">${F.length}</span>${ic('chev', 'chev')}</button>` +
-    `<div class="sub" ${frOpen ? '' : 'hidden'}>${frItems}<a class="nav" href="#frentes" ${route === 'frentes' ? 'aria-current="page"' : ''}><span class="lbl faint">Ver todos</span></a></div>` +
+    `<button class="nav" id="frbtn" aria-expanded="${frShow}" data-tip-c="Frentes">${ic('layers')}<span class="lbl">Frentes</span><span class="cnt">${F.length}</span>${ic('chev', 'chev')}</button>` +
+    `<div class="sub" ${frShow ? '' : 'hidden'}>${frItems}<a class="nav" href="#frentes" ${route === 'frentes' ? 'aria-current="page"' : ''}><span class="lbl faint">Ver todos</span></a></div>` +
     grp('Control') + ROUTES.slice(2, 6).map((r) => item(r)).join('') +
     `<a class="nav" href="cronograma-eia/" data-tip-side="right" data-tip-c="Licencia ambiental · cronograma">${ic('cal')}<span class="lbl">Licencia ambiental</span><span class="cnt">Detalle</span></a>` +
     grp('Archivo') + ROUTES.slice(6).map((r) => item(r)).join('');
-  $('#frbtn').onclick = () => { frOpen = !frOpen; drawNav(route); };
+  $('#frbtn').onclick = () => { frOpen = !frOpen; try { localStorage.setItem('guaruma.frOpen', frOpen ? '1' : '0'); } catch (_) {} drawNav(route); };
 }
 
 // ---------- Timeline ----------
