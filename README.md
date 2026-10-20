@@ -25,6 +25,12 @@ Cronograma detallado (Gantt, tabla, costos en L y US$) de la sección *Licencia 
 - **Azure:** agregar como Redirect URI (SPA) la dirección del módulo, con `/` al final: `https://becoelectrico.github.io/<repositorio>/cronograma-eia/`.
 - **Service worker propio:** `cronograma-eia/sw.js` (subir `VERSION` en cada cambio).
 
+## Módulo: Ruta regulatoria (`ruta-regulatoria/`)
+Matriz regulatoria de interconexión: qué pide cada ente (CND, EOR, CRIE, ENEE Transmisión, CREE, SEN, SERNA), en qué orden, dependencias, ruta crítica, costos y comparación con Asana. Fecha X (solicitud de premisas) 30 nov 2026; meta de puesta en marcha 31 jul 2028 (Resumen Proyecto Solar CAHSA en Asana).
+- **Página fija:** no lee ni escribe OneDrive ni Asana; los plazos y fechas están en el código (actualizado al 20 oct 2026). Para actualizarla se reemplaza el contenido entre los comentarios "Contenido original".
+- **Azure:** agregar como Redirect URI (SPA) `https://becoelectrico.github.io/<repositorio>/ruta-regulatoria/`.
+- **Service worker propio:** `ruta-regulatoria/sw.js` (subir `VERSION` en cada cambio).
+
 ## Módulo: Consultas (`#consultas` en `index.html`)
 Matriz de consultas del EsIA (EHG-SOL-001) y de cualquier otro frente, con la respuesta y los documentos que la respaldan.
 - **Datos:** hojas `Consultas` (tabla `tConsultas`, una fila por consulta, columna `Frente`) y `Consulta docs` (tabla `tConsultaDocs`, una fila por documento ligado) del Excel maestro.

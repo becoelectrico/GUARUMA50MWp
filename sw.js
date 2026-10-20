@@ -1,6 +1,6 @@
 // Service worker · Plataforma Guaruma 50 MW
 // Sube VERSION cada vez que publiques cambios para que los equipos tomen la versión nueva.
-const VERSION = 'guaruma-v1.7.0';
+const VERSION = 'guaruma-v1.7.1';
 const SHELL = ['./', './index.html', './manifest.json', './icons/logo.png', './icons/icon-192.png', './icons/icon-512.png'];
 const CDN = ['https://cdn.jsdelivr.net/', 'https://cdnjs.cloudflare.com/', 'https://fonts.googleapis.com/', 'https://fonts.gstatic.com/'];
 
@@ -17,7 +17,7 @@ self.addEventListener('fetch', (e) => {
   if (/login\.microsoftonline\.com|graph\.microsoft\.com|sharepoint\.com|onedrive|office\.(com|net)/i.test(url.host)) return;
   const sameOrigin = url.origin === self.location.origin;
   // Los módulos en subcarpetas (p. ej. cronograma-eia/) tienen su propio service worker
-  if (sameOrigin && url.pathname.includes('/cronograma-eia/')) return;
+  if (sameOrigin && (url.pathname.includes('/cronograma-eia/') || url.pathname.includes('/ruta-regulatoria/'))) return;
   const isCdn = CDN.some((p) => req.url.startsWith(p));
   if (!sameOrigin && !isCdn) return;
   if (sameOrigin && (req.mode === 'navigate' || url.pathname.endsWith('/') || url.pathname.endsWith('index.html'))) {
