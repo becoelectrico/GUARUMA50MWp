@@ -98,6 +98,7 @@ button{font:inherit;color:inherit}
 .proto b{color:var(--ink)}
 .view{padding:20px max(20px,env(safe-area-inset-right,0px)) 48px max(20px,env(safe-area-inset-left,0px));display:grid;gap:20px;align-content:start;max-width:1440px;width:100%}
 .scrim{display:none}
+.modhost{min-width:0;display:block}
 
 /* ---------- Type ---------- */
 h1,h2,h3{margin:0;text-wrap:balance}
@@ -626,6 +627,29 @@ const ROUTES = [
   ['resumen', 'Resumen', 'home'], ['frentes', 'Frentes', 'layers'], ['contratos', 'Contratos y pagos', 'contract'], ['ofertas', 'Ofertas', 'tag'],
   ['cronograma', 'Cronograma', 'cal'], ['pendientes', 'Pendientes y riesgos', 'alert'], ['consultas', 'Consultas', 'quest'], ['reporte', 'Reporte semanal', 'send'], ['informes', 'Informes semanales', 'report'], ['documentos', 'Documentos', 'folder'], ['bitacora', 'Bitácora', 'clock']
 ];
+// ---------- Módulos (secciones con su propio archivo en modulos/, se cargan al entrar) ----------
+const APP_VER = '1.8.0';
+const MODS = { 'ruta-regulatoria': { lbl: 'Ruta regulatoria', icon: 'route', cnt: 'Trámites' } };
+const modReq = {}; let modCur = null;
+function loadMod(id) {
+  return modReq[id] || (modReq[id] = new Promise((ok, ko) => {
+    if (window.GuarumaModulos?.[id]) return ok(window.GuarumaModulos[id]);
+    const sc = document.createElement('script'); sc.src = `modulos/${id}.js?v=${APP_VER}`;
+    sc.onload = () => (window.GuarumaModulos?.[id] ? ok(window.GuarumaModulos[id]) : ko(new Error('El módulo no se registró.')));
+    sc.onerror = () => { delete modReq[id]; sc.remove(); ko(new Error('No se pudo cargar el módulo. Revisa la conexión e intenta de nuevo.')); };
+    document.head.append(sc);
+  }));
+}
+function modUnmount() { if (modCur) { try { modCur.off?.(); } catch (_) {} modCur = null; } }
+function showMod(id) {
+  const view = $('#view');
+  if (modCur?.id === id && view.querySelector('.modhost')) return; // ya está montado: no se redibuja (se conserva pestaña y desplazamiento)
+  modUnmount();
+  view.innerHTML = `<div class="modhost"><div class="panel pb muted">Cargando ${esc(MODS[id].lbl)}…</div></div>`;
+  const host = view.querySelector('.modhost'), cur = modCur = { id };
+  loadMod(id).then((m) => { if (modCur !== cur || !host.isConnected) return; host.textContent = ''; cur.off = m.mount(host); })
+    .catch((e) => { if (modCur === cur && host.isConnected) host.innerHTML = `<div class="panel pb">${esc(e.message)}</div>`; });
+}
 let frOpen = (() => { try { return localStorage.getItem('guaruma.frOpen') === '1'; } catch (_) { return false; } })();
 function drawNav(route) {
   const nav = $('#nav');
@@ -638,7 +662,7 @@ function drawNav(route) {
     `<div class="sub" ${frShow ? '' : 'hidden'}>${frItems}<a class="nav" href="#frentes" ${route === 'frentes' ? 'aria-current="page"' : ''}><span class="lbl faint">Ver todos</span></a></div>` +
     grp('Control') + ROUTES.slice(2, 6).map((r) => item(r)).join('') + item(ROUTES[6], CQ.length ? `<span class="cnt" data-tip="Consultas abiertas">${CQ.filter((q) => q.Estado !== 'Cerrada').length}</span>` : '') +
     `<a class="nav" href="cronograma-eia/" data-tip-side="right" data-tip-c="Licencia ambiental · cronograma">${ic('cal')}<span class="lbl">Licencia ambiental</span><span class="cnt">Detalle</span></a>` +
-    `<a class="nav" href="ruta-regulatoria/" data-tip-side="right" data-tip-c="Ruta regulatoria de interconexión">${ic('route')}<span class="lbl">Ruta regulatoria</span><span class="cnt">Trámites</span></a>` +
+    Object.entries(MODS).map(([id, m]) => item([id, m.lbl, m.icon], `<span class="cnt">${m.cnt}</span>`)).join('') +
     grp('Archivo') + ROUTES.slice(7).map((r) => item(r)).join('');
   $('#frbtn').onclick = () => { frOpen = !frOpen; try { localStorage.setItem('guaruma.frOpen', frOpen ? '1' : '0'); } catch (_) {} drawNav(route); };
 }
@@ -1243,6 +1267,9 @@ function render() {
   let route = (location.hash || '#resumen').slice(1);
   const views = { resumen: vResumen, frentes: vFrentes, contratos: vContratos, ofertas: vOfertas, cronograma: vCrono, pendientes: vRiesgos, riesgos: vRiesgos, consultas: vConsultas, reporte: vReporte, informes: vInformes, documentos: vDocs, bitacora: vBit };
   let html, crumb;
+  const chev = ic('chev').replace('<svg', '<svg width="12" height="12" style="stroke:currentColor;fill:none;stroke-width:2"');
+  if (MODS[route]) { showMod(route); $('#crumbs').innerHTML = `<span>Guaruma 50 MW</span>${chev}<b>${MODS[route].lbl}</b>`; drawNav(route); $('#app').classList.remove('mopen'); return; }
+  modUnmount();
   if (route.startsWith('frente-')) { const id = route.slice(7); html = vFrente(id); crumb = `<span>Frentes</span>${ic('chev').replace('<svg', '<svg width="12" height="12" style="stroke:currentColor;fill:none;stroke-width:2"')}<b>${esc(fById[id]?.Frente || '')}</b>`; }
   else { if (!views[route]) route = 'resumen'; html = views[route](); crumb = `<span>Guaruma 50 MW</span>${ic('chev').replace('<svg', '<svg width="12" height="12" style="stroke:currentColor;fill:none;stroke-width:2"')}<b>${(ROUTES.find((r) => r[0] === route) || ROUTES.find((r) => r[0] === 'pendientes'))[1]}</b>`; }
   $('#view').innerHTML = html; $('#crumbs').innerHTML = crumb; drawNav(route);
