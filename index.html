@@ -99,6 +99,10 @@ button{font:inherit;color:inherit}
 .view{padding:20px max(20px,env(safe-area-inset-right,0px)) 48px max(20px,env(safe-area-inset-left,0px));display:grid;gap:20px;align-content:start;max-width:1440px;width:100%}
 .scrim{display:none}
 .modhost{min-width:0;display:block}
+/* Modo presentación del cronograma y su impresión: sin menú ni barra superior */
+body.present .sb,body.present .top,body.present .scrim{display:none!important}
+body.present .app{grid-template-columns:minmax(0,1fr)!important}
+@media print{body:has(.modhost) .sb,body:has(.modhost) .top,body:has(.modhost) .scrim{display:none!important}body:has(.modhost) .app{display:block}body:has(.modhost){background:#fff}}
 
 /* ---------- Type ---------- */
 h1,h2,h3{margin:0;text-wrap:balance}
@@ -628,9 +632,12 @@ const ROUTES = [
   ['cronograma', 'Cronograma', 'cal'], ['pendientes', 'Pendientes y riesgos', 'alert'], ['consultas', 'Consultas', 'quest'], ['reporte', 'Reporte semanal', 'send'], ['informes', 'Informes semanales', 'report'], ['documentos', 'Documentos', 'folder'], ['bitacora', 'Bitácora', 'clock']
 ];
 // ---------- Módulos (secciones con su propio archivo en modulos/, se cargan al entrar) ----------
-const APP_VER = '1.8.0';
-const MODS = { 'ruta-regulatoria': { lbl: 'Ruta regulatoria', icon: 'route', cnt: 'Trámites' } };
-const modReq = {}; let modCur = null;
+const APP_VER = '1.9.0';
+const MODS = {
+  licencia: { lbl: 'Licencia ambiental', icon: 'cal', cnt: 'Detalle' },
+  'ruta-regulatoria': { lbl: 'Ruta regulatoria', icon: 'route', cnt: 'Trámites' }
+};
+const modReq = {}, modHost = {}; let modCur = null; // cada módulo se monta una vez y queda en memoria
 function loadMod(id) {
   return modReq[id] || (modReq[id] = new Promise((ok, ko) => {
     if (window.GuarumaModulos?.[id]) return ok(window.GuarumaModulos[id]);
@@ -640,15 +647,17 @@ function loadMod(id) {
     document.head.append(sc);
   }));
 }
-function modUnmount() { if (modCur) { try { modCur.off?.(); } catch (_) {} modCur = null; } }
+function modUnmount() { const h = modCur && modHost[modCur]; modCur = null; if (h?.inst?.hide) { try { h.inst.hide(); } catch (_) {} } }
+const modApi = () => ({ token, account: () => ACCOUNT, toast });
 function showMod(id) {
-  const view = $('#view');
-  if (modCur?.id === id && view.querySelector('.modhost')) return; // ya está montado: no se redibuja (se conserva pestaña y desplazamiento)
-  modUnmount();
-  view.innerHTML = `<div class="modhost"><div class="panel pb muted">Cargando ${esc(MODS[id].lbl)}…</div></div>`;
-  const host = view.querySelector('.modhost'), cur = modCur = { id };
-  loadMod(id).then((m) => { if (modCur !== cur || !host.isConnected) return; host.textContent = ''; cur.off = m.mount(host); })
-    .catch((e) => { if (modCur === cur && host.isConnected) host.innerHTML = `<div class="panel pb">${esc(e.message)}</div>`; });
+  const view = $('#view'); let h = modHost[id];
+  if (modCur === id && h && h.el.parentNode === view) return; // ya está a la vista: no se redibuja
+  modUnmount(); modCur = id;
+  if (h && h.inst) { view.replaceChildren(h.el); return; } // vuelve tal como lo dejaste
+  if (!h) { h = modHost[id] = { el: document.createElement('div') }; h.el.className = 'modhost'; h.el.innerHTML = `<div class="panel pb muted">Cargando ${esc(MODS[id].lbl)}…</div>`; }
+  view.replaceChildren(h.el);
+  loadMod(id).then((m) => { if (h.inst) return; h.el.textContent = ''; h.inst = m.mount(h.el, modApi()) || {}; })
+    .catch((e) => { delete modHost[id]; if (h.el.isConnected) h.el.innerHTML = `<div class="panel pb">${esc(e.message)}</div>`; });
 }
 let frOpen = (() => { try { return localStorage.getItem('guaruma.frOpen') === '1'; } catch (_) { return false; } })();
 function drawNav(route) {
@@ -661,7 +670,6 @@ function drawNav(route) {
     `<button class="nav" id="frbtn" aria-expanded="${frShow}" data-tip-c="Frentes">${ic('layers')}<span class="lbl">Frentes</span><span class="cnt">${F.length}</span>${ic('chev', 'chev')}</button>` +
     `<div class="sub" ${frShow ? '' : 'hidden'}>${frItems}<a class="nav" href="#frentes" ${route === 'frentes' ? 'aria-current="page"' : ''}><span class="lbl faint">Ver todos</span></a></div>` +
     grp('Control') + ROUTES.slice(2, 6).map((r) => item(r)).join('') + item(ROUTES[6], CQ.length ? `<span class="cnt" data-tip="Consultas abiertas">${CQ.filter((q) => q.Estado !== 'Cerrada').length}</span>` : '') +
-    `<a class="nav" href="cronograma-eia/" data-tip-side="right" data-tip-c="Licencia ambiental · cronograma">${ic('cal')}<span class="lbl">Licencia ambiental</span><span class="cnt">Detalle</span></a>` +
     Object.entries(MODS).map(([id, m]) => item([id, m.lbl, m.icon], `<span class="cnt">${m.cnt}</span>`)).join('') +
     grp('Archivo') + ROUTES.slice(7).map((r) => item(r)).join('');
   $('#frbtn').onclick = () => { frOpen = !frOpen; try { localStorage.setItem('guaruma.frOpen', frOpen ? '1' : '0'); } catch (_) {} drawNav(route); };

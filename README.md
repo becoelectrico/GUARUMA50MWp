@@ -19,15 +19,15 @@ Plataforma de seguimiento del Proyecto Solar Guaruma 50 MW (Empresa Hondureña d
 En *Autenticación*, plataforma **Aplicación de página única (SPA)**, Redirect URI exactamente igual a la dirección de GitHub Pages, con `/` al final.
 Permisos delegados de Microsoft Graph: `User.Read`, `Files.ReadWrite`.
 
-## Módulo: Cronograma Licencia Ambiental (`cronograma-eia/`)
-Cronograma detallado (Gantt, tabla, costos en L y US$) de la sección *Licencia ambiental* de Asana. Asana se mantiene como resumen; este módulo no escribe en Asana.
-- **Datos:** `Proyecto CAHSA 50 MW/00_Plataforma/Cronograma Licencia Ambiental/cronograma.json` (la app crea la carpeta y el archivo la primera vez), con subcarpetas `respaldos/` (copia semanal automática), `importaciones/` e `informes/`.
-- **Azure:** agregar como Redirect URI (SPA) la dirección del módulo, con `/` al final: `https://becoelectrico.github.io/<repositorio>/cronograma-eia/`.
-- **Service worker propio:** `cronograma-eia/sw.js` (subir `VERSION` en cada cambio).
-
 ## Módulos dentro de la plataforma (`modulos/`)
 Secciones con su propio archivo de código que la plataforma carga al entrar a la ruta (mismo menú, login, tema y barra superior). Se declaran en `MODS` de `index.html`; al cambiar un módulo, subir `APP_VER` en `index.html` y `VERSION` en `sw.js`.
 Cada módulo se monta en un Shadow DOM: sus estilos no chocan con los de la plataforma y hereda sus colores, letra y tema claro/oscuro.
+
+### Licencia ambiental (`modulos/licencia.js`, ruta `#licencia`)
+Cronograma detallado (Gantt, tabla, dependencias, avance, costos en L y US$) de la sección *Licencia ambiental* de Asana. Asana se mantiene como resumen; este módulo no escribe en Asana.
+- **Datos:** `Proyecto CAHSA 50 MW/00_Plataforma/Cronograma Licencia Ambiental/cronograma.json` (guardado automático con control de versión; respaldo semanal en `respaldos/`). Contratos, pagos y tasa de cambio se leen del Excel maestro (`tContratos`, `tPagos`, `tProyecto`).
+- Usa la sesión de Microsoft de la plataforma. Queda en memoria al cambiar de sección y guarda lo pendiente al salir.
+- **Versión anterior** `cronograma-eia/`: sigue publicada mientras se valida el módulo; usa el mismo archivo en OneDrive.
 
 ### Ruta regulatoria (`modulos/ruta-regulatoria.js`, ruta `#ruta-regulatoria`)
 Matriz regulatoria de interconexión: qué pide cada ente (CND, EOR, CRIE, ENEE Transmisión, CREE, SEN, SERNA), en qué orden, dependencias, ruta crítica, costos y comparación con Asana. Fecha X (solicitud de premisas) 30 nov 2026; meta de puesta en marcha 31 jul 2028 (Resumen Proyecto Solar CAHSA en Asana).

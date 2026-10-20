@@ -745,7 +745,7 @@ function mount(host) {
   mq.addEventListener('change', sync, { signal: ac.signal });
   addEventListener('resize', sync, { signal: ac.signal });
   run(R, ac.signal);
-  return () => { ac.abort(); mo.disconnect(); };
+  return { hide() {} }; // queda en memoria al cambiar de sección
 }
 
 (window.GuarumaModulos = window.GuarumaModulos || {})['ruta-regulatoria'] = { mount };
