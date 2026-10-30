@@ -315,16 +315,13 @@ a.btn{text-decoration:none;color:inherit}
 .loading{display:flex;gap:10px;align-items:center;justify-content:center;padding:30px;color:var(--ink-3);font-size:13px}
 .loading .spin{border-color:var(--track);border-top-color:var(--info)}
 .err-box{padding:18px;color:var(--bad);font-size:13px}
-/* Reportes semanales: tarjetas de semana */
-.wks{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:10px;margin-bottom:14px}
-.wk{display:grid;gap:6px;text-align:left;font:inherit;color:inherit;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:12px 14px;cursor:pointer;box-shadow:var(--shadow)}
-.wk:hover{border-color:var(--ink-3)}
-.wk.on{border-color:var(--orange);box-shadow:0 0 0 1px var(--orange) inset,var(--shadow)}
-.wk-h{display:flex;justify-content:space-between;gap:8px;align-items:baseline}
-.wk-h b{white-space:nowrap}
-.wk-h span{font-size:11.5px;color:var(--ink-3);text-align:right}
-.wk-r{display:flex;gap:7px;align-items:center;font-size:12.5px}
+/* Reportes semanales: semanas por mes */
+.rw-lay{display:grid;grid-template-columns:minmax(0,470px) minmax(0,1fr);gap:16px;align-items:start}
+.rw-list{display:grid;gap:10px}
+.rw-list details.grp>summary{padding:12px 16px}
+.t tr.rw-on td{background:var(--surface-2)}.t tr.rw-on td:first-child{box-shadow:inset 3px 0 0 var(--orange)}
 .wk-sum{margin-bottom:14px}
+@media (max-width:1100px){.rw-lay{grid-template-columns:1fr}}
 
 
 .asana-form{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:16px 18px;display:grid;gap:10px;box-shadow:var(--shadow)}
@@ -642,7 +639,7 @@ const ROUTES = [
   ['cronograma', 'Cronograma', 'cal'], ['pendientes', 'Pendientes y riesgos', 'alert'], ['consultas', 'Consultas', 'quest'], ['reporte', 'Reportes semanales', 'report'], ['documentos', 'Documentos', 'folder'], ['bitacora', 'Bitácora', 'clock']
 ];
 // ---------- Módulos (secciones con su propio archivo en modulos/, se cargan al entrar) ----------
-const APP_VER = '1.10.0';
+const APP_VER = '1.11.0';
 const MODS = {
   licencia: { lbl: 'Licencia ambiental', icon: 'cal', cnt: 'Detalle' },
   'ruta-regulatoria': { lbl: 'Ruta regulatoria', icon: 'route', cnt: 'Trámites' }
@@ -1004,48 +1001,91 @@ function vRiesgos() {
     <section class="panel"><div class="ph"><h2 class="h2">Riesgos</h2><button class="btn sm" type="button" data-new="Riesgos">${ic('plus')}Agregar riesgo</button></div><div class="tbl-wrap"><table class="t"><thead><tr><th>Nivel</th><th>Tema</th><th>Impacto</th><th>Acción propuesta</th><th>Estado</th><th></th></tr></thead><tbody>
       ${R.slice().sort((a, b) => ['Alto', 'Medio', 'Bajo'].indexOf(a.Nivel) - ['Alto', 'Medio', 'Bajo'].indexOf(b.Nivel)).map((r) => `<tr class="click" data-go="frente-${r.Frente}"><td>${pill(r.Nivel)}</td><td><b>${esc(r.Tema)}</b><div class="faint small">${esc(fById[r.Frente]?.Frente)}</div></td><td class="small">${esc(r.Impacto)}</td><td class="small">${esc(r['Acción propuesta'])}</td><td>${pill(r.Estado)}</td><td class="act"><button class="ebtn" type="button" data-edit="Riesgos|${esc(r.ID)}" data-tip="Editar">${EDI}</button></td></tr>`).join('')}</tbody></table></div></section>`;
 }
-// ---------- Reportes semanales: semanas (semanal + diarios + ejecutivo) ----------
-let RTAB = 'semanas', RSEL = null;
+// ---------- Reportes semanales: semanas del proyecto (Semana 1 = 5 oct 2026) ----------
+// Carpetas: Informes semanales/AAAA-MM Mes/Semana NN (fechas)/  ·  diarios previos: Informes semanales/00 Previo al inicio
+// Cada semana lleva sus reportes diarios y su informe semanal (el que se envía a gerencia el sábado).
+const PROJ_START = '2026-10-05', PROJ_WEEKS = 96, REP_BASE = 'Informes semanales';
+const MES_L = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+let RTAB = 'semanas', RSEL = null; const ROPEN = new Set();
 const dirOf = (rel) => String(rel || '').split('/').slice(0, -1).join('/');
+const dShort = (iso) => { const [, M, D] = iso.split('-'); return `${+D} ${MES[+M - 1]}`; };
+const dRange = (a, b) => a.slice(0, 7) === b.slice(0, 7) ? `${+a.slice(8)} al ${dShort(b)}` : `${dShort(a)} al ${dShort(b)}`;
+const weekNow = () => Math.floor((new Date(TODAY + 'T12:00:00') - new Date(PROJ_START + 'T12:00:00')) / 6048e5) + 1;
+function weekInfo(n) {
+  if (n === 0) return { n, ini: '2026-09-21', fin: '2026-10-04', mes: '', folder: REP_BASE + '/00 Previo al inicio', lbl: 'Previo al inicio', per: '21 sep al 4 oct 2026' };
+  const ini = addD(PROJ_START, 7 * (n - 1)), fin = addD(ini, 6);
+  const [Y, M] = ini.split('-'), [Y2, M2] = fin.split('-');
+  const rng = M === M2 ? `${+ini.slice(8)}-${dShort(fin)}` : `${dShort(ini)}-${dShort(fin)}`;
+  const nn = String(n).padStart(2, '0');
+  return { n, ini, fin, mes: `${Y}-${M}`, folder: `${REP_BASE}/${Y}-${M} ${MES_L[+M - 1]}/Semana ${nn} (${rng})`, lbl: 'Semana ' + nn, per: `${dShort(ini)} al ${dShort(fin)} ${Y2}` };
+}
 function repWeeks() {
-  const m = new Map();
-  INF.forEach((i) => {
-    const k = i.Semana; if (!k) return;
-    const w = m.get(k) || m.set(k, { k, sem: null, dia: null }).get(k);
-    if (i.Tipo === 'Semanal') w.sem = i; else if (i.Tipo === 'Diarios') w.dia = i;
-  });
-  return [...m.values()].map((w) => {
-    w.folder = w.dia ? w.dia.Archivo : w.sem ? dirOf(w.sem.Archivo) : '';
-    w.per = (w.dia || w.sem)['Período'];
-    const n = w.dia && String(w.dia.Notas || '').match(/^(\d+)\s+reportes? diarios?/i); w.nd = n ? +n[1] : null;
-    w.wn = +String(w.k).split('-S')[1] || 0;
-    return w;
-  }).sort((x, y) => y.k.localeCompare(x.k));
+  const cur = Math.min(Math.max(weekNow(), 1), PROJ_WEEKS), W = [];
+  const rowsFor = (n) => INF.filter((i) => Number(i.Semana) === n && i.Semana !== null && i.Semana !== '');
+  for (let n = 0; n <= cur; n++) {
+    const w = weekInfo(n), rs = rowsFor(n);
+    w.sem = rs.find((i) => i.Tipo === 'Semanal') || null; w.dia = rs.find((i) => i.Tipo === 'Diarios') || null;
+    if (w.dia && w.dia.Archivo) w.folder = w.dia.Archivo; else if (w.sem && w.sem.Archivo) w.folder = dirOf(w.sem.Archivo);
+    const m = w.dia && String(w.dia.Notas || '').match(/^(\d+)\s+reportes? diarios?/i); w.nd = m ? +m[1] : null;
+    w.cur = n === cur && weekNow() >= 1; w.closed = n > 0 && TODAY > w.fin;
+    W.push(w);
+  }
+  return W.reverse();
 }
 function vReporte() {
   const tabs = `<div class="tabs" role="tablist" style="margin-bottom:16px"><button class="tab" role="tab" data-rtab="semanas" aria-selected="${RTAB === 'semanas'}">Semanas</button><button class="tab" role="tab" data-rtab="generar" aria-selected="${RTAB === 'generar'}">Generar ejecutivo</button></div>`;
   if (RTAB === 'generar') return vRepGen(tabs);
-  const W = repWeeks(); const ek = 'ejecutivos';
-  if (!RSEL || (RSEL !== ek && !W.some((w) => w.k === RSEL))) RSEL = W[0] ? W[0].k : ek;
-  const cards = W.map((w) => `<button type="button" class="wk ${RSEL === w.k ? 'on' : ''}" data-rwk="${esc(w.k)}">
-      <span class="wk-h"><b>Semana ${w.wn}</b><span>${esc(w.per || '')}</span></span>
-      <span class="wk-r">${w.sem ? `<i class="dot d-ok"></i>Semanal ${esc(w.sem['N.º'])} · corte ${esc(String(w.sem['Período'] || '').split(' al ').pop().replace(/ \d{4}$/, ''))}` : w.k < '2026-S41' ? '<i class="dot d-mute"></i><span class="faint">Antes del inicio (5 oct)</span>' : '<i class="dot d-hold"></i><span class="faint">Sin informe semanal</span>'}</span>
-      <span class="wk-r">${w.dia ? `<i class="dot d-info"></i>${w.nd != null ? w.nd : ''} diario${w.nd === 1 ? '' : 's'}` : '<i class="dot d-hold"></i><span class="faint">Sin diarios</span>'}</span>
-    </button>`).join('') +
-    `<button type="button" class="wk ${RSEL === ek ? 'on' : ''}" data-rwk="${ek}"><span class="wk-h"><b>Ejecutivos</b><span>Lunes</span></span><span class="wk-r"><i class="dot d-info"></i>Reportes a gerencia</span><span class="wk-r faint">Se guardan desde "Generar ejecutivo"</span></button>`;
-  let head, base, label;
-  if (RSEL === ek) { head = `<section class="panel pb"><b>Reportes ejecutivos</b><div class="small muted" style="margin-top:4px">PDF guardados desde la pestaña "Generar ejecutivo", uno por lunes.</div></section>`; base = REP_FOLDER; label = 'Reportes ejecutivos'; }
-  else {
-    const w = W.find((x) => x.k === RSEL);
-    const dn = w.dia ? String(w.dia.Notas || '') : '';
-    head = `<section class="panel pb wk-sum"><div><b>Semana ${w.wn} · ${esc(w.per || '')}</b><div class="small muted" style="margin-top:4px">${w.sem ? `Informe semanal ${esc(w.sem['N.º'])} · emitido ${fd(w.sem['Fecha de emisión'], 1)}` : w.k < '2026-S41' ? 'Semana previa al inicio oficial del proyecto (5 oct 2026): solo reportes diarios.' : 'Esta semana todavía no tiene informe semanal.'}</div></div>
+  const W = repWeeks(), cw = W.find((w) => w.cur) || W[0];
+  if (RSEL == null || !W.some((w) => w.n === RSEL)) RSEL = cw.n;
+  const sel = W.find((w) => w.n === RSEL);
+  if (!ROPEN.size) ROPEN.add(sel.mes || 'previo');
+  ROPEN.add(sel.mes || 'previo');
+  const groups = []; W.forEach((w) => { const k = w.mes || 'previo'; let g = groups.find((x) => x.k === k); if (!g) groups.push(g = { k, ws: [] }); g.ws.push(w); });
+  const semCell = (w) => w.sem ? `<span class="pill s-ok">${esc(w.sem['N.º'])}</span>` : w.n === 0 ? '<span class="faint">—</span>' : w.closed ? '<span class="pill s-warn">Pendiente</span>' : '<span class="faint">En curso</span>';
+  const diaCell = (w) => w.dia ? `${w.nd != null ? w.nd : '✓'}` : '<span class="faint">—</span>';
+  const caret = '<svg viewBox="0 0 24 24" class="caret"><path d="m9 6 6 6-6 6"/></svg>';
+  const tables = groups.map((g) => {
+    const [Y, M] = g.k.split('-'); const title = g.k === 'previo' ? 'Previo al inicio' : `${MES_L[+M - 1]} ${Y}`;
+    const nSem = g.ws.filter((w) => w.sem).length, nDia = g.ws.reduce((a, w) => a + (w.nd || 0), 0), pend = g.ws.filter((w) => w.closed && !w.sem).length;
+    return `<details class="grp rw-grp" data-rmes="${g.k}" ${ROPEN.has(g.k) ? 'open' : ''}><summary>${caret}<div class="gs-t">${title}<span class="faint small" style="font-weight:500">${g.k === 'previo' ? '2 semanas' : g.ws.length + (g.ws.length === 1 ? ' semana' : ' semanas')}</span></div>
+      <div class="gs-r small muted">${g.k === 'previo' ? '' : `${nSem} semanal${nSem === 1 ? '' : 'es'} · `}${nDia} diarios${pend ? ` · <b style="color:var(--warn)">${pend} semanal${pend === 1 ? '' : 'es'} pendiente${pend === 1 ? '' : 's'}</b>` : ''}</div></summary>
+      <div class="tbl-wrap"><table class="t"><thead><tr><th>Semana</th><th>Fechas</th><th>Semanal</th><th class="num">Diarios</th></tr></thead><tbody>
+      ${g.ws.map((w) => `<tr class="click ${w.n === RSEL ? 'rw-on' : ''}" data-rwk="${w.n}"><td class="nowrap"><b>${w.n === 0 ? 'Previo' : esc(w.lbl)}</b>${w.cur ? ' <span class="pill s-info">Actual</span>' : ''}</td><td class="nowrap">${w.n === 0 ? '21 sep – 4 oct' : dShort(w.ini) + ' – ' + dShort(w.fin)}</td><td>${semCell(w)}</td><td class="num">${diaCell(w)}</td></tr>`).join('')}
+      </tbody></table></div></details>`;
+  }).join('');
+  const w = sel, dn = w.dia ? String(w.dia.Notas || '') : '';
+  const head = `<section class="panel pb wk-sum"><div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:flex-start"><div><b>${w.n === 0 ? 'Previo al inicio' : esc(w.lbl) + ' de ' + PROJ_WEEKS} · ${esc(w.per)}</b>
+      <div class="small muted" style="margin-top:4px">${w.sem ? `Informe semanal ${esc(w.sem['N.º'])} · emitido ${fd(w.sem['Fecha de emisión'], 1)}` : w.n === 0 ? 'Reportes diarios antes del inicio oficial del proyecto (5 oct 2026).' : w.closed ? 'Falta subir el informe semanal de esta semana.' : 'Semana en curso: el informe semanal se sube al cerrar la semana (sábado).'}</div></div>
+      <span style="display:flex;gap:8px;flex-wrap:wrap">${w.cur || RSEL !== cw.n ? '' : ''}${RSEL !== cw.n ? `<button class="btn sm" type="button" data-rwk="${cw.n}">Ir a la semana actual</button>` : ''}<button class="btn sm" type="button" data-rsync="${w.n}" data-tip="Cuenta los diarios y busca el informe semanal en la carpeta, y lo anota en el Excel">Revisar carpeta</button></span></div>
       ${w.sem && w.sem.Notas ? `<p class="small" style="margin:10px 0 0">${esc(w.sem.Notas)}</p>` : ''}
       ${dn ? `<p class="small faint" style="margin:6px 0 0">Diarios: ${esc(dn)}</p>` : ''}</section>`;
-    base = w.folder; label = 'Semana ' + w.wn;
-  }
-  return `<section class="cover"><div><h1 class="h1">Reportes semanales</h1><div class="loc">Cada semana con su informe semanal, sus reportes diarios y el ejecutivo de los lunes.</div></div></section>
-    ${tabs}<div class="wks">${cards}</div>${head}${docBox(base, label)}`;
+  return `<section class="cover"><div><h1 class="h1">Reportes semanales</h1><div class="loc">Semana ${Math.max(weekNow(), 1)} de ${PROJ_WEEKS} · cada semana con sus reportes diarios y el informe semanal que se envía a gerencia el sábado.</div></div></section>
+    ${tabs}<div class="rw-lay"><div class="rw-list">${tables}</div><div class="rw-det">${head}${docBox(w.folder, w.n === 0 ? 'Previo al inicio' : w.lbl)}</div></div>`;
 }
+// Lee la carpeta de la semana y deja tInformes al día (fila de diarios D-NN y fila del semanal N-NN)
+async function repSyncWeek(n, quiet) {
+  const w = repWeeks().find((x) => x.n === n); if (!w) return;
+  let items; try { items = await listFolder(w.folder); } catch (e) { if (!quiet) toast(e.status === 404 ? 'La carpeta de esta semana todavía no existe.' : 'No se pudo leer la carpeta: ' + e.message); return; }
+  const days = items.map((x) => (x.name.match(/^Reporte_Diario_(\d{4}-\d{2}-\d{2})/) || [])[1]).filter(Boolean).sort();
+  const semF = n > 0 && items.find((x) => !x.folder && /\.(pptx?|pdf|docx?)$/i.test(x.name) && !/^Reporte_Diario_/i.test(x.name) && new RegExp('semana[ _-]*0*' + n + '(?!\\d)', 'i').test(x.name));
+  const nn = String(n).padStart(2, '0'); const done = [];
+  if (days.length) {
+    const first = /^\d+ reportes? diarios? \([^)]*\)[.;]?\s*/i; const rest = w.dia ? String(w.dia.Notas || '').replace(first, '').replace(/^semana en curso\.?\s*/i, '').trim() : '';
+    const note = `${days.length} reporte${days.length === 1 ? '' : 's'} diario${days.length === 1 ? '' : 's'} (${days.length === 1 ? dShort(days[0]) : dRange(days[0], days[days.length - 1])}).` + (rest && rest !== String(w.dia && w.dia.Notas) ? ' ' + rest : '');
+    if (!w.dia || w.nd !== days.length) {
+      const rec = { ...(w.dia || {}), 'N.º': w.dia ? w.dia['N.º'] : 'D-' + nn, 'Período': w.per, 'Fecha de emisión': days[days.length - 1], Archivo: w.folder, Notas: note, Tipo: 'Diarios', Semana: n };
+      await writeRow('Informes', rec, !w.dia); applyLocalQuiet('Informes', rec, !w.dia); done.push(`${days.length} diarios`);
+    }
+  }
+  if (semF && !w.sem) {
+    const rec = { 'N.º': 'N' + nn, 'Período': w.per, 'Fecha de emisión': semF.lastModifiedDateTime.slice(0, 10), Archivo: joinRel(w.folder, semF.name), Notas: '', Tipo: 'Semanal', Semana: n };
+    await writeRow('Informes', rec, true); applyLocalQuiet('Informes', rec, true); done.push('informe semanal ' + rec['N.º']);
+  }
+  if (done.length) { await logChange(`Reportes ${w.n === 0 ? 'previos al inicio' : w.lbl}: registrado en Informes ${done.join(' y ')}.`); toast('Anotado en el Excel: ' + done.join(' y ') + '.'); render(); }
+  else if (!quiet) toast('La carpeta y el Excel ya coinciden.');
+}
+function applyLocalQuiet(tb, rec, isNew) { const arr = INF, i = arr.findIndex((r) => String(r['N.º']) === String(rec['N.º'])); if (isNew || i < 0) arr.push(rec); else arr[i] = rec; try { localStorage.setItem(CACHE_KEY, JSON.stringify({ D: DATA, META })); } catch (_) {} }
+document.addEventListener('toggle', (e) => { const d = e.target; if (d.matches && d.matches('details.rw-grp')) { if (d.open) ROPEN.add(d.dataset.rmes); else ROPEN.delete(d.dataset.rmes); } }, true);
 function vDocs() {
   return `<section class="cover"><div><h1 class="h1">Documentos</h1><div class="loc">Todas las carpetas del proyecto, en vivo desde OneDrive.</div></div></section>${docBox('', CFG.root)}`;
 }
@@ -1337,7 +1377,8 @@ document.addEventListener('click', (e) => {
   if (cqClick(e)) return;
   const go = e.target.closest('[data-go]'); if (go && !e.target.closest('a,button')) { location.hash = go.dataset.go; return; }
   const rt = e.target.closest('[data-rtab]'); if (rt) { RTAB = rt.dataset.rtab; render(); return; }
-  const rw = e.target.closest('[data-rwk]'); if (rw) { RSEL = rw.dataset.rwk; render(); return; }
+  const rw = e.target.closest('[data-rwk]'); if (rw) { RSEL = +rw.dataset.rwk; render(); return; }
+  const rsy = e.target.closest('[data-rsync]'); if (rsy) { repSyncWeek(+rsy.dataset.rsync).catch((er) => toast(writeErr(er))); return; }
   const ft = e.target.closest('[data-ftab]'); if (ft) { fTab = ft.dataset.ftab; docSel = 0; render(); return; }
   const ed = e.target.closest('[data-edit]'); if (ed) { e.preventDefault(); e.stopPropagation(); const [t, id] = ed.dataset.edit.split('|'); openForm(t, id, presetOf(ed)); return; }
   const nw = e.target.closest('[data-new]'); if (nw) { e.preventDefault(); openForm(nw.dataset.new, null, presetOf(nw)); return; }
@@ -1382,12 +1423,14 @@ const TABLES = {
   Actividades: { t: 'tActividades', id: 'ID', prefix: 'A', pad: 2, label: 'actividad', name: 'Actividad' },
   Riesgos: { t: 'tRiesgos', id: 'ID', prefix: 'R', pad: 2, label: 'riesgo', name: 'Tema' },
   Pendientes: { t: 'tPendientes', id: 'ID', prefix: 'PD', pad: 2, label: 'pendiente', name: 'Pendiente' },
-  Consultas: { t: 'tConsultas', id: 'Código', prefix: '', pad: 0, label: 'consulta', name: 'Consulta', manual: 1, auto: ['Actualizado'] }
+  Consultas: { t: 'tConsultas', id: 'Código', prefix: '', pad: 0, label: 'consulta', name: 'Consulta', manual: 1, auto: ['Actualizado'] },
+  Informes: { t: 'tInformes', id: 'N.º', prefix: '', pad: 0, label: 'informe', name: 'Período', manual: 1 }
 };
-const rowsOf = (tb) => ({ Frentes: F, Contratos: C, Pagos: PG, Ofertas: O, Actividades: A, Riesgos: R, Pendientes: DC, Consultas: CQ })[tb];
+const rowsOf = (tb) => ({ Frentes: F, Contratos: C, Pagos: PG, Ofertas: O, Actividades: A, Riesgos: R, Pendientes: DC, Consultas: CQ, Informes: INF })[tb];
 const frOpts = () => F.map((f) => [f.ID, f.ID + ' · ' + f.Frente]);
 const ctOpts = () => C.map((c) => [c['N.º'], c['N.º'] + ' · ' + c.Contratista]);
 const SCHEMA = {
+  Informes: ['N.º', 'Período', 'Fecha de emisión', 'Estado general', 'Archivo', 'Notas', 'Tipo', 'Semana', 'Frente'].map((k) => ({ k })),
   Pendientes: [{ k: 'Pendiente', t: 'text', req: 1, w: 2 }, { k: 'Decisión solicitada', t: 'textarea', w: 2, help: 'Lo que se le pide concretamente a quien decide (sale resaltado en el reporte semanal).' }, { k: 'Prioridad', t: 'select', o: ['Alta', 'Media', 'Baja'], req: 1 }, { k: 'Estado', t: 'select', o: ['Pendiente', 'En curso', 'Resuelto', 'Descartado'], req: 1 }, { k: 'Frente', t: 'select', o: frOpts, req: 1 }, { k: 'Responsable', t: 'text' }, { k: 'Fecha límite', t: 'date' }, { k: 'Qué atrasa', t: 'textarea', w: 2, help: 'Pasos separados por  >  y cada paso como "Nombre: detalle". El último paso es el impacto final.' }, { k: 'Impacto', t: 'textarea', w: 2 }, { k: 'Notas', t: 'textarea', w: 2 }],
   Actividades: [{ k: 'Actividad', t: 'text', req: 1, w: 2 }, { k: 'Frente', t: 'select', o: frOpts, req: 1 }, { k: 'Estado', t: 'select', o: ['Pendiente', 'En curso', 'Programado', 'Cumplido', 'Cancelado'], req: 1 }, { k: 'Responsable', t: 'text' }, { k: 'Fecha', t: 'date' }, { k: 'Notas', t: 'textarea', w: 2 }],
   Ofertas: [{ k: 'Frente', t: 'select', o: frOpts, req: 1 }, { k: 'Proveedor', t: 'text', req: 1 }, { k: 'Referencia', t: 'text' }, { k: 'Fecha', t: 'date' }, { k: 'Monto', t: 'number' }, { k: 'Moneda', t: 'select', o: ['USD', 'HNL'], req: 1 }, { k: 'Estado', t: 'select', o: ['Solicitada', 'Recibida', 'En evaluación', 'Adjudicada', 'Descartada', 'Reemplazada'], req: 1 }, { k: 'Plazo', t: 'text' }, { k: 'Alcance', t: 'textarea', w: 2 }, { k: 'Archivo', t: 'file', w: 2, help: 'Se guarda en la carpeta del frente.' }, { k: 'Notas', t: 'textarea', w: 2 }],
@@ -1559,6 +1602,7 @@ $('#upl').addEventListener('change', async (e) => {
     await logChange(`Subido${files.length > 1 ? 's' : ''} a ${joinRel(CFG.root, folder)}: ${files.map((f) => f.name).join(', ')}`);
     toast(files.length > 1 ? `${files.length} archivos subidos.` : 'Archivo subido.');
     if (st) { st.items = null; st.err = null; } mountDocs();
+    if ((location.hash || '').slice(1) === 'reporte' && RTAB === 'semanas' && RSEL != null) repSyncWeek(RSEL, true).catch((er) => toast(writeErr(er)));
   } catch (er) { toast('No se pudo subir: ' + er.message); }
 });
 
