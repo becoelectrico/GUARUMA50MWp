@@ -321,6 +321,10 @@ a.btn{text-decoration:none;color:inherit}
 .rw-list details.grp>summary{padding:12px 16px}
 .t tr.rw-on td{background:var(--surface-2)}.t tr.rw-on td:first-child{box-shadow:inset 3px 0 0 var(--orange)}
 .wk-sum{margin-bottom:14px}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:var(--surface)}
+.seg button{border:0;background:none;font:inherit;font-size:12.5px;font-weight:600;padding:6px 12px;cursor:pointer;color:var(--ink-2)}
+.seg button+button{border-left:1px solid var(--line)}
+.seg button[aria-pressed="true"]{background:var(--navy-2,#13223A);color:#fff}
 @media (max-width:1100px){.rw-lay{grid-template-columns:1fr}}
 
 
@@ -639,7 +643,7 @@ const ROUTES = [
   ['cronograma', 'Cronograma', 'cal'], ['pendientes', 'Pendientes y riesgos', 'alert'], ['consultas', 'Consultas', 'quest'], ['reporte', 'Reportes semanales', 'report'], ['documentos', 'Documentos', 'folder'], ['bitacora', 'Bitácora', 'clock']
 ];
 // ---------- Módulos (secciones con su propio archivo en modulos/, se cargan al entrar) ----------
-const APP_VER = '1.12.0';
+const APP_VER = '1.13.0';
 const MODS = {
   licencia: { lbl: 'Licencia ambiental', icon: 'cal', cnt: 'Detalle' },
   'ruta-regulatoria': { lbl: 'Ruta regulatoria', icon: 'route', cnt: 'Trámites' }
@@ -731,20 +735,21 @@ function plazos() {
     <div style="position:relative">${rows}<div style="position:absolute;left:230px;right:150px;top:0;bottom:0;pointer-events:none"><i class="tl-today" style="left:${x(TODAY)}%"><b>Hoy</b></i></div></div></div></div>
     <div class="pz-legend"><span><i class="lg-c" style="background:var(--ok)"></i>Contratado</span><span><i class="lg-c"></i>Ofertado</span><span><i class="lg-s"></i>Inicio supuesto</span><span><i class="lg-m"></i>Plazo máximo</span><span><i class="lg-a"></i>Fechas en Asana</span></div>`;
 }
-function asanaGantt() {
+function asanaGantt(rows = AS, det = false) {
   const s = new Date(2026, 9, 1), e = new Date(2028, 8, 1), span = e - s;
   const x = (dd) => Math.max(0, Math.min(100, (new Date(dd) - s) / span * 100));
   const months = []; for (let dd = new Date(s); dd < e; dd.setMonth(dd.getMonth() + 1)) months.push(new Date(dd));
   const grid = months.map((m) => `<i class="tl-grid" style="left:${x(m)}%"></i>`).join('');
   const head = months.map((m, i) => (m.getMonth() % 3 === 0 || i === 0) ? `<span style="left:${x(m) + 100 / 46}%">${MES[m.getMonth()]} ${String(m.getFullYear()).slice(2)}</span>` : '').join('');
-  const secs = [...new Set(AS.map((a) => a['Sección']))];
+  const secs = [...new Set(rows.map((a) => a['Sección']))];
   const caret = '<svg viewBox="0 0 24 24" class="caret"><path d="m9 6 6 6-6 6"/></svg>';
   return `<div class="acc">${secs.map((sec, si) => {
-    const ts = AS.filter((a) => a['Sección'] === sec);
+    const ts = rows.filter((a) => a['Sección'] === sec);
     const st = ts.map((t) => t.Inicio || t.Fin).sort()[0], en = ts.map((t) => t.Fin).sort().pop();
-    return `<details class="grp"${si < 3 ? ' open' : ''}><summary>${caret}<div class="gs-t">${esc(sec)}<span class="faint small" style="font-weight:500">${ts.length} tareas</span></div><div class="gs-r"><span class="small muted tnum">${fd(st, 1)} → ${fd(en, 1)}</span></div></summary>
+    const open = det ? (st <= TODAY && en >= TODAY) : si < 3;
+    return `<details class="grp as-sec"${open ? ' open' : ''}><summary>${caret}<div class="gs-t">${esc(sec)}<span class="faint small" style="font-weight:500">${ts.length} tareas</span></div><div class="gs-r"><span class="small muted tnum">${fd(st, 1)} → ${fd(en, 1)}</span></div></summary>
       <div class="pz"><div style="min-width:820px"><div class="as-row" style="border-bottom:1px solid var(--line-2)"><span></span><div class="tl-months" style="font-size:11.5px;color:var(--ink-3)">${head}</div></div>
-      <div style="position:relative">${ts.map((t) => `<div class="as-row ${t.Completada === 'Sí' ? 'done' : ''}"><div class="nm" title="${esc(t.Tarea)}">${esc(t.Tarea)}</div><div class="tr">${grid}${t.Inicio ? `<i class="as-bar" style="left:${x(t.Inicio)}%;width:${Math.max(.4, x(t.Fin) - x(t.Inicio))}%" data-tip="<b>${esc(t.Tarea)}</b>${fd(t.Inicio, 1)} → ${fd(t.Fin, 1)}"></i>` : `<i class="as-ms" style="left:${x(t.Fin)}%" data-tip="<b>${esc(t.Tarea)}</b>Hito: ${fd(t.Fin, 1)}"></i>`}</div></div>`).join('')}
+      <div style="position:relative">${ts.map((t) => `<div class="as-row ${t.Completada === 'Sí' ? 'done' : ''}" data-asn="${esc(norm(t.Tarea))}"><div class="nm" title="${esc(t.Tarea)}">${esc(t.Tarea)}</div><div class="tr">${grid}${t.Inicio ? `<i class="as-bar" style="left:${x(t.Inicio)}%;width:${Math.max(.4, x(t.Fin) - x(t.Inicio))}%" data-tip="<b>${esc(t.Tarea)}</b>${fd(t.Inicio, 1)} → ${fd(t.Fin, 1)}"></i>` : `<i class="as-ms" style="left:${x(t.Fin)}%" data-tip="<b>${esc(t.Tarea)}</b>Hito: ${fd(t.Fin, 1)}"></i>`}</div></div>`).join('')}
       <div style="position:absolute;left:260px;right:0;top:0;bottom:0;pointer-events:none"><i class="tl-today" style="left:${x(TODAY)}%"></i></div></div></div></div></details>`;
   }).join('')}</div>`;
 }
@@ -988,7 +993,7 @@ function vCrono() {
     <section class="panel"><div class="ph"><div><h2 class="h2">Plazos de estudios y contratos</h2><p>Fin estimado = inicio + plazo del contrato u oferta. Rayado: el inicio todavía no ocurre.</p></div></div>${plazos()}
       <div class="tbl-wrap" style="border-top:1px solid var(--line-2)"><table class="t"><thead><tr><th>Estudio</th><th>Plazo contractual</th><th>Inicio</th><th>Fin estimado</th><th>En Asana</th><th>Notas</th></tr></thead><tbody>
       ${PZ.map((p) => `<tr><td><b>${esc(p['Estudio / entregable'])}</b><div class="faint small">${esc(p.Proveedor)}</div></td><td class="small">${esc(p['Plazo contractual'])}</td><td class="nowrap small">${fd(p['Fecha de inicio'], 1)}<div class="faint">${esc(p.Inicio.toLowerCase())}</div></td><td class="nowrap"><b>${fd(p['Fin estimado'], 1)}</b>${p['Fin máximo'] ? `<div class="faint small">máx. ${fd(p['Fin máximo'], 1)}</div>` : ''}</td><td class="nowrap small">${p['Fin Asana'] ? fd(p['Fin Asana'], 1) : '<span class="faint">—</span>'}</td><td class="small" style="min-width:240px">${esc(p.Notas)}</td></tr>`).join('')}</tbody></table></div></section>
-    <section style="display:grid;gap:12px"><div class="ph" style="padding:0;border:0"><div><h2 class="h2">Cronograma general (Asana)</h2><p>${asanaSourceText()}</p></div><button class="btn sm" type="button" data-asana-cfg="1">${ASANA.pat ? 'Conexión con Asana' : 'Conectar Asana'}</button></div>${asanaForm()}${asanaGantt()}</section>
+    <section style="display:grid;gap:12px"><div class="ph" style="padding:0;border:0"><div><h2 class="h2">Cronograma (Asana)</h2><p>${AVIEW === 'detalle' ? asanaDetText() : asanaSourceText()}</p></div><span style="display:flex;gap:8px;flex-wrap:wrap;align-items:center"><span class="seg" role="group" aria-label="Vista del cronograma"><button type="button" data-aview="resumen" aria-pressed="${AVIEW === 'resumen'}">Resumen</button><button type="button" data-aview="detalle" aria-pressed="${AVIEW === 'detalle'}">Detallado</button></span><button class="btn sm" type="button" data-asana-cfg="1">${ASANA.pat ? 'Conexión con Asana' : 'Conectar Asana'}</button></span></div>${asanaForm()}${AVIEW === 'detalle' ? asanaDetBody() : asanaGantt()}</section>
     <section class="panel"><div class="ph"><h2 class="h2">Actividades y próximos pasos</h2></div>${actTable(A)}</section>`;
 }
 function vRiesgos() {
@@ -1085,6 +1090,11 @@ async function repSyncWeek(n, quiet) {
   else if (!quiet) toast('La carpeta y el Excel ya coinciden.');
 }
 function applyLocalQuiet(tb, rec, isNew) { const arr = INF, i = arr.findIndex((r) => String(r['N.º']) === String(rec['N.º'])); if (isNew || i < 0) arr.push(rec); else arr[i] = rec; try { localStorage.setItem(CACHE_KEY, JSON.stringify({ D: DATA, META })); } catch (_) {} }
+document.addEventListener('input', (e) => {
+  if (e.target.id !== 'as-q') return; const q = norm(e.target.value); let n = 0;
+  document.querySelectorAll('details.as-sec').forEach((d) => { let k = 0; d.querySelectorAll('[data-asn]').forEach((r) => { const ok = !q || r.dataset.asn.includes(q); r.style.display = ok ? '' : 'none'; if (ok) k++; }); d.style.display = k ? '' : 'none'; if (q) d.open = k > 0; n += k; });
+  const c = document.getElementById('as-qn'); if (c) c.textContent = q ? n + ' tarea' + (n === 1 ? '' : 's') : '';
+});
 document.addEventListener('toggle', (e) => { const d = e.target; if (d.matches && d.matches('details.rw-grp')) { if (d.open) ROPEN.add(d.dataset.rmes); else ROPEN.delete(d.dataset.rmes); } }, true);
 function vDocs() {
   return `<section class="cover"><div><h1 class="h1">Documentos</h1><div class="loc">Todas las carpetas del proyecto, en vivo desde OneDrive.</div></div></section>${docBox('', CFG.root)}`;
@@ -1385,6 +1395,7 @@ document.addEventListener('click', (e) => {
   const nw = e.target.closest('[data-new]'); if (nw) { e.preventDefault(); openForm(nw.dataset.new, null, presetOf(nw)); return; }
   const qk = e.target.closest('[data-quick]'); if (qk) { e.preventDefault(); e.stopPropagation(); quick(decodeURIComponent(qk.dataset.quick)); return; }
   if (e.target.closest('[data-upload]')) { $('#upl').click(); return; }
+  const av = e.target.closest('[data-aview]'); if (av) { AVIEW = av.dataset.aview; try { localStorage.setItem(AVIEW_KEY, AVIEW); } catch (_) {} if (AVIEW === 'detalle' && ASD.err) { ASD.err = null; ASD.rows = null; } render(); return; }
   if (e.target.closest('[data-asana-cfg],[data-asana-save],[data-asana-del]')) { asanaClick(e); return; }
   if (e.target.closest('#docbox')) { docsClick(e); }
   const of = e.target.closest('[data-openfolder]'); if (of) { openFolderWeb(of.dataset.openfolder); return; }
@@ -1939,6 +1950,27 @@ async function ensureSchema(mid, D) {
 
 // ================= Asana (en vivo, opcional) =================
 const ASANA_PROJECT = '1219127034886298'; // "Resumen Proyecto Solar CAHSA"
+const ASANA_DETAIL = '1218894756271123'; // "Proyecto de planta solar CAHSA 50 MW" (detallado)
+const AVIEW_KEY = 'guaruma.asana.vista';
+let AVIEW = (() => { try { return localStorage.getItem(AVIEW_KEY) || 'resumen'; } catch (_) { return 'resumen'; } })();
+const ASD = { rows: null, loading: false, err: null, at: null };
+async function loadAsanaDet() {
+  if (!ASANA.pat || ASD.loading) return; ASD.loading = true; ASD.err = null;
+  try {
+    const secs = await asanaGet(`/projects/${ASANA_DETAIL}/sections?opt_fields=name&limit=100`);
+    const order = (secs.data || []).map((x) => x.name.replace(/:\s*$/, '').trim()); let all = [], off = '';
+    do {
+      const r = await asanaGet(`/projects/${ASANA_DETAIL}/tasks?opt_fields=name,start_on,due_on,completed,assignee.name,memberships.section.name,memberships.project.gid&limit=100${off ? '&offset=' + encodeURIComponent(off) : ''}`);
+      all = all.concat(r.data || []); off = r.next_page && r.next_page.offset;
+    } while (off);
+    ASD.rows = all.map((t, i) => {
+      const m = (t.memberships || []).find((mm) => mm.project && mm.project.gid === ASANA_DETAIL) || (t.memberships || [])[0] || {};
+      return { i, 'Sección': ((m.section && m.section.name) || 'Sin sección').replace(/:\s*$/, '').trim(), Tarea: t.name.trim(), Inicio: t.start_on || null, Fin: t.due_on || null, Completada: t.completed ? 'Sí' : 'No', Responsable: (t.assignee && t.assignee.name) || '' };
+    }).filter((r) => r.Fin || r.Inicio).sort((a, b) => (order.indexOf(a['Sección']) - order.indexOf(b['Sección'])) || a.i - b.i);
+    ASD.at = new Date();
+  } catch (e) { ASD.err = (e instanceof TypeError) ? 'El navegador no pudo conectarse a Asana' : e.message; }
+  ASD.loading = false;
+}
 const ASANA_KEY = 'guaruma.asana.pat';
 const ASANA = { pat: (() => { try { return localStorage.getItem(ASANA_KEY) || ''; } catch (_) { return ''; } })(), live: false, at: null, err: null, form: false };
 // Plazos que se comparan con una tarea de Asana (por nombre)
@@ -1969,6 +2001,16 @@ async function loadAsana() {
   } catch (e) {
     ASANA.live = false; ASANA.err = (e instanceof TypeError) ? 'El navegador no pudo conectarse a Asana (bloqueo de conexión directa o sin internet)' : e.message;
   }
+}
+function asanaDetText() {
+  if (ASD.rows) return `<span class="src-live">En vivo desde Asana</span> · "Proyecto de planta solar CAHSA 50 MW" · ${ASD.rows.length} tareas · leído a las ${ASD.at.toLocaleTimeString('es-HN', { hour: '2-digit', minute: '2-digit' })}`;
+  return 'Proyecto detallado "Proyecto de planta solar CAHSA 50 MW" en Asana.';
+}
+function asanaDetBody() {
+  if (!ASANA.pat) return '<div class="panel pb muted">El cronograma detallado se lee directo de Asana. Toca "Conectar Asana" para verlo.</div>';
+  if (ASD.err) return `<div class="panel pb"><span class="src-err">No se pudo leer el proyecto detallado:</span> ${esc(ASD.err)} <button class="btn sm" type="button" data-aview="detalle">Reintentar</button></div>`;
+  if (!ASD.rows) { if (!ASD.loading) loadAsanaDet().then(() => { if ((location.hash || '').slice(1) === 'cronograma') render(); }); return '<div class="panel pb"><div class="loading"><span class="spin"></span>Leyendo el proyecto detallado de Asana…</div></div>'; }
+  return `<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><input id="as-q" type="search" placeholder="Buscar tarea…" style="flex:1;min-width:200px;max-width:360px"><button class="btn sm" type="button" data-acc="open">Abrir todo</button><button class="btn sm" type="button" data-acc="close">Cerrar todo</button><span class="small faint" id="as-qn"></span></div>${asanaGantt(ASD.rows, true)}`;
 }
 function asanaSourceText() {
   if (ASANA.live) return `<span class="src-live">En vivo desde Asana</span> · "Resumen Proyecto Solar CAHSA" · leído a las ${ASANA.at.toLocaleTimeString('es-HN', { hour: '2-digit', minute: '2-digit' })}`;
