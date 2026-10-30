@@ -639,7 +639,7 @@ const ROUTES = [
   ['cronograma', 'Cronograma', 'cal'], ['pendientes', 'Pendientes y riesgos', 'alert'], ['consultas', 'Consultas', 'quest'], ['reporte', 'Reportes semanales', 'report'], ['documentos', 'Documentos', 'folder'], ['bitacora', 'Bitácora', 'clock']
 ];
 // ---------- Módulos (secciones con su propio archivo en modulos/, se cargan al entrar) ----------
-const APP_VER = '1.11.0';
+const APP_VER = '1.12.0';
 const MODS = {
   licencia: { lbl: 'Licencia ambiental', icon: 'cal', cnt: 'Detalle' },
   'ruta-regulatoria': { lbl: 'Ruta regulatoria', icon: 'route', cnt: 'Trámites' }
@@ -911,7 +911,7 @@ function drawDocs(box, st, base, label) {
   if (!st.sel) pv = `<div class="preview" style="display:grid;place-items:center"><div class="small muted" style="max-width:320px;text-align:center">Elige un archivo para verlo aquí. PDF, Word, Excel, PowerPoint e imágenes se muestran dentro de la plataforma.</div></div>`;
   else {
     const x = st.sel;
-    const bar = `<div class="pv-bar"><b title="${esc(x.name)}">${esc(x.name)}</b><span style="display:flex;gap:6px">${x.webUrl ? `<a class="btn sm" href="${esc(x.webUrl)}" target="_blank" rel="noopener">${ic('ext')}Abrir en OneDrive</a>` : ''}<button class="btn sm" type="button" data-dl="${x.id}">Descargar</button></span></div>`;
+    const bar = `<div class="pv-bar"><b title="${esc(x.name)}">${esc(x.name)}</b><span style="display:flex;gap:6px;flex-wrap:wrap">${x.webUrl ? `<a class="btn sm" href="${esc(x.webUrl)}" target="_blank" rel="noopener">${ic('ext')}Abrir en OneDrive</a>` : ''}<button class="btn sm" type="button" data-dl="${x.id}">Descargar</button><button class="btn sm primary" type="button" data-mail="${x.id}">${ic('send')}Enviar por correo</button></span></div>`;
     let inner;
     if (st.pv === 'loading') inner = '<div class="loading"><span class="spin"></span>Preparando vista previa…</div>';
     else if (st.pv && st.pv.url) inner = `<iframe src="${esc(st.pv.url)}" title="${esc(x.name)}" allowfullscreen></iframe>`;
@@ -928,6 +928,7 @@ async function docsClick(e) {
   const nav = e.target.closest('[data-dnav]');
   if (nav) { const rel = nav.dataset.dnav; if (rel === st.rel) return true; st.rel = rel; st.items = null; st.err = null; st.sel = null; st.pv = null; drawDocs(box, st, base, label); try { st.items = await listFolder(joinRel(base, rel)); } catch (er) { st.err = er.message; } drawDocs(box, st, base, label); return true; }
   if (e.target.closest('[data-dreload]')) { st.items = null; st.err = null; drawDocs(box, st, base, label); try { st.items = await listFolder(joinRel(base, st.rel)); } catch (er) { st.err = er.message; } drawDocs(box, st, base, label); return true; }
+  const ml = e.target.closest('[data-mail]'); if (ml) { const x = (st.items || []).find((y) => y.id === ml.dataset.mail); if (x) openMailFile({ id: x.id, name: x.name, size: x.size, rel: joinRel(joinRel(base, st.rel), x.name) }); return true; }
   const dl = e.target.closest('[data-dl]');
   if (dl) { try { const r = await graph(`${BASE}/items/${dl.dataset.dl}`); const u = r['@microsoft.graph.downloadUrl']; if (u) location.href = u; } catch (er) { toast('No se pudo descargar: ' + er.message); } return true; }
   const it = e.target.closest('[data-ditem]');
@@ -1017,7 +1018,7 @@ function weekInfo(n) {
   const [Y, M] = ini.split('-'), [Y2, M2] = fin.split('-');
   const rng = M === M2 ? `${+ini.slice(8)}-${dShort(fin)}` : `${dShort(ini)}-${dShort(fin)}`;
   const nn = String(n).padStart(2, '0');
-  return { n, ini, fin, mes: `${Y}-${M}`, folder: `${REP_BASE}/${Y}-${M} ${MES_L[+M - 1]}/Semana ${nn} (${rng})`, lbl: 'Semana ' + nn, per: `${dShort(ini)} al ${dShort(fin)} ${Y2}` };
+  return { n, ini, fin, mes: `${Y}-${M}`, folder: `${REP_BASE}/${Y}-${M} ${MES_L[+M - 1]}/Semana ${nn} (${rng})`, lbl: 'Semana ' + nn, per: `${dRange(ini, fin)} ${Y2}` };
 }
 function repWeeks() {
   const cur = Math.min(Math.max(weekNow(), 1), PROJ_WEEKS), W = [];
@@ -1033,8 +1034,7 @@ function repWeeks() {
   return W.reverse();
 }
 function vReporte() {
-  const tabs = `<div class="tabs" role="tablist" style="margin-bottom:16px"><button class="tab" role="tab" data-rtab="semanas" aria-selected="${RTAB === 'semanas'}">Semanas</button><button class="tab" role="tab" data-rtab="generar" aria-selected="${RTAB === 'generar'}">Generar ejecutivo</button></div>`;
-  if (RTAB === 'generar') return vRepGen(tabs);
+  const tabs = ''; RTAB = 'semanas';
   const W = repWeeks(), cw = W.find((w) => w.cur) || W[0];
   if (RSEL == null || !W.some((w) => w.n === RSEL)) RSEL = cw.n;
   const sel = W.find((w) => w.n === RSEL);
@@ -1056,10 +1056,10 @@ function vReporte() {
   const w = sel, dn = w.dia ? String(w.dia.Notas || '') : '';
   const head = `<section class="panel pb wk-sum"><div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:flex-start"><div><b>${w.n === 0 ? 'Previo al inicio' : esc(w.lbl) + ' de ' + PROJ_WEEKS} · ${esc(w.per)}</b>
       <div class="small muted" style="margin-top:4px">${w.sem ? `Informe semanal ${esc(w.sem['N.º'])} · emitido ${fd(w.sem['Fecha de emisión'], 1)}` : w.n === 0 ? 'Reportes diarios antes del inicio oficial del proyecto (5 oct 2026).' : w.closed ? 'Falta subir el informe semanal de esta semana.' : 'Semana en curso: el informe semanal se sube al cerrar la semana (sábado).'}</div></div>
-      <span style="display:flex;gap:8px;flex-wrap:wrap">${w.cur || RSEL !== cw.n ? '' : ''}${RSEL !== cw.n ? `<button class="btn sm" type="button" data-rwk="${cw.n}">Ir a la semana actual</button>` : ''}<button class="btn sm" type="button" data-rsync="${w.n}" data-tip="Cuenta los diarios y busca el informe semanal en la carpeta, y lo anota en el Excel">Revisar carpeta</button></span></div>
+      <span style="display:flex;gap:8px;flex-wrap:wrap">${w.cur || RSEL !== cw.n ? '' : ''}${RSEL !== cw.n ? `<button class="btn sm" type="button" data-rwk="${cw.n}">Ir a la semana actual</button>` : ''}${w.sem ? `<button class="btn sm primary" type="button" data-mailrel="${esc(w.sem.Archivo)}">${ic('send')}Enviar semanal</button>` : ''}<button class="btn sm" type="button" data-rsync="${w.n}" data-tip="Cuenta los diarios y busca el informe semanal en la carpeta, y lo anota en el Excel">Revisar carpeta</button></span></div>
       ${w.sem && w.sem.Notas ? `<p class="small" style="margin:10px 0 0">${esc(w.sem.Notas)}</p>` : ''}
       ${dn ? `<p class="small faint" style="margin:6px 0 0">Diarios: ${esc(dn)}</p>` : ''}</section>`;
-  return `<section class="cover"><div><h1 class="h1">Reportes semanales</h1><div class="loc">Semana ${Math.max(weekNow(), 1)} de ${PROJ_WEEKS} · cada semana con sus reportes diarios y el informe semanal que se envía a gerencia el sábado.</div></div></section>
+  return `<section class="cover"><div><h1 class="h1">Reportes semanales</h1><div class="loc">Semana ${Math.max(weekNow(), 1)} de ${PROJ_WEEKS} · cada semana con sus reportes diarios y el informe semanal que se envía a gerencia el sábado. Cualquier reporte se puede enviar por correo desde su vista previa.</div></div></section>
     ${tabs}<div class="rw-lay"><div class="rw-list">${tables}</div><div class="rw-det">${head}${docBox(w.folder, w.n === 0 ? 'Previo al inicio' : w.lbl)}</div></div>`;
 }
 // Lee la carpeta de la semana y deja tInformes al día (fila de diarios D-NN y fila del semanal N-NN)
@@ -1198,7 +1198,7 @@ function drawCqDlg() {
     else if (x.err) inner = `<div class="empty">${esc(x.err)}</div>`;
     else if (x.url) inner = `<iframe src="${esc(x.url)}" title="${esc(x.name)}" allowfullscreen></iframe>`;
     else inner = '<div class="empty">Este tipo de archivo no tiene vista previa. Descárgalo o ábrelo en OneDrive.</div>';
-    right = `<div class="cq-pv"><div class="pv-bar"><b title="${esc(x.name)}">${esc(x.name)}</b><span style="display:flex;gap:6px">${x.webUrl ? `<a class="btn sm" href="${esc(x.webUrl)}" target="_blank" rel="noopener">${ic('ext')}Abrir en OneDrive</a>` : ''}${x.id ? `<button class="btn sm" type="button" data-cqdl="${esc(x.id)}">Descargar</button>` : ''}</span></div><div class="preview" style="min-height:0">${inner}</div></div>`;
+    right = `<div class="cq-pv"><div class="pv-bar"><b title="${esc(x.name)}">${esc(x.name)}</b><span style="display:flex;gap:6px;flex-wrap:wrap">${x.webUrl ? `<a class="btn sm" href="${esc(x.webUrl)}" target="_blank" rel="noopener">${ic('ext')}Abrir en OneDrive</a>` : ''}${x.id ? `<button class="btn sm" type="button" data-cqdl="${esc(x.id)}">Descargar</button>` : ''}</span></div><div class="preview" style="min-height:0">${inner}</div></div>`;
   }
   dlg.innerHTML = `<form method="dialog" novalidate onsubmit="return false"><div class="dlg-h"><h2><span class="cq-code">${esc(q['Código'])}</span> · ${esc(q['Área'] || '')}</h2><span style="display:flex;gap:8px;align-items:center">${pill(q.Estado)}<button class="ebtn" type="button" data-cqclose="1" aria-label="Cerrar">✕</button></span></div>
     <div class="cq-dlg"><div class="cq-info">
@@ -1229,7 +1229,7 @@ function openDocDlg(path) {
   const dlg = $('#dlg'); CQSEL = null; CQPK = null;
   const draw = () => { const x = CQPV; let inner = '<div class="loading"><span class="spin"></span>Preparando vista previa…</div>';
     if (x.err) inner = `<div class="empty">${esc(x.err)}</div>`; else if (x.url) inner = `<iframe src="${esc(x.url)}" title="${esc(x.name)}" allowfullscreen></iframe>`; else if (x.state === 'ok') inner = '<div class="empty">Este tipo de archivo no tiene vista previa.</div>';
-    dlg.innerHTML = `<form method="dialog" onsubmit="return false"><div class="dlg-h"><h2>${esc(x.name)}</h2><span style="display:flex;gap:6px">${x.webUrl ? `<a class="btn sm" href="${esc(x.webUrl)}" target="_blank" rel="noopener">${ic('ext')}Abrir en OneDrive</a>` : ''}<button class="ebtn" type="button" data-cqclose="1" aria-label="Cerrar">✕</button></span></div><div class="cq-pv" style="grid-template-rows:1fr;min-height:70vh">${inner}</div></form>`; };
+    dlg.innerHTML = `<form method="dialog" onsubmit="return false"><div class="dlg-h"><h2>${esc(x.name)}</h2><span style="display:flex;gap:6px;flex-wrap:wrap">${x.webUrl ? `<a class="btn sm" href="${esc(x.webUrl)}" target="_blank" rel="noopener">${ic('ext')}Abrir en OneDrive</a>` : ''}<button class="ebtn" type="button" data-cqclose="1" aria-label="Cerrar">✕</button></span></div><div class="cq-pv" style="grid-template-rows:1fr;min-height:70vh">${inner}</div></form>`; };
   CQPV = { path, name: String(path).split('/').pop(), state: 'loading' }; const mine = CQPV; draw();
   dlg.classList.add('wide'); if (!dlg.open) dlg.showModal(); dlg.addEventListener('close', () => { dlg.classList.remove('wide'); CQPV = null; }, { once: true });
   (async () => { try { const it = await graph(`${BASE}/root:/${encPath(joinRel(CFG.root, path))}?$select=id,name,webUrl`); Object.assign(mine, { id: it.id, webUrl: it.webUrl, name: it.name }); if (PREVIEWABLE.test(it.name)) mine.url = (await graph(`${BASE}/items/${it.id}/preview`, { method: 'POST', body: '{}' })).getUrl; mine.state = 'ok'; } catch (e) { mine.err = e.status === 404 ? 'No encontré este archivo en OneDrive.' : 'No se pudo abrir: ' + e.message; } if (CQPV === mine) draw(); })();
@@ -1378,6 +1378,7 @@ document.addEventListener('click', (e) => {
   const go = e.target.closest('[data-go]'); if (go && !e.target.closest('a,button')) { location.hash = go.dataset.go; return; }
   const rt = e.target.closest('[data-rtab]'); if (rt) { RTAB = rt.dataset.rtab; render(); return; }
   const rw = e.target.closest('[data-rwk]'); if (rw) { RSEL = +rw.dataset.rwk; render(); return; }
+  const mr = e.target.closest('[data-mailrel]'); if (mr) { openMailRel(mr.dataset.mailrel); return; }
   const rsy = e.target.closest('[data-rsync]'); if (rsy) { repSyncWeek(+rsy.dataset.rsync).catch((er) => toast(writeErr(er))); return; }
   const ft = e.target.closest('[data-ftab]'); if (ft) { fTab = ft.dataset.ftab; docSel = 0; render(); return; }
   const ed = e.target.closest('[data-edit]'); if (ed) { e.preventDefault(); e.stopPropagation(); const [t, id] = ed.dataset.edit.split('|'); openForm(t, id, presetOf(ed)); return; }
@@ -1807,6 +1808,70 @@ async function sendReport() {
     try { if (!HIST.some((h) => h.Reporte === x.num)) { const mid = await masterId(); const by = (ACCOUNT && (ACCOUNT.name || ACCOUNT.username)) || ''; const rows = F.map((f) => [x.ps, x.num, f.ID, f.Frente, f['Avance %'] === '' || f['Avance %'] == null ? '' : Number(f['Avance %']), f.Estado, by]); await graph(`${BASE}/items/${mid}/workbook/tables/tHistorial/rows/add`, { method: 'POST', body: JSON.stringify({ index: null, values: rows }) }); rows.forEach((r) => HIST.push({ 'Fecha foto': r[0], Reporte: r[1], ID: r[2], Frente: r[3], 'Avance %': r[4], Estado: r[5] })); } } catch (e) { console.warn('historial', e); }
     $('#dlg').close(); toast('Reporte enviado. Queda en tus Elementos enviados de Outlook.');
   } catch (e) { ok.disabled = false; ok.textContent = 'Enviar'; $('#snd-err').textContent = 'No se pudo enviar: ' + e.message; }
+}
+// ---------- Enviar por correo cualquier archivo de OneDrive (diario, semanal u otro) ----------
+let MAILF = null;
+function mailDefaults(name) {
+  const firma = '\n\nSaludos,\nIng. Cristhyan Vallejos\nJefe de Proyectos · EHGSA';
+  const d = name.match(/Reporte_Diario_(\d{4}-\d{2}-\d{2})/i);
+  if (d) return { sub: `Reporte diario ${fd(d[1], 1)} · Proyecto Solar Guaruma 50 MW`, body: `Buenas tardes,\n\nAdjunto el reporte diario del ${fd(d[1], 1)} del Proyecto Solar Guaruma 50 MW.` + firma };
+  const w = name.match(/semana[ _-]*0*(\d+)/i);
+  if (w) { const wi = weekInfo(+w[1]); return { sub: `Informe semanal · Semana ${String(+w[1]).padStart(2, '0')} de ${PROJ_WEEKS} (${wi.per}) · Proyecto Solar Guaruma 50 MW`, body: `Buenas tardes,\n\nAdjunto el informe semanal del Proyecto Solar Guaruma 50 MW, semana ${+w[1]} de ${PROJ_WEEKS} (${wi.per}).` + firma }; }
+  return { sub: `${name.replace(/\.[^.]+$/, '').replace(/_/g, ' ')} · Proyecto Solar Guaruma 50 MW`, body: `Buenas tardes,\n\nAdjunto ${name}.` + firma };
+}
+async function openMailRel(rel) {
+  try { const it = await graph(`${BASE}/root:/${encPath(joinRel(CFG.root, rel))}?$select=id,name,size`); openMailFile({ id: it.id, name: it.name, size: it.size, rel }); }
+  catch (e) { toast(e.status === 404 ? 'No encontré el archivo en OneDrive: ' + rel : 'No se pudo abrir: ' + e.message); }
+}
+function openMailFile(f) {
+  const df = mailDefaults(f.name); MAILF = { ...f, to: REP.to.slice() };
+  const dlg = $('#dlg');
+  const draw = () => {
+    dlg.innerHTML = `<form method="dialog" id="mlf"><div class="dlg-h"><h2>Enviar por correo</h2><button class="ebtn" type="button" data-close="1" aria-label="Cerrar">✕</button></div>
+    <div class="dlg-b" style="grid-template-columns:1fr">
+      <div class="fld"><label>Para</label><div class="rcpts">${MAILF.to.map((m, i) => `<span class="rcpt">${esc(m)}<button type="button" data-mlrm="${i}" aria-label="Quitar">✕</button></span>`).join('') || '<span class="faint small">Sin destinatarios</span>'}</div>
+        <div style="display:flex;gap:6px"><input id="ml-add" type="email" placeholder="Agregar correo" style="flex:1"><button class="btn sm" type="button" data-mladd="1">Agregar</button></div></div>
+      <div class="fld"><label for="ml-sub">Asunto</label><input id="ml-sub" value="${esc(MAILF.sub ?? df.sub)}"></div>
+      <div class="fld"><label for="ml-body">Mensaje</label><textarea id="ml-body" rows="8">${esc(MAILF.body ?? df.body)}</textarea></div>
+      <div class="fld"><label>Adjunto</label><div class="small"><b>${esc(f.name)}</b> · ${fsize(f.size || 0)}</div></div>
+    </div>
+    <div class="dlg-f"><span class="err" id="ml-err"></span><span style="display:flex;gap:8px"><button class="btn" type="button" data-close="1">Cancelar</button><button class="btn primary" type="submit" id="ml-ok">Enviar a ${MAILF.to.length} destinatario${MAILF.to.length === 1 ? '' : 's'}</button></span></div></form>`;
+    dlg.querySelectorAll('[data-close]').forEach((b) => b.onclick = () => dlg.close());
+    const keep = () => { MAILF.sub = $('#ml-sub').value; MAILF.body = $('#ml-body').value; };
+    dlg.querySelectorAll('[data-mlrm]').forEach((b) => b.onclick = () => { keep(); MAILF.to.splice(+b.dataset.mlrm, 1); draw(); });
+    const add = () => { const v = ($('#ml-add').value || '').trim().toLowerCase(); if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)) { $('#ml-err').textContent = 'Escribe un correo válido.'; return; } keep(); if (!MAILF.to.includes(v)) MAILF.to.push(v); draw(); $('#ml-add').focus(); };
+    dlg.querySelector('[data-mladd]').onclick = add;
+    $('#ml-add').onkeydown = (e) => { if (e.key === 'Enter') { e.preventDefault(); add(); } };
+    $('#mlf').onsubmit = (e) => { e.preventDefault(); keep(); sendMailFile(); };
+  };
+  draw(); dlg.showModal();
+}
+async function sendMailFile() {
+  const f = MAILF, ok = $('#ml-ok'); if (!f.to.length) { $('#ml-err').textContent = 'Agrega al menos un destinatario.'; return; }
+  ok.disabled = true; ok.textContent = 'Enviando…'; $('#ml-err').textContent = '';
+  try {
+    const t = await tokenFor(['Mail.Send']);
+    const mg = (path, opts = {}) => fetch(GRAPH + path, { ...opts, headers: { Authorization: 'Bearer ' + t, 'Content-Type': 'application/json', ...(opts.headers || {}) } }).then(async (r) => { if (!r.ok) { let m = 'HTTP ' + r.status; try { const j = await r.json(); m = j.error.message; } catch (_) {} throw new Error(m); } return r.status === 202 || r.status === 204 ? null : r.json(); });
+    const blob = await (await graph(`${BASE}/items/${f.id}/content`, { raw: true })).blob();
+    const html = `<div style="font-family:Segoe UI,Arial,sans-serif;font-size:14px;color:#13223A">${esc(f.body).replace(/\n/g, '<br>')}</div>`;
+    const message = { subject: f.sub, body: { contentType: 'HTML', content: html }, toRecipients: f.to.map((a) => ({ emailAddress: { address: a } })) };
+    if (blob.size < 3 * 1024 * 1024) {
+      message.attachments = [{ '@odata.type': '#microsoft.graph.fileAttachment', name: f.name, contentType: blob.type || 'application/octet-stream', contentBytes: await blobB64(blob) }];
+      await mg('/me/sendMail', { method: 'POST', body: JSON.stringify({ message, saveToSentItems: true }) });
+    } else { // adjuntos grandes: borrador + sesión de carga
+      const dr = await mg('/me/messages', { method: 'POST', body: JSON.stringify(message) });
+      const ses = await mg(`/me/messages/${dr.id}/attachments/createUploadSession`, { method: 'POST', body: JSON.stringify({ AttachmentItem: { attachmentType: 'file', name: f.name, size: blob.size } }) });
+      const CH = 3 * 1024 * 1024;
+      for (let pos = 0; pos < blob.size; pos += CH) {
+        const end = Math.min(pos + CH, blob.size); ok.textContent = `Subiendo adjunto… ${Math.round(end / blob.size * 100)} %`;
+        const r = await fetch(ses.uploadUrl, { method: 'PUT', headers: { 'Content-Range': `bytes ${pos}-${end - 1}/${blob.size}` }, body: blob.slice(pos, end) });
+        if (!r.ok && r.status !== 201) throw new Error('carga del adjunto: HTTP ' + r.status);
+      }
+      await mg(`/me/messages/${dr.id}/send`, { method: 'POST' });
+    }
+    await logChange(`Enviado por correo: ${f.name} a ${f.to.join(', ')}`);
+    $('#dlg').close(); toast('Enviado. Queda en tus Elementos enviados de Outlook.');
+  } catch (e) { ok.disabled = false; ok.textContent = 'Enviar'; $('#ml-err').textContent = 'No se pudo enviar: ' + e.message; }
 }
 document.addEventListener('click', (e) => {
   const rp = e.target.closest('[data-rep]'); if (rp) { repAction(rp.dataset.rep); return; }
