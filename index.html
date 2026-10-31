@@ -315,6 +315,23 @@ a.btn{text-decoration:none;color:inherit}
 .loading{display:flex;gap:10px;align-items:center;justify-content:center;padding:30px;color:var(--ink-3);font-size:13px}
 .loading .spin{border-color:var(--track);border-top-color:var(--info)}
 .err-box{padding:18px;color:var(--bad);font-size:13px}
+/* Reportes semanales: barra de semanas arriba, detalle y documentos a todo el ancho */
+.rw-bar{display:flex;gap:14px;align-items:center;flex-wrap:wrap;padding:10px 14px;margin-bottom:14px}
+.rw-mes{display:flex;gap:4px;align-items:center}
+.rw-mes select{font:inherit;font-weight:620;padding:6px 8px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--ink)}
+.rw-mes .ebtn{font-size:18px;line-height:1;width:30px;height:30px}
+.rw-mes .ebtn:disabled{opacity:.35;cursor:default}
+.rw-chips{display:flex;gap:8px;flex-wrap:wrap;flex:1;min-width:0}
+.rw-chip{display:grid;gap:2px;text-align:left;font:inherit;font-size:12.5px;color:inherit;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:7px 12px;cursor:pointer;min-width:150px}
+.rw-chip b{display:flex;gap:6px;align-items:center;font-size:13px}
+.rw-chip:hover{border-color:var(--ink-3)}
+.rw-chip.on{border-color:var(--orange);box-shadow:0 0 0 1px var(--orange) inset;background:var(--surface-2)}
+.rw-st{display:flex;gap:6px;align-items:center;font-size:12px}
+.rw-tot{display:flex;align-items:center;gap:4px;margin-left:auto}
+.rw-docs .docs{grid-template-columns:minmax(240px,340px) minmax(0,1fr);min-height:calc(100vh - 330px)}
+.rw-docs .doclist{max-height:calc(100vh - 330px)}
+.rw-docs .preview{min-height:calc(100vh - 380px)}
+@media (max-width:860px){.rw-docs .docs{grid-template-columns:1fr;min-height:0}.rw-docs .preview{min-height:70vh}.rw-tot{margin-left:0}}
 /* Reportes semanales: semanas por mes */
 .rw-lay{display:grid;grid-template-columns:minmax(0,470px) minmax(0,1fr);gap:16px;align-items:start}
 .rw-list{display:grid;gap:10px}
@@ -643,7 +660,7 @@ const ROUTES = [
   ['cronograma', 'Cronograma', 'cal'], ['pendientes', 'Pendientes y riesgos', 'alert'], ['consultas', 'Consultas', 'quest'], ['reporte', 'Reportes semanales', 'report'], ['documentos', 'Documentos', 'folder'], ['bitacora', 'Bitácora', 'clock']
 ];
 // ---------- Módulos (secciones con su propio archivo en modulos/, se cargan al entrar) ----------
-const APP_VER = '1.14.0';
+const APP_VER = '1.15.0';
 const MODS = {
   licencia: { lbl: 'Licencia ambiental', icon: 'cal', cnt: 'Detalle' },
   'ruta-regulatoria': { lbl: 'Ruta regulatoria', icon: 'route', cnt: 'Trámites' }
@@ -1045,27 +1062,27 @@ function vReporte() {
   const sel = W.find((w) => w.n === RSEL);
   if (!ROPEN.size) ROPEN.add(sel.mes || 'previo');
   ROPEN.add(sel.mes || 'previo');
-  const groups = []; W.forEach((w) => { const k = w.mes || 'previo'; let g = groups.find((x) => x.k === k); if (!g) groups.push(g = { k, ws: [] }); g.ws.push(w); });
-  const semCell = (w) => w.sem ? `<span class="pill s-ok">${esc(w.sem['N.º'])}</span>` : w.n === 0 ? '<span class="faint">—</span>' : w.closed ? '<span class="pill s-warn">Pendiente</span>' : '<span class="faint">En curso</span>';
-  const diaCell = (w) => w.dia ? `${w.nd != null ? w.nd : '✓'}` : '<span class="faint">—</span>';
-  const caret = '<svg viewBox="0 0 24 24" class="caret"><path d="m9 6 6 6-6 6"/></svg>';
-  const tables = groups.map((g) => {
-    const [Y, M] = g.k.split('-'); const title = g.k === 'previo' ? 'Previo al inicio' : `${MES_L[+M - 1]} ${Y}`;
-    const nSem = g.ws.filter((w) => w.sem).length, nDia = g.ws.reduce((a, w) => a + (w.nd || 0), 0), pend = g.ws.filter((w) => w.closed && !w.sem).length;
-    return `<details class="grp rw-grp" data-rmes="${g.k}" ${ROPEN.has(g.k) ? 'open' : ''}><summary>${caret}<div class="gs-t">${title}<span class="faint small" style="font-weight:500">${g.k === 'previo' ? '2 semanas' : g.ws.length + (g.ws.length === 1 ? ' semana' : ' semanas')}</span></div>
-      <div class="gs-r small muted">${g.k === 'previo' ? '' : `${nSem} semanal${nSem === 1 ? '' : 'es'} · `}${nDia} diarios${pend ? ` · <b style="color:var(--warn)">${pend} semanal${pend === 1 ? '' : 'es'} pendiente${pend === 1 ? '' : 's'}</b>` : ''}</div></summary>
-      <div class="tbl-wrap"><table class="t"><thead><tr><th>Semana</th><th>Fechas</th><th>Semanal</th><th class="num">Diarios</th></tr></thead><tbody>
-      ${g.ws.map((w) => `<tr class="click ${w.n === RSEL ? 'rw-on' : ''}" data-rwk="${w.n}"><td class="nowrap"><b>${w.n === 0 ? 'Previo' : esc(w.lbl)}</b>${w.cur ? ' <span class="pill s-info">Actual</span>' : ''}</td><td class="nowrap">${w.n === 0 ? '21 sep – 4 oct' : dShort(w.ini) + ' – ' + dShort(w.fin)}</td><td>${semCell(w)}</td><td class="num">${diaCell(w)}</td></tr>`).join('')}
-      </tbody></table></div></details>`;
-  }).join('');
+  // Barra superior: mes (con flechas) y las semanas de ese mes como botones
+  const months = [...new Set(W.map((w) => w.mes || 'previo'))].sort((x, y) => (x === 'previo' ? '0' : x).localeCompare(y === 'previo' ? '0' : y));
+  const mk = sel.mes || 'previo'; const mi = months.indexOf(mk);
+  const mLbl = (k) => k === 'previo' ? 'Previo al inicio' : `${MES_L[+k.split('-')[1] - 1]} ${k.split('-')[0]}`;
+  const inMes = W.filter((w) => (w.mes || 'previo') === mk).sort((x, y) => x.n - y.n);
+  const nSem = inMes.filter((w) => w.sem).length, nDia = inMes.reduce((t, w) => t + (w.nd || 0), 0), pend = inMes.filter((w) => w.closed && !w.sem).length;
+  const st = (w) => w.sem ? `<i class="dot d-ok"></i>${esc(w.sem['N.º'])}` : w.n === 0 ? '<i class="dot d-mute"></i>Diarios' : w.closed ? '<i class="dot d-warn"></i>Falta semanal' : '<i class="dot d-info"></i>En curso';
+  const chips = inMes.map((w) => `<button type="button" class="rw-chip${w.n === RSEL ? ' on' : ''}" data-rwk="${w.n}" aria-pressed="${w.n === RSEL}"><b>${w.n === 0 ? 'Previo' : 'Semana ' + String(w.n).padStart(2, '0')}${w.cur ? ' <span class="pill s-info" style="height:18px;font-size:11px">Actual</span>' : ''}</b><span class="faint">${w.n === 0 ? '21 sep – 4 oct' : dShort(w.ini) + ' – ' + dShort(w.fin)}</span><span class="rw-st">${st(w)}${w.dia ? ` · ${w.nd != null ? w.nd : ''} diario${w.nd === 1 ? '' : 's'}` : ''}</span></button>`).join('');
+  const bar = `<section class="panel rw-bar"><div class="rw-mes"><button class="ebtn" type="button" data-rmesgo="${mi > 0 ? months[mi - 1] : ''}" ${mi > 0 ? '' : 'disabled'} aria-label="Mes anterior">‹</button>
+      <select id="rw-mes" aria-label="Mes">${months.slice().reverse().map((k) => `<option value="${k}" ${k === mk ? 'selected' : ''}>${mLbl(k)}</option>`).join('')}</select>
+      <button class="ebtn" type="button" data-rmesgo="${mi < months.length - 1 ? months[mi + 1] : ''}" ${mi < months.length - 1 ? '' : 'disabled'} aria-label="Mes siguiente">›</button></div>
+    <div class="rw-chips">${chips}</div>
+    <div class="rw-tot small muted">${mk === 'previo' ? '' : `${nSem} semanal${nSem === 1 ? '' : 'es'} · `}${nDia} diarios${pend ? ` · <b style="color:var(--warn)">${pend} sin semanal</b>` : ''}${RSEL !== cw.n ? `<button class="btn sm" type="button" data-rwk="${cw.n}" style="margin-left:10px">Semana actual</button>` : ''}</div></section>`;
   const w = sel, dn = w.dia ? String(w.dia.Notas || '') : '';
   const head = `<section class="panel pb wk-sum"><div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:flex-start"><div><b>${w.n === 0 ? 'Previo al inicio' : esc(w.lbl) + ' de ' + PROJ_WEEKS} · ${esc(w.per)}</b>
       <div class="small muted" style="margin-top:4px">${w.sem ? `Informe semanal ${esc(w.sem['N.º'])} · emitido ${fd(w.sem['Fecha de emisión'], 1)}` : w.n === 0 ? 'Reportes diarios antes del inicio oficial del proyecto (5 oct 2026).' : w.closed ? 'Falta subir el informe semanal de esta semana.' : 'Semana en curso: el informe semanal se sube al cerrar la semana (sábado).'}</div></div>
-      <span style="display:flex;gap:8px;flex-wrap:wrap">${w.cur || RSEL !== cw.n ? '' : ''}${RSEL !== cw.n ? `<button class="btn sm" type="button" data-rwk="${cw.n}">Ir a la semana actual</button>` : ''}${w.sem ? `<button class="btn sm primary" type="button" data-mailrel="${esc(w.sem.Archivo)}">${ic('send')}Enviar semanal</button>` : ''}<button class="btn sm" type="button" data-rsync="${w.n}" data-tip="Cuenta los diarios y busca el informe semanal en la carpeta, y lo anota en el Excel">Revisar carpeta</button></span></div>
+      <span style="display:flex;gap:8px;flex-wrap:wrap">${w.sem ? `<button class="btn sm primary" type="button" data-mailrel="${esc(w.sem.Archivo)}">${ic('send')}Enviar semanal</button>` : ''}<button class="btn sm" type="button" data-rsync="${w.n}" data-tip="Cuenta los diarios y busca el informe semanal en la carpeta, y lo anota en el Excel">Revisar carpeta</button></span></div>
       ${w.sem && w.sem.Notas ? `<p class="small" style="margin:10px 0 0">${esc(w.sem.Notas)}</p>` : ''}
       ${dn ? `<p class="small faint" style="margin:6px 0 0">Diarios: ${esc(dn)}</p>` : ''}</section>`;
   return `<section class="cover"><div><h1 class="h1">Reportes semanales</h1><div class="loc">Semana ${Math.max(weekNow(), 1)} de ${PROJ_WEEKS} · cada semana con sus reportes diarios y el informe semanal que se envía a gerencia el sábado. Cualquier reporte se puede enviar por correo desde su vista previa.</div></div></section>
-    ${tabs}<div class="rw-lay"><div class="rw-list">${tables}</div><div class="rw-det">${head}${docBox(w.folder, w.n === 0 ? 'Previo al inicio' : w.lbl)}</div></div>`;
+    ${bar}${head}<div class="rw-docs">${docBox(w.folder, w.n === 0 ? 'Previo al inicio' : w.lbl)}</div>`;
 }
 // Deja creadas en OneDrive las carpetas de la semana actual y de la siguiente (una vez por sesión),
 // para poder subir los reportes desde la plataforma o arrastrarlos desde el Explorador de Windows.
@@ -1097,6 +1114,8 @@ async function repSyncWeek(n, quiet) {
   if (done.length) { await logChange(`Reportes ${w.n === 0 ? 'previos al inicio' : w.lbl}: registrado en Informes ${done.join(' y ')}.`); toast('Anotado en el Excel: ' + done.join(' y ') + '.'); render(); }
   else if (!quiet) toast('La carpeta y el Excel ya coinciden.');
 }
+function repGoMes(k) { const ws = repWeeks().filter((w) => (w.mes || 'previo') === k); if (!ws.length) return; const c = ws.find((w) => w.cur); RSEL = c ? c.n : Math.max(...ws.map((w) => w.n)); render(); }
+document.addEventListener('change', (e) => { if (e.target.id === 'rw-mes') repGoMes(e.target.value); });
 function applyLocalQuiet(tb, rec, isNew) { const arr = INF, i = arr.findIndex((r) => String(r['N.º']) === String(rec['N.º'])); if (isNew || i < 0) arr.push(rec); else arr[i] = rec; try { localStorage.setItem(CACHE_KEY, JSON.stringify({ D: DATA, META })); } catch (_) {} }
 document.addEventListener('input', (e) => {
   if (e.target.id !== 'as-q') return; const q = norm(e.target.value); let n = 0;
@@ -1395,6 +1414,7 @@ document.addEventListener('click', (e) => {
   if (cqClick(e)) return;
   const go = e.target.closest('[data-go]'); if (go && !e.target.closest('a,button')) { location.hash = go.dataset.go; return; }
   const rt = e.target.closest('[data-rtab]'); if (rt) { RTAB = rt.dataset.rtab; render(); return; }
+  const rmg = e.target.closest('[data-rmesgo]'); if (rmg) { if (rmg.dataset.rmesgo) repGoMes(rmg.dataset.rmesgo); return; }
   const rw = e.target.closest('[data-rwk]'); if (rw) { RSEL = +rw.dataset.rwk; render(); return; }
   const mr = e.target.closest('[data-mailrel]'); if (mr) { openMailRel(mr.dataset.mailrel); return; }
   const rsy = e.target.closest('[data-rsync]'); if (rsy) { repSyncWeek(+rsy.dataset.rsync).catch((er) => toast(writeErr(er))); return; }

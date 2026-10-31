@@ -1,6 +1,6 @@
 // Service worker · Plataforma Guaruma 50 MW
 // Sube VERSION cada vez que publiques cambios para que los equipos tomen la versión nueva.
-const VERSION = 'guaruma-v1.14.0';
+const VERSION = 'guaruma-v1.15.0';
 const SHELL = ['./', './index.html', './manifest.json', './icons/logo.png', './icons/icon-192.png', './icons/icon-512.png'];
 const CDN = ['https://cdn.jsdelivr.net/', 'https://cdnjs.cloudflare.com/', 'https://fonts.googleapis.com/', 'https://fonts.gstatic.com/'];
 
