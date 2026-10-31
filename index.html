@@ -96,7 +96,7 @@ button{font:inherit;color:inherit}
 .btn[aria-disabled="true"]{opacity:.55;cursor:not-allowed}
 .proto{margin:14px max(20px,env(safe-area-inset-right,0px)) 0 max(20px,env(safe-area-inset-left,0px));border:1px dashed var(--line);border-radius:8px;padding:8px 12px;font-size:12.5px;color:var(--ink-2);display:flex;gap:10px;align-items:center;background:var(--surface-2)}
 .proto b{color:var(--ink)}
-.view{padding:20px max(20px,env(safe-area-inset-right,0px)) 48px max(20px,env(safe-area-inset-left,0px));display:grid;gap:20px;align-content:start;max-width:1440px;width:100%}
+.view{padding:20px max(20px,env(safe-area-inset-right,0px)) 48px max(20px,env(safe-area-inset-left,0px));display:grid;gap:20px;align-content:start;max-width:2560px;width:100%}
 .scrim{display:none}
 .modhost{min-width:0;display:block}
 /* Modo presentación del cronograma y su impresión: sin menú ni barra superior */
@@ -643,7 +643,7 @@ const ROUTES = [
   ['cronograma', 'Cronograma', 'cal'], ['pendientes', 'Pendientes y riesgos', 'alert'], ['consultas', 'Consultas', 'quest'], ['reporte', 'Reportes semanales', 'report'], ['documentos', 'Documentos', 'folder'], ['bitacora', 'Bitácora', 'clock']
 ];
 // ---------- Módulos (secciones con su propio archivo en modulos/, se cargan al entrar) ----------
-const APP_VER = '1.13.0';
+const APP_VER = '1.14.0';
 const MODS = {
   licencia: { lbl: 'Licencia ambiental', icon: 'cal', cnt: 'Detalle' },
   'ruta-regulatoria': { lbl: 'Ruta regulatoria', icon: 'route', cnt: 'Trámites' }
@@ -1067,6 +1067,14 @@ function vReporte() {
   return `<section class="cover"><div><h1 class="h1">Reportes semanales</h1><div class="loc">Semana ${Math.max(weekNow(), 1)} de ${PROJ_WEEKS} · cada semana con sus reportes diarios y el informe semanal que se envía a gerencia el sábado. Cualquier reporte se puede enviar por correo desde su vista previa.</div></div></section>
     ${tabs}<div class="rw-lay"><div class="rw-list">${tables}</div><div class="rw-det">${head}${docBox(w.folder, w.n === 0 ? 'Previo al inicio' : w.lbl)}</div></div>`;
 }
+// Deja creadas en OneDrive las carpetas de la semana actual y de la siguiente (una vez por sesión),
+// para poder subir los reportes desde la plataforma o arrastrarlos desde el Explorador de Windows.
+let REP_FOLDERS_OK = false;
+async function repEnsureFolders() {
+  if (REP_FOLDERS_OK) return; REP_FOLDERS_OK = true;
+  const n = Math.max(weekNow(), 1);
+  for (const k of [n, n + 1]) { if (k > PROJ_WEEKS) continue; try { await ensureFolder(weekInfo(k).folder); } catch (e) { console.warn('carpeta semana', k, e); REP_FOLDERS_OK = false; } }
+}
 // Lee la carpeta de la semana y deja tInformes al día (fila de diarios D-NN y fila del semanal N-NN)
 async function repSyncWeek(n, quiet) {
   const w = repWeeks().find((x) => x.n === n); if (!w) return;
@@ -1379,7 +1387,7 @@ function render() {
   else { if (!views[route]) route = 'resumen'; html = views[route](); crumb = `<span>Guaruma 50 MW</span>${ic('chev').replace('<svg', '<svg width="12" height="12" style="stroke:currentColor;fill:none;stroke-width:2"')}<b>${(ROUTES.find((r) => r[0] === route) || ROUTES.find((r) => r[0] === 'pendientes'))[1]}</b>`; }
   $('#view').innerHTML = html; $('#crumbs').innerHTML = crumb; drawNav(route);
   $('#app').classList.remove('mopen');
-  mountDocs(); if (route === 'reporte' && RTAB === 'generar') requestAnimationFrame(fitSheet); if (route === 'consultas') drawCqTable();
+  mountDocs(); if (route === 'reporte') repEnsureFolders().then(() => { if (RSEL != null) { const k = Object.keys(DOCSTATE).find((b) => b === (repWeeks().find((w) => w.n === RSEL) || {}).folder); if (k && DOCSTATE[k].err) { DOCSTATE[k].err = null; DOCSTATE[k].items = null; mountDocs(); } } }); if (route === 'consultas') drawCqTable();
 }
 let lastRoute = '';
 window.addEventListener('hashchange', () => { const r = location.hash; if (r !== lastRoute) { fTab = 'resumen'; docSel = 0; lastRoute = r; } render(); window.scrollTo({ top: 0 }); });
