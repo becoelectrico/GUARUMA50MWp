@@ -353,6 +353,41 @@ a.btn{text-decoration:none;color:inherit}
 
 
 /* Resumen ejecutivo */
+.lnk{border:0;background:none;font:inherit;font-size:12.5px;font-weight:600;color:var(--info);cursor:pointer;display:inline-flex;align-items:center;gap:6px;padding:4px 0}
+.lnk .arr{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2}
+.lnk.warn{color:var(--warn)}
+.pm{display:grid;gap:14px}
+.pm-bar{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:center}
+.pm-ms{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.pm-c{display:grid;gap:2px;background:var(--surface-2);border:1px solid var(--line-2);border-radius:8px;padding:10px 12px}
+.pm-c b{font-size:20px;font-weight:640;line-height:1.15}
+.stack{display:flex;height:14px;border-radius:5px;overflow:hidden;background:var(--track)}
+.stack>span{height:100%}
+.sw{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:6px;vertical-align:0;border:1px solid var(--line)}
+.fz{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.fz>a,.fz>div{display:grid;gap:3px;text-decoration:none;color:inherit;min-width:0}
+.fz b{font-size:18px;font-weight:640;white-space:nowrap}
+.fz-3{grid-template-columns:repeat(3,minmax(0,1fr));padding:14px 18px;border-top:1px solid var(--line-2)}
+.fz-foot{display:flex;flex-wrap:wrap;justify-content:space-between;gap:6px 16px;padding-top:10px;border-top:1px solid var(--line-2)}
+.ok-t{color:var(--ok)}.bad-t{color:var(--bad)}.warn-t{color:var(--warn)}
+.ar-list{display:grid}
+.ar{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(150px,.9fr) minmax(0,1.2fr) 92px;gap:6px 16px;align-items:center;padding:11px 18px;border-bottom:1px solid var(--line-2);cursor:pointer}
+.ar:last-child{border-bottom:0}.ar:hover{background:var(--surface-2)}
+.ar-h{cursor:default;padding-top:8px;padding-bottom:8px}.ar-h:hover{background:none}
+.ar .r{text-align:right}
+.ar-n{display:grid;gap:2px;min-width:0}
+.ar-b{display:grid;gap:4px}
+.ar-m{position:relative;overflow:visible}
+.ar-m>span{border-radius:999px}
+.ar-pl{position:absolute;top:-3px;bottom:-3px;width:2px;margin-left:-1px;background:var(--ink);border-radius:1px}
+.li.ag{cursor:pointer}.li.ag:hover{background:var(--surface-2)}
+.li.ag .what .pill{margin-right:4px}
+.t tr.tot td{background:var(--surface-2);border-top:1px solid var(--line)}
+.pv-b{display:grid;gap:3px}
+.pv-b span{display:block;height:7px;border-radius:3px}
+.pv-p{background:var(--track)}.pv-c{background:var(--info)}
+@media (max-width:900px){.fz{grid-template-columns:repeat(2,minmax(0,1fr))}.fz-3{grid-template-columns:1fr}.ar{grid-template-columns:minmax(0,1fr) 120px}.ar-h{display:none}.ar>.small:nth-child(3){grid-column:1/-1}}
+
 .headline{font-size:15px;color:var(--ink);margin:6px 0 0;max-width:70ch}
 .fin{display:grid;grid-template-columns:repeat(4,minmax(0,1fr))}
 .fin a{padding:16px 18px;display:grid;gap:6px;align-content:start;text-decoration:none;color:inherit;border-right:1px solid var(--line-2);position:relative}
@@ -363,7 +398,8 @@ a.btn{text-decoration:none;color:inherit}
 .fin a::after{content:"";position:absolute;right:14px;top:16px;width:7px;height:7px;border-top:1.8px solid var(--ink-3);border-right:1.8px solid var(--ink-3);transform:rotate(45deg);opacity:0;transition:opacity .15s}
 .fin a:hover::after{opacity:1}
 @media (max-width:900px){.fin{grid-template-columns:repeat(2,minmax(0,1fr))}.fin a:nth-child(2){border-right:0}.fin a:nth-child(-n+2){border-bottom:1px solid var(--line-2)}}
-.pd-list{display:grid}
+.pd-list{display:grid;grid-template-columns:minmax(0,1fr)}
+.pd{min-width:0;grid-template-columns:minmax(0,1fr)}
 .pd{display:grid;gap:8px;padding:14px 18px;border-bottom:1px solid var(--line-2);cursor:pointer;text-decoration:none;color:inherit}
 .pd:last-child{border-bottom:0}
 .pd:hover{background:var(--surface-2)}
@@ -572,7 +608,7 @@ a.btn{text-decoration:none;color:inherit}
     <header class="top">
       <button class="iconbtn" id="tg" aria-label="Contraer o expandir el menú" data-tip="Contraer o expandir el menú"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button>
       <div class="crumbs" id="crumbs"></div>
-      <label class="search"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input id="q" placeholder="Buscar frente, contrato, archivo…" aria-label="Buscar"></label>
+      <label class="search"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input id="q" placeholder="Buscar área, contrato, archivo…" aria-label="Buscar"></label>
       <button class="iconbtn" id="refresh" aria-label="Actualizar" data-tip="Actualizar desde OneDrive"><svg viewBox="0 0 24 24"><path d="M20 11a8 8 0 1 0-2.3 5.7"/><path d="M20 4v7h-7"/></svg></button>
       <button class="iconbtn" id="theme" aria-label="Cambiar tema" data-tip="Tema claro u oscuro"><svg viewBox="0 0 24 24"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg></button>
     </header>
@@ -622,6 +658,7 @@ const ICON = {
   route: '<circle cx="6" cy="6" r="2.5"/><circle cx="18" cy="18" r="2.5"/><path d="M8.5 6H15a3 3 0 0 1 0 6H9a3 3 0 0 0 0 6h6.5"/>',
   link: '<path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/>',
   dl: '<path d="M12 4v11M7 10l5 5 5-5"/><path d="M5 20h14"/>',
+  coin: '<circle cx="12" cy="12" r="9"/><path d="M15 9.6c-.5-1-1.6-1.6-3-1.6-1.7 0-3 .8-3 2s1.3 1.7 3 2 3 .9 3 2.1-1.3 1.9-3 1.9c-1.4 0-2.6-.6-3.1-1.6M12 6.5v11"/>',
   chev: '<path d="m9 6 6 6-6 6"/>', plus: '<path d="M12 5v14M5 12h14"/>', ext: '<path d="M14 4h6v6M20 4l-9 9"/><path d="M18 14v6H4V6h6"/>', edit: '<path d="M4 20h4L19 9l-4-4L4 16z"/>'
 };
 const ic = (n, cls = '') => `<svg viewBox="0 0 24 24" class="${cls}">${ICON[n]}</svg>`;
@@ -656,11 +693,11 @@ const fin = (id) => {
 
 // ---------- Nav ----------
 const ROUTES = [
-  ['resumen', 'Resumen', 'home'], ['frentes', 'Frentes', 'layers'], ['contratos', 'Contratos y pagos', 'contract'], ['ofertas', 'Ofertas', 'tag'],
+  ['resumen', 'Resumen', 'home'], ['frentes', 'Áreas', 'layers'], ['contratos', 'Contratos y pagos', 'contract'], ['presupuesto', 'Presupuesto', 'coin'], ['ofertas', 'Ofertas', 'tag'],
   ['cronograma', 'Cronograma', 'cal'], ['pendientes', 'Pendientes y riesgos', 'alert'], ['consultas', 'Consultas', 'quest'], ['reporte', 'Reportes semanales', 'report'], ['documentos', 'Documentos', 'folder'], ['bitacora', 'Bitácora', 'clock']
 ];
 // ---------- Módulos (secciones con su propio archivo en modulos/, se cargan al entrar) ----------
-const APP_VER = '1.15.0';
+const APP_VER = '1.16.0';
 const MODS = {
   licencia: { lbl: 'Licencia ambiental', icon: 'cal', cnt: 'Detalle' },
   'ruta-regulatoria': { lbl: 'Ruta regulatoria', icon: 'route', cnt: 'Trámites' }
@@ -695,11 +732,11 @@ function drawNav(route) {
   const item = ([id, lbl, icon], extra = '') => `<a class="nav" href="#${id}" ${route === id ? 'aria-current="page"' : ''} data-tip-side="right" data-tip-c="${esc(lbl)}">${ic(icon)}<span class="lbl">${lbl}</span>${extra}</a>`;
   const frItems = F.map((f) => `<a class="nav" href="#frente-${f.ID}" ${route === 'frente-' + f.ID ? 'aria-current="page"' : ''}><i class="dot d-${tone(f.Estado)}"></i><span class="lbl">${esc(f.Frente)}</span></a>`).join('');
   nav.innerHTML = grp('Proyecto') + item(ROUTES[0]) +
-    `<button class="nav" id="frbtn" aria-expanded="${frShow}" data-tip-c="Frentes">${ic('layers')}<span class="lbl">Frentes</span><span class="cnt">${F.length}</span>${ic('chev', 'chev')}</button>` +
+    `<button class="nav" id="frbtn" aria-expanded="${frShow}" data-tip-c="Áreas">${ic('layers')}<span class="lbl">Áreas</span><span class="cnt">${F.length}</span>${ic('chev', 'chev')}</button>` +
     `<div class="sub" ${frShow ? '' : 'hidden'}>${frItems}<a class="nav" href="#frentes" ${route === 'frentes' ? 'aria-current="page"' : ''}><span class="lbl faint">Ver todos</span></a></div>` +
-    grp('Control') + ROUTES.slice(2, 6).map((r) => item(r)).join('') + item(ROUTES[6], CQ.length ? `<span class="cnt" data-tip="Consultas abiertas">${CQ.filter((q) => q.Estado !== 'Cerrada').length}</span>` : '') +
+    grp('Control') + ROUTES.slice(2, 7).map((r) => item(r)).join('') + item(ROUTES[7], CQ.length ? `<span class="cnt" data-tip="Consultas abiertas">${CQ.filter((q) => q.Estado !== 'Cerrada').length}</span>` : '') +
     Object.entries(MODS).map(([id, m]) => item([id, m.lbl, m.icon], `<span class="cnt">${m.cnt}</span>`)).join('') +
-    grp('Archivo') + ROUTES.slice(7).map((r) => item(r)).join('');
+    grp('Archivo') + ROUTES.slice(8).map((r) => item(r)).join('');
   $('#frbtn').onclick = () => { frOpen = !frOpen; try { localStorage.setItem('guaruma.frOpen', frOpen ? '1' : '0'); } catch (_) {} drawNav(route); };
 }
 
@@ -788,37 +825,146 @@ function pendCard(d, full) {
   return `<div class="pd" data-go="frente-${esc(d.Frente)}" tabindex="0"><div class="pd-h"><span class="prio p-${esc(d.Prioridad)}">${esc(d.Prioridad)}</span><b>${esc(d.Pendiente)}</b>${due}${full ? pill(d.Estado) : ''}${acts}</div>
     <div class="pd-who">${esc(d.Responsable)} · ${esc(fById[d.Frente]?.Frente || '')}</div>${d['Qué atrasa'] ? chain(d['Qué atrasa']) : ''}${d['Decisión solicitada'] ? `<div class="pd-dec"><b>Decisión solicitada:</b> ${esc(d['Decisión solicitada'])}</div>` : ''}${full && d.Impacto ? `<div class="pd-imp">${esc(d.Impacto)}</div>` : ''}${full && d.Notas ? `<div class="pd-who">${esc(d.Notas)}</div>` : ''}</div>`;
 }
+// ---------- Resumen: datos ----------
+const FIRM = ['Firmado', 'En ejecución', 'Terminado'];
+const pnum = (v) => v === '' || v == null || isNaN(Number(v)) ? null : Number(v);
+const pc0 = (v) => Math.round(v * 100) + ' %';
+const dDiff = (a, b) => Math.round((new Date(b + 'T12:00:00') - new Date(a + 'T12:00:00')) / 864e5);
+const addDays = (iso, n) => { const d = new Date(iso + 'T12:00:00'); d.setDate(d.getDate() + n); return d.toISOString().slice(0, 10); };
+const k1 = (v) => 'US$ ' + (Math.abs(v) >= 1e6 ? nf.format(v / 1e6).replace(/\.?0+$/, '') + ' M' : nf0.format(v));
+// Hitos fijos del cronograma general (informe semanal, lámina "Cronograma general · 22 meses")
+const MILESTONES = [
+  { f: '2026-11-30', t: 'Fecha X: premisas ante CND', fr: 'F08' },
+  { f: '2027-07-01', t: 'Montaje de estructura' },
+  { f: '2027-10-31', t: 'Fin de obra civil' }
+];
+// Presupuesto por área: contratado (o la oferta en evaluación más alta si aún no hay contrato)
+function presCalc() {
+  const rows = PRES.map((pr) => {
+    const cs = C.filter((c) => c.Frente === pr.Frente && FIRM.includes(c.Estado));
+    const p = Number(pr['Presupuesto US$']) || 0;
+    let val = cs.reduce((t, c) => t + usd(c.Monto, c.Moneda), 0), src = 'Contratado', ref = cs.map((c) => c['N.º']).join(', ');
+    if (!cs.length) {
+      const o = O.filter((x) => x.Frente === pr.Frente && x.Estado === 'En evaluación' && x.Monto).sort((x, y) => usd(y.Monto, y.Moneda) - usd(x.Monto, x.Moneda))[0];
+      if (o) { val = usd(o.Monto, o.Moneda); src = 'Oferta en evaluación'; ref = o.Proveedor; } else { val = null; src = 'Sin contratar'; ref = ''; }
+    }
+    return { pr, f: fById[pr.Frente], p, val, src, ref, dif: val == null ? null : val - p };
+  });
+  const withV = rows.filter((r) => r.val != null);
+  const tp = withV.reduce((t, r) => t + r.p, 0), tv = withV.reduce((t, r) => t + r.val, 0);
+  return { rows, tp, tv, dif: tv - tp, pct: tp ? (tv - tp) / tp : 0 };
+}
+function fondoCalc() {
+  const fondo = Number(P['Fondo de estudios (US$)']) || 0;
+  const firm = C.filter((c) => FIRM.includes(c.Estado));
+  const comp = firm.reduce((t, c) => t + usd(c.Monto, c.Moneda), 0);
+  const paid = PG.filter((p) => p.Estado === 'Pagado' && firm.some((c) => c['N.º'] === p.Contrato)).reduce((t, p) => t + usd(p.Monto, p.Moneda), 0);
+  const adj = presCalc().rows.filter((r) => r.src === 'Oferta en evaluación').reduce((t, r) => t + r.val, 0);
+  const base = fondo || comp + adj;
+  return { fondo, base, firm, comp, paid, porPagar: comp - paid, adj, libre: Math.max(0, base - comp - adj) };
+}
+const lastSemanal = () => INF.filter((i) => i.Tipo === 'Semanal' && i.Semana !== '' && i.Semana != null).sort((a, b) => Number(b.Semana) - Number(a.Semana))[0];
+function prevAvance(id) {
+  const wkIni = weekInfo(Math.max(weekNow(), 1)).ini;
+  const h = HIST.filter((x) => x.ID === id && x['Fecha foto'] && x['Fecha foto'] < wkIni).sort((x, y) => String(x['Fecha foto']).localeCompare(String(y['Fecha foto']))).pop();
+  return h ? pnum(h['Avance %']) : null;
+}
+// Próximos 30 días: hitos de áreas, pendientes, pagos, fines de plazo, actividades y fechas fijas
+function agenda(days = 30) {
+  const lim = addDays(TODAY, days), it = [], seen = new Set();
+  const push = (o) => { const key = o.f + '|' + String(o.t).toLowerCase().slice(0, 40); if (seen.has(key)) return; seen.add(key); it.push(o); };
+  F.forEach((f) => { const d = f['Fecha próximo hito']; if (d && d <= lim && f.Estado !== 'Completado') push({ f: d, k: 'Hito', tone: 'info', t: f['Próximo hito'], fr: f.ID }); });
+  openPend().forEach((d) => { const x = d['Fecha límite']; if (x && x <= lim) push({ f: x, k: 'Pendiente', tone: d.Prioridad === 'Alta' ? 'bad' : 'warn', t: d.Pendiente, fr: d.Frente, who: d.Responsable }); });
+  PG.forEach((p) => { const x = p['Fecha de pago']; if (x && p.Estado !== 'Pagado' && x >= TODAY && x <= lim) { const c = C.find((c2) => c2['N.º'] === p.Contrato); push({ f: x, k: 'Pago', tone: 'ok', t: `${p.Concepto} · ${money(p.Monto, p.Moneda)}${c ? ' · ' + c.Contratista : ''}`, fr: c && c.Frente }); } });
+  PZ.forEach((p) => { const x = p['Fin estimado']; if (x && x >= TODAY && x <= lim) push({ f: x, k: 'Fin de plazo', tone: 'hold', t: p['Estudio / entregable'] + (p['Fin máximo'] ? ` (máx. ${fd(p['Fin máximo'])})` : ''), fr: p.Frente }); });
+  A.forEach((a) => { const x = a.Fecha; if (x && x >= TODAY && x <= lim && !['Cumplido', 'Cancelado'].includes(a.Estado)) push({ f: x, k: 'Actividad', tone: 'info', t: a.Actividad, fr: a.Frente, who: a.Responsable }); });
+  MILESTONES.forEach((m) => { if (m.f >= TODAY && m.f <= lim) push({ f: m.f, k: 'Fecha fija', tone: 'bad', t: m.t, fr: m.fr }); });
+  // un hito que repite un pendiente del mismo día y área se omite
+  const dup = (o) => o.k === 'Hito' && it.some((x) => x.k === 'Pendiente' && x.f === o.f && x.fr === o.fr);
+  const res = it.filter((o) => !dup(o)); res.forEach((o) => { o.late = o.f < TODAY; });
+  return res.sort((x, y) => (y.late - x.late) || x.f.localeCompare(y.f));
+}
+
+// ---------- Resumen: vista ----------
 function vResumen() {
-  const firm = C.filter((c) => c.Estado === 'Firmado' || c.Estado === 'En ejecución' || c.Estado === 'Terminado');
-  const tot = firm.reduce((s, c) => s + usd(c.Monto, c.Moneda), 0);
-  const paid = PG.filter((p) => p.Estado === 'Pagado').reduce((s, p) => s + usd(p.Monto, p.Moneda), 0);
-  // Por adjudicar: por frente sin contrato firmado, la oferta en evaluación de mayor monto (con monto)
-  const frSin = [...new Set(O.filter((o) => o.Estado === 'En evaluación' && o.Monto).map((o) => o.Frente))];
-  const porAdj = frSin.map((fid) => O.filter((o) => o.Frente === fid && o.Estado === 'En evaluación' && o.Monto).sort((a, b) => usd(b.Monto, b.Moneda) - usd(a.Monto, a.Moneda))[0]);
-  const adjTot = porAdj.reduce((s, o) => s + usd(o.Monto, o.Moneda), 0);
   const pend = openPend(); const top = pend.filter((d) => d.Prioridad === 'Alta').slice(0, 4);
   const lateN = pend.filter((d) => d['Fecha límite'] && d['Fecha límite'] < TODAY).length;
-  const pct = tot ? paid / tot : 0;
+  // Puesta en marcha
+  const start = P['Inicio del proyecto'] || PROJ_START, end = P['Puesta en marcha prevista'] || '2028-07-31';
+  const wk = Math.min(Math.max(weekNow(), 1), PROJ_WEEKS), tpct = Math.min(1, Math.max(0, dDiff(start, TODAY) / dDiff(start, end)));
+  const ls = lastSemanal(), prevWk = Math.min(weekNow() - 1, PROJ_WEEKS);
+  const falta = prevWk >= 1 && !INF.some((i) => i.Tipo === 'Semanal' && Number(i.Semana) === prevWk);
+  const semLink = falta
+    ? `<button class="lnk warn" type="button" data-rsem="${prevWk}">Falta el semanal ${String(prevWk).padStart(2, '0')}${ARROW}</button>`
+    : ls ? `<button class="lnk" type="button" data-rsem="${Number(ls.Semana)}">Informe semanal ${esc(String(ls.Semana).padStart(2, '0'))} · ${fd(ls['Fecha de emisión'])}${ARROW}</button>` : '';
+  const ms = [...MILESTONES, { f: end, t: 'Puesta en marcha' }].filter((m) => m.f >= TODAY).slice(0, 4);
+  const pem = `<section class="panel"><div class="ph"><div><h2 class="h2">Puesta en marcha</h2><p>Semana ${wk} de ${PROJ_WEEKS} · inicio ${fd(start, 1)} · meta ${fd(end, 1)}</p></div>${semLink}</div>
+    <div class="pb pm"><div class="pm-bar"><div class="meter"><span style="width:${tpct * 100}%;background:var(--navy-2)"></span></div><span class="small muted tnum">${pc0(tpct)} del tiempo</span></div>
+    <div class="pm-ms">${ms.map((m) => { const n = dDiff(TODAY, m.f); return `<div class="pm-c"><span class="small muted">${esc(m.t)}</span><b class="tnum">${n} día${n === 1 ? '' : 's'}</b><span class="small faint">${fd(m.f, 1)}</span></div>`; }).join('')}</div></div></section>`;
+  // Presupuesto
+  const fz = fondoCalc(), pc = presCalc(), w = (v) => fz.base ? Math.max(0, v / fz.base * 100) : 0;
+  const over = pc.rows.filter((r) => r.dif != null && r.dif > 0);
+  const pres = `<section class="panel"><div class="ph"><div><h2 class="h2">${fz.fondo ? 'Fondo de estudios' : 'Contratos de estudios'}</h2><p>${fz.fondo ? `${k1(fz.fondo)} · ${pc0((fz.comp + fz.adj) / fz.fondo)} comprometido o por adjudicar` : 'Contratos firmados'} · L ${FX} por US$</p></div><a class="btn sm" href="#presupuesto">Ver presupuesto</a></div>
+    <div class="pb" style="display:grid;gap:12px"><div class="stack" role="img" aria-label="Uso del fondo">${[[fz.paid, 'var(--ok)'], [fz.porPagar, 'var(--info)'], [fz.adj, 'var(--info-bg)']].map(([v, c]) => v > 0 ? `<span style="width:${w(v)}%;background:${c}"></span>` : '').join('')}</div>
+    <div class="fz">${[['Pagado', fz.paid, 'var(--ok)', `${fz.firm.length} contratos firmados`], ['Por pagar', fz.porPagar, 'var(--info)', 'Saldo de contratos firmados'], ['Por adjudicar', fz.adj, 'var(--info-bg)', 'Ofertas de estudios en evaluación'], ['Disponible', fz.libre, 'var(--track)', fz.fondo ? 'Del fondo de estudios' : '']].map(([l, v, c, tip]) => `<a href="#presupuesto" data-tip="${esc(tip)}"><span class="small muted"><i class="sw" style="background:${c}"></i>${l}</span><b class="tnum">${k1(v)}</b></a>`).join('')}</div>
+    ${pc.rows.length ? `<div class="fz-foot small"><span>Estudios: ${k1(pc.tv)} contratado contra ${k1(pc.tp)} de presupuesto · <b class="${pc.dif > 0 ? 'bad-t' : 'ok-t'}">${pc.dif > 0 ? '+' : '−'}${(Math.abs(pc.pct) * 100).toFixed(1)} %</b></span>${over.length ? `<span class="warn-t">Sobre presupuesto: ${over.map((r) => `${esc(r.f?.Frente || r.pr.Partida)} +${(r.dif / r.p * 100).toFixed(1)} %`).join(' · ')}</span>` : ''}</div>` : ''}</div></section>`;
+  // Avance por área
+  const rows = F.map((f) => ({ f, av: pnum(f['Avance %']), pl: pnum(f['% plan']), pv: prevAvance(f.ID) }));
+  const behind = rows.filter((r) => r.av != null && r.pl != null && r.av < r.pl).length, sinAv = rows.filter((r) => r.av == null).length;
+  const trend = (r) => r.av == null || r.pv == null ? '<span class="faint">—</span>' : r.av > r.pv ? `<span class="ok-t">↑ +${Math.round((r.av - r.pv) * 100)} %</span>` : r.av < r.pv ? `<span class="bad-t">↓ ${Math.round((r.av - r.pv) * 100)} %</span>` : '<span class="faint">→ 0 %</span>';
+  const av = `<section class="panel"><div class="ph"><div><h2 class="h2">Avance por área</h2><p>${F.length} áreas${behind ? ` · ${behind} por debajo del plan` : ''}${sinAv ? ` · ${sinAv} sin avance registrado` : ''} · la raya oscura marca el plan</p></div><a class="btn sm" href="#cronograma">Ver cronograma</a></div>
+    <div class="ar-list"><div class="ar ar-h small faint"><span>Área</span><span>Avance real · plan</span><span>Próximo hito</span><span class="r">vs. semana anterior</span></div>
+    ${rows.map((r) => { const f = r.f, hl = f['Fecha próximo hito'] && f['Fecha próximo hito'] < TODAY; const col = r.av != null && r.pl != null && r.av < r.pl ? 'var(--warn)' : `var(--${tone(f.Estado) === 'mute' ? 'info' : tone(f.Estado)})`;
+      return `<div class="ar" data-go="frente-${esc(f.ID)}" tabindex="0"><div class="ar-n"><span class="fname"><i class="dot d-${tone(f.Estado)}"></i><span>${esc(f.Frente)}</span></span>${f['Atraso / motivo'] ? `<span class="small faint">${esc(f['Atraso / motivo'])}</span>` : ''}</div>
+        <div class="ar-b">${r.av == null ? '<span class="small faint">Sin dato</span>' : `<div class="meter thin ar-m"><span style="width:${r.av * 100}%;background:${col}"></span>${r.pl != null ? `<i class="ar-pl" style="left:${r.pl * 100}%" data-tip="Plan ${pc0(r.pl)}"></i>` : ''}</div><span class="small tnum"><b>${pc0(r.av)}</b>${r.pl != null ? ` <span class="faint">· plan ${pc0(r.pl)}</span>` : ' <span class="faint">· plan por definir</span>'}</span>`}</div>
+        <div class="small">${esc(f['Próximo hito'] || '')}${f['Fecha próximo hito'] ? ` <span class="${hl ? 'bad-t' : 'faint'} nowrap">· ${hl ? 'vencido ' : ''}${fd(f['Fecha próximo hito'])}</span>` : ''}</div>
+        <div class="small r tnum">${trend(r)}</div></div>`; }).join('')}</div></section>`;
+  // Próximos 30 días
+  const ag = agenda(30), MAXA = 10;
+  const agd = `<section class="panel"><div class="ph"><div><h2 class="h2">Próximos 30 días</h2><p>Hitos, pendientes, pagos y plazos hasta el ${fd(addDays(TODAY, 30), 1)}${ag.some((o) => o.late) ? ` · ${ag.filter((o) => o.late).length} vencido${ag.filter((o) => o.late).length > 1 ? 's' : ''}` : ''}.</p></div><a class="btn sm" href="#pendientes">Ver pendientes</a></div>
+    <div class="list">${ag.length ? ag.slice(0, MAXA).map((o) => `<div class="li ag"${o.fr ? ` data-go="frente-${esc(o.fr)}"` : ''}><span class="when${o.late ? ' late' : ''}">${o.late ? 'Vencido<br><span class="small">' + fd(o.f) + '</span>' : fd(o.f)}</span><span class="what"><span class="pill s-${o.tone}">${o.k}</span> ${esc(o.t)}</span><span class="small faint nowrap">${esc(fById[o.fr]?.Frente || '')}</span>${o.who ? `<span class="who">${esc(o.who)}</span>` : ''}</div>`).join('') : '<div class="empty">Nada programado en los próximos 30 días.</div>'}
+    ${ag.length > MAXA ? `<div class="li"><span></span><a class="small" href="#pendientes" style="color:var(--info)">y ${ag.length - MAXA} más</a></div>` : ''}</div></section>`;
   return `
   <section class="cover">
     <div><h1 class="h1">Proyecto Solar Guaruma 50 MW</h1><p class="headline">${esc(P['Comentario de estado'] || '')}</p></div>
     <div class="status-card">${pill(P['Estado general'])}<p class="faint">${esc(P['Ubicación'] || '')}</p></div>
   </section>
-  <section class="panel fin" aria-label="Resumen financiero">
-    <a href="#contratos" data-tip="${firm.length} contratos firmados. Lempiras convertidos a L ${FX} por US$."><span class="k small muted">Comprometido</span><span class="fv"><small>US$</small>${nf0.format(tot)}</span><span class="faint small">${firm.length} contratos firmados</span></a>
-    <a href="#contratos" data-tip="<b>Pagado ${(pct * 100).toFixed(1)} %</b>Anticipos y pagos registrados en la hoja Pagos."><span class="k small muted">Pagado</span><span class="fv"><small>US$</small>${nf0.format(paid)}</span><span class="meter thin"><span style="width:${pct * 100}%;background:var(--ok)"></span></span><span class="faint small">${Math.round(pct * 100)} % de lo comprometido</span></a>
-    <a href="#contratos"><span class="k small muted">Por pagar</span><span class="fv"><small>US$</small>${nf0.format(tot - paid)}</span><span class="faint small">Saldo de contratos firmados</span></a>
-    <a href="#ofertas" data-tip="<b>Ofertas en evaluación</b>${porAdj.map((o) => esc(fById[o.Frente]?.Frente || '') + ': ' + esc(o.Proveedor) + ' ' + money(o.Monto, o.Moneda)).join('<br>')}"><span class="k small muted">Por adjudicar</span><span class="fv"><small>≈ US$</small>${nf0.format(adjTot)}</span><span class="faint small">${porAdj.length} estudio${porAdj.length !== 1 ? 's' : ''} sin contratar</span></a>
-  </section>
+  ${pem}
+  ${pres}
   <section class="panel"><div class="ph"><div><h2 class="h2">Lo que frena el proyecto</h2><p>Pendientes de prioridad alta y lo que atrasan.${lateN ? ` ${lateN} pendiente${lateN > 1 ? 's' : ''} con fecha vencida.` : ''}</p></div><a class="btn sm" href="#pendientes">Ver los ${pend.length} pendientes</a></div>
     <div class="pd-list">${top.length ? top.map((d) => pendCard(d)).join('') : '<div class="empty">No hay pendientes de prioridad alta.</div>'}</div></section>
-  <section class="panel"><div class="ph"><div><h2 class="h2">Frentes</h2><p>${F.filter((f) => f.Estado === 'Crítico').length} crítico · ${F.filter((f) => f.Estado === 'Atención').length} en atención · ${F.filter((f) => f.Estado === 'En tiempo').length} en tiempo · ${F.filter((f) => f.Estado === 'En espera').length} en espera</p></div><a class="btn sm" href="#cronograma">¿Cuándo termina cada estudio?</a></div>
-    <div class="chips">${F.map((f) => `<a class="chip" href="#frente-${f.ID}" data-tip="<b>${esc(f.Estado)}</b>${esc(f['Próximo hito'] || '')}${f['Fecha próximo hito'] ? ' · ' + fd(f['Fecha próximo hito'], 1) : ''}"><i class="dot d-${tone(f.Estado)}"></i>${esc(f.Frente)}</a>`).join('')}</div></section>`;
+  ${av}
+  ${agd}`;
+}
+
+// ---------- Presupuesto ----------
+function vPresupuesto() {
+  const fz = fondoCalc(), pc = presCalc();
+  const sinPres = F.filter((f) => !PRES.some((p) => p.Frente === f.ID) && fz.firm.some((c) => c.Frente === f.ID));
+  const sg = (v) => (v > 0 ? '+' : v < 0 ? '−' : '') + nf.format(Math.abs(v));
+  const maxv = Math.max(1, ...pc.rows.map((r) => Math.max(r.p, r.val || 0)));
+  const fondoT = `<section class="panel"><div class="ph"><div><h2 class="h2">Uso del fondo de estudios</h2><p>${fz.fondo ? `Fondo ${money(fz.fondo, 'USD')} · ` : ''}contratos firmados, en US$ (L ${FX} por US$).</p></div></div>
+    <div class="tbl-wrap"><table class="t"><thead><tr><th>N.º</th><th>Objeto · contratista</th><th>Área</th><th class="num">Monto US$</th><th class="num">Pagado US$</th><th class="num">Por pagar US$</th></tr></thead><tbody>
+    ${fz.firm.map((c) => { const m = usd(c.Monto, c.Moneda), p = paysOf(c['N.º']).filter((x) => x.Estado === 'Pagado').reduce((t, x) => t + usd(x.Monto, x.Moneda), 0);
+      return `<tr class="click" data-go="frente-${esc(c.Frente)}"><td class="nowrap">${esc(c['N.º'])}</td><td>${esc(c.Objeto)}<div class="faint small">${esc(c.Contratista)}${c.Moneda === 'HNL' ? ` · ${money(c.Monto, 'HNL')}` : ''}</div></td><td class="small">${esc(fById[c.Frente]?.Frente || c.Frente)}</td><td class="num">${nf.format(m)}</td><td class="num">${nf.format(p)}</td><td class="num">${nf.format(m - p)}</td></tr>`; }).join('')}
+    <tr class="tot"><td></td><td><b>Total · ${fz.firm.length} contratos</b></td><td></td><td class="num"><b>${nf.format(fz.comp)}</b></td><td class="num"><b>${nf.format(fz.paid)}</b></td><td class="num"><b>${nf.format(fz.porPagar)}</b></td></tr></tbody></table></div>
+    ${fz.fondo ? `<div class="fz fz-3"><div><span class="small muted">Comprometido</span><b class="tnum">${pc0(fz.comp / fz.fondo)}</b><span class="small faint">${k1(fz.comp)} del fondo</span></div><div><span class="small muted">Pagado</span><b class="tnum">${k1(fz.paid)}</b><span class="small faint">${k1(fz.porPagar)} por pagar</span></div><div><span class="small muted">Disponible</span><b class="tnum">≈ ${k1(fz.libre)}</b><span class="small faint">para los estudios que faltan${fz.adj ? ` (descontando ${k1(fz.adj)} por adjudicar)` : ''}</span></div></div>` : ''}</section>`;
+  const presT = `<section class="panel"><div class="ph"><div><h2 class="h2">Presupuesto contra contratado</h2><p>${pc.rows.length ? `Estudios: ${pc.dif > 0 ? 'por encima' : 'por debajo'} del presupuesto en ${(Math.abs(pc.pct) * 100).toFixed(1)} % (${sg(pc.dif)} US$).` : 'Sin partidas en la hoja Presupuesto.'}</p></div></div>
+    <div class="tbl-wrap"><table class="t"><thead><tr><th>Área · partida</th><th class="num">Presupuesto</th><th class="num">Contratado</th><th class="num">Diferencia</th><th class="num">%</th><th style="min-width:160px"></th></tr></thead><tbody>
+    ${pc.rows.map((r) => `<tr class="click" data-go="frente-${esc(r.pr.Frente)}"><td><b>${esc(r.f?.Frente || r.pr.Partida)}</b>${r.pr.Partida && r.pr.Partida !== r.f?.Frente || r.pr.Notas ? `<div class="faint small">${[r.pr.Partida !== r.f?.Frente ? esc(r.pr.Partida) : '', esc(r.pr.Notas || '')].filter(Boolean).join(' · ')}</div>` : ''}${r.src !== 'Contratado' ? `<div class="small warn-t">${r.src}${r.ref ? ' · ' + esc(r.ref) : ''}</div>` : `<div class="faint small">Contrato ${esc(r.ref)}</div>`}</td>
+      <td class="num">${nf.format(r.p)}</td><td class="num">${r.val == null ? '—' : nf.format(r.val)}</td><td class="num ${r.dif > 0 ? 'bad-t' : 'ok-t'}">${r.dif == null ? '—' : sg(r.dif)}</td><td class="num ${r.dif > 0 ? 'bad-t' : 'ok-t'}">${r.dif == null || !r.p ? '—' : (r.dif > 0 ? '+' : '−') + Math.abs(r.dif / r.p * 100).toFixed(1) + ' %'}</td>
+      <td><div class="pv-b"><span style="width:${r.p / maxv * 100}%" class="pv-p" data-tip="Presupuesto US$ ${nf.format(r.p)}"></span>${r.val != null ? `<span style="width:${r.val / maxv * 100}%" class="pv-c" data-tip="Contratado US$ ${nf.format(r.val)}"></span>` : ''}</div></td></tr>`).join('')}
+    <tr class="tot"><td><b>Total</b></td><td class="num"><b>${nf.format(pc.tp)}</b></td><td class="num"><b>${nf.format(pc.tv)}</b></td><td class="num ${pc.dif > 0 ? 'bad-t' : 'ok-t'}"><b>${sg(pc.dif)}</b></td><td class="num ${pc.dif > 0 ? 'bad-t' : 'ok-t'}"><b>${(pc.dif > 0 ? '+' : '−') + (Math.abs(pc.pct) * 100).toFixed(1)} %</b></td><td class="small faint"><i class="sw pv-p"></i>Presupuesto <i class="sw pv-c" style="margin-left:8px"></i>Contratado</td></tr></tbody></table></div>
+    ${sinPres.length ? `<div class="pb small muted" style="border-top:1px solid var(--line-2)">Sin línea de presupuesto: ${sinPres.map((f) => `<b>${esc(f.Frente)}</b> (contratado ${k1(fin(f.ID).tot)})`).join(', ')}. Agrégala en la hoja Presupuesto del Excel para compararla.</div>` : ''}</section>`;
+  const eq = O.filter((o) => o.Frente && !PRES.some((p) => p.Frente === o.Frente) && ['Recibida', 'En evaluación'].includes(o.Estado) && o.Monto && !fz.firm.some((c) => c.Frente === o.Frente));
+  const eqT = eq.length ? `<section class="panel"><div class="ph"><div><h2 class="h2">Ofertas de equipos recibidas</h2><p>Preliminares: no entran en el fondo de estudios ni en los totales.</p></div><a class="btn sm" href="#ofertas">Ver ofertas</a></div>
+    <div class="tbl-wrap"><table class="t"><thead><tr><th>Área</th><th>Proveedor · referencia</th><th class="num">Monto</th><th>Estado</th></tr></thead><tbody>${eq.map((o) => `<tr class="click" data-go="frente-${esc(o.Frente)}"><td class="small">${esc(fById[o.Frente]?.Frente || o.Frente)}</td><td>${esc(o.Proveedor)}<div class="faint small">${esc(o.Referencia || '')}</div></td><td class="num">${money(o.Monto, o.Moneda)}</td><td>${pill(o.Estado)}</td></tr>`).join('')}</tbody></table></div></section>` : '';
+  return `<section class="cover"><div><h1 class="h1">Presupuesto</h1><div class="loc">Fondo de estudios y presupuesto contra contratado por área. Mismos números del informe semanal.</div></div></section>${fondoT}${presT}${eqT}`;
 }
 
 function vFrentes() {
-  return `<section class="cover"><div><h1 class="h1">Frentes de trabajo</h1><div class="loc">Cada estudio, contrato o trámite del proyecto, con su carpeta en OneDrive.</div></div>
-    <div class="status-card"><button class="btn primary" type="button" data-new="Frentes">${ic('plus')}Agregar frente</button></div></section>
+  return `<section class="cover"><div><h1 class="h1">Áreas de trabajo</h1><div class="loc">Cada estudio, contrato o trámite del proyecto, con su carpeta en OneDrive.</div></div>
+    <div class="status-card"><button class="btn primary" type="button" data-new="Frentes">${ic('plus')}Agregar área</button></div></section>
     <div class="grid2">${F.map((f) => {
       const m = fin(f.ID), pct = m.tot ? m.paid / m.tot : 0;
       return `<a class="panel" href="#frente-${f.ID}" style="text-decoration:none;color:inherit;display:grid">
@@ -831,7 +977,7 @@ function vFrentes() {
 
 let fTab = 'resumen', docSel = 0;
 function vFrente(id) {
-  const f = fById[id]; if (!f) return '<div class="empty">No existe ese frente.</div>';
+  const f = fById[id]; if (!f) return '<div class="empty">No existe esa área.</div>';
   const cs = contractsOf(id), ofs = O.filter((o) => o.Frente === id), acts = A.filter((a) => a.Frente === id), rs = R.filter((r) => r.Frente === id), dcs = openPend().filter((d) => d.Frente === id);
   const m = fin(id);
   const pres = PRES.find((p) => p.Frente === id);
@@ -853,14 +999,14 @@ function vFrente(id) {
         <td class="nowrap">${v == null ? '<span class="faint">—</span>' : `<span class="pill s-${v > 0 ? 'bad' : 'ok'}" data-tip="≈ US$ ${nf.format(usd(o.Monto, o.Moneda))} vs. US$ ${nf.format(pres['Presupuesto US$'])}">${v > 0 ? '+' : ''}${(v * 100).toFixed(1)} %</span>`}</td>
         <td class="small" style="min-width:220px">${esc(o.Alcance)}${o.Notas ? `<div class="faint">${esc(o.Notas)}</div>` : ''}</td><td>${pill(o.Estado)}</td><td class="act"><button class="ebtn" type="button" data-edit="Ofertas|${esc(o.ID)}" data-tip="Editar">${EDI}</button></td></tr>`; }).join('')}</tbody></table></div>` : '<div class="empty">Sin ofertas registradas.</div>'}</section>`;
   } else if (fTab === 'contrato') {
-    body = cs.length ? cs.map((c) => contractPanel(c)).join('') : '<section class="panel"><div class="empty">Este frente aún no tiene contrato.</div></section>';
+    body = cs.length ? cs.map((c) => contractPanel(c)).join('') : '<section class="panel"><div class="empty">Esta área aún no tiene contrato.</div></section>';
   } else if (fTab === 'actividades') {
     body = `<section class="panel"><div class="ph"><h2 class="h2">Actividades</h2><button class="btn" type="button" data-new="Actividades" data-preset="${encodeURIComponent('Frente=' + id)}">${ic('plus')}Agregar actividad</button></div>${actTable(acts)}</section>`;
   } else {
     body = docBox(f.Carpeta, f.Frente);
   }
   return `<section class="fhead">
-      <div class="row"><span class="tag">${f.ID}</span>${pill(f.Estado)}${f['Avance %'] != null && f['Avance %'] !== '' ? `<span class="small muted">Avance ${Math.round(Number(f['Avance %']) * 100)} %</span>` : ''}<button class="btn sm" type="button" data-edit="Frentes|${esc(f.ID)}" style="margin-left:auto">${EDI.replace('<svg', '<svg width="14" height="14" style="stroke:currentColor;fill:none;stroke-width:1.8"')}Editar frente</button></div>
+      <div class="row"><span class="tag">${f.ID}</span>${pill(f.Estado)}${f['Avance %'] != null && f['Avance %'] !== '' ? `<span class="small muted">Avance ${Math.round(Number(f['Avance %']) * 100)} %${pnum(f['% plan']) != null ? ` · plan ${Math.round(pnum(f['% plan']) * 100)} %` : ''}</span>` : ''}${f['Atraso / motivo'] ? `<span class="small faint">${esc(f['Atraso / motivo'])}</span>` : ''}<button class="btn sm" type="button" data-edit="Frentes|${esc(f.ID)}" style="margin-left:auto">${EDI.replace('<svg', '<svg width="14" height="14" style="stroke:currentColor;fill:none;stroke-width:1.8"')}Editar área</button></div>
       <h1 class="h1">${esc(f.Frente)}</h1>
       <div class="row muted small"><span>${esc(f['Proveedor / contraparte'])}</span><span class="faint">·</span><span>Responsable: ${esc(f['Responsable EHG'])}</span></div>
       <div class="path">${ic('folder')}Proyecto CAHSA 50 MW / ${esc(f.Carpeta)} <button class="btn sm" data-openfolder="${esc(f.Carpeta)}" data-tip="Abrir esta carpeta en OneDrive">${ic('ext')}Abrir en OneDrive</button></div>
@@ -896,7 +1042,7 @@ function contractPanel(c, collapsible) {
 }
 function actTable(acts) {
   if (!acts.length) return '<div class="empty">Sin actividades.</div>';
-  return `<div class="tbl-wrap"><table class="t"><thead><tr><th>Fecha</th><th>Actividad</th><th>Responsable</th><th>Frente</th><th>Estado</th><th></th></tr></thead><tbody>
+  return `<div class="tbl-wrap"><table class="t"><thead><tr><th>Fecha</th><th>Actividad</th><th>Responsable</th><th>Área</th><th>Estado</th><th></th></tr></thead><tbody>
     ${acts.slice().sort((a, b) => (a.Fecha || '9999').localeCompare(b.Fecha || '9999')).map((a) => { const late = a.Fecha && a.Fecha < TODAY && a.Estado !== 'Cumplido';
       return `<tr><td class="nowrap tnum" style="${late ? 'color:var(--bad);font-weight:600' : ''}" ${late ? 'data-tip="Fecha vencida"' : ''}>${a.Fecha ? fd(a.Fecha, 1) : '<span class="faint">Sin fecha</span>'}</td><td>${esc(a.Actividad)}${a.Notas ? `<div class="faint small">${esc(a.Notas)}</div>` : ''}</td><td class="small">${esc(a.Responsable)}</td><td class="small nowrap"><a href="#frente-${a.Frente}" style="color:inherit">${esc(fById[a.Frente]?.Frente)}</a></td><td>${pill(a.Estado)}</td><td class="act">${a.Estado !== 'Cumplido' && a.Estado !== 'Cancelado' ? `<button class="qbtn" type="button" data-quick="${encodeURIComponent('Actividades|' + a.ID + '|Estado=Cumplido')}">Cumplido</button>` : ''}<button class="ebtn" type="button" data-edit="Actividades|${esc(a.ID)}" data-tip="Editar">${EDI}</button></td></tr>`; }).join('')}</tbody></table></div>`;
 }
@@ -985,7 +1131,7 @@ function vContratos() {
 function vOfertas() {
   const groups = F.map((f) => ({ f, os: O.filter((o) => o.Frente === f.ID) })).filter((g) => g.os.length);
   const caret = '<svg viewBox="0 0 24 24" class="caret"><path d="m9 6 6 6-6 6"/></svg>';
-  return `<section class="cover"><div><h1 class="h1">Ofertas</h1><div class="loc">Cotizaciones agrupadas por frente. Abre un grupo para ver el detalle y la comparación con el presupuesto.</div></div>
+  return `<section class="cover"><div><h1 class="h1">Ofertas</h1><div class="loc">Cotizaciones agrupadas por área. Abre un grupo para ver el detalle y la comparación con el presupuesto.</div></div>
     <div class="status-card" style="display:flex;gap:8px;flex-wrap:wrap;align-items:center"><button class="btn primary" type="button" data-new="Ofertas">${ic('plus')}Agregar oferta</button><div class="seg"><button type="button" data-acc="open">Abrir todo</button><button type="button" data-acc="close">Cerrar todo</button></div></div></section>
     <div class="acc">${groups.map(({ f, os }) => {
       const pr = PRES.find((p) => p.Frente === f.ID);
@@ -1002,7 +1148,7 @@ function vOfertas() {
           return `<tr><td><b>${esc(o.Proveedor)}</b><div class="faint small">${esc(o.Referencia)} · ${fd(o.Fecha, 1)}</div></td><td class="num">${money(o.Monto, o.Moneda)}</td>
           <td>${v == null ? '<span class="faint">—</span>' : `<span class="pill s-${v > 0 ? 'bad' : 'ok'}" data-tip="≈ US$ ${nf.format(usd(o.Monto, o.Moneda))} vs. presupuesto US$ ${nf.format(pr['Presupuesto US$'])}">${v > 0 ? '+' : ''}${(v * 100).toFixed(1)} %</span>`}</td>
           <td class="small" style="min-width:220px">${esc(o.Alcance)}${o.Notas ? `<div class="faint">${esc(o.Notas)}</div>` : ''}</td><td class="small nowrap">${esc(o.Plazo)}</td><td>${pill(o.Estado)}</td><td class="act"><button class="ebtn" type="button" data-edit="Ofertas|${esc(o.ID)}" data-tip="Editar">${EDI}</button></td></tr>`; }).join('')}</tbody></table></div>
-        <div class="pb" style="padding-top:10px;padding-bottom:12px;display:flex;gap:14px;align-items:center"><a class="small" href="#frente-${f.ID}" style="color:var(--info)">Abrir el frente</a><button class="btn sm" type="button" data-new="Ofertas" data-preset="${encodeURIComponent('Frente=' + f.ID)}">${ic('plus')}Agregar oferta</button></div></details>`;
+        <div class="pb" style="padding-top:10px;padding-bottom:12px;display:flex;gap:14px;align-items:center"><a class="small" href="#frente-${f.ID}" style="color:var(--info)">Abrir el área</a><button class="btn sm" type="button" data-new="Ofertas" data-preset="${encodeURIComponent('Frente=' + f.ID)}">${ic('plus')}Agregar oferta</button></div></details>`;
     }).join('')}</div>`;
 }
 function vCrono() {
@@ -1161,7 +1307,7 @@ function vConsultas() {
   const otros = CD.filter((d) => d['Código'] === 'GEN' || d['Código'] === 'OTROS');
   const kpi = (k, v, n, extra = '', est = '') => `<div class="kpi"${est ? ` style="cursor:pointer" data-cqest="${esc(est)}"` : ''}><div class="k">${k}</div><div class="v">${v}</div>${extra}<div class="n">${n}</div></div>`;
   if (!CQ.length) return `<section class="cover"><div><h1 class="h1">Consultas</h1><div class="loc">Todavía no hay consultas en la hoja "Consultas" del archivo maestro.</div></div><div class="status-card"><button class="btn primary" type="button" data-new="Consultas" data-preset="${encodeURIComponent('Frente=F02')}">${ic('plus')}Agregar consulta</button></div></section>`;
-  return `<section class="cover"><div><h1 class="h1">Consultas</h1><div class="loc">Lo que nos piden la consultora y los demás frentes, la respuesta recibida y los documentos que la respaldan. Se guarda en la hoja "Consultas" del archivo maestro.</div></div>
+  return `<section class="cover"><div><h1 class="h1">Consultas</h1><div class="loc">Lo que nos piden la consultora y las demás áreas, la respuesta recibida y los documentos que la respaldan. Se guarda en la hoja "Consultas" del archivo maestro.</div></div>
     <div class="status-card" style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn" type="button" data-cqexport="1">${ic('dl')}Descargar Excel</button><button class="btn primary" type="button" data-new="Consultas" data-preset="${encodeURIComponent('Frente=' + (CQF.fr || 'F02') + (CQF.hoja ? '&Hoja=' + CQF.hoja : ''))}">${ic('plus')}Agregar consulta</button></div></section>
     <section class="panel band">
       ${kpi('Cerradas', `${c.Cerrada}<small style="margin-left:4px">de ${c.total}</small>`, `${Math.round(pct * 100)} % respondidas`, `<div class="meter thin"><span style="width:${pct * 100}%;background:var(--ok)"></span></div>`, 'Cerrada')}
@@ -1182,7 +1328,7 @@ function vConsultas() {
       <div class="ph"><div><h2 class="h2">Todas las consultas</h2><p id="cq-n"></p></div><button class="btn sm" type="button" data-cqclear="1">Quitar filtros</button></div>
       <div class="cq-filters">
         <input id="cq-q" type="search" placeholder="Buscar código, consulta, respuesta, responsable…" value="${esc(CQF.q)}" aria-label="Buscar consultas">
-        <select data-cqsel="fr" aria-label="Frente"><option value="">Todos los frentes</option>${uniq(CQ.map((q) => q.Frente)).map((f) => `<option value="${esc(f)}"${CQF.fr === f ? ' selected' : ''}>${esc(f)} · ${esc(fById[f]?.Frente || '')}</option>`).join('')}</select>
+        <select data-cqsel="fr" aria-label="Área"><option value="">Todas las áreas</option>${uniq(CQ.map((q) => q.Frente)).map((f) => `<option value="${esc(f)}"${CQF.fr === f ? ' selected' : ''}>${esc(f)} · ${esc(fById[f]?.Frente || '')}</option>`).join('')}</select>
         <select data-cqsel="hoja" aria-label="Hoja"><option value="">Todas las hojas</option>${hojas.map((h) => `<option value="${h}"${CQF.hoja === String(h) ? ' selected' : ''}>Hoja ${h} · ${esc(CQ.find((q) => Number(q.Hoja) === h)['Área'] || '')}</option>`).join('')}</select>
         <select data-cqsel="est" aria-label="Estado"><option value="">Todos los estados</option><option value="Abiertas"${CQF.est === 'Abiertas' ? ' selected' : ''}>Abiertas (no cerradas)</option>${CQ_ORDER.map((e) => `<option${CQF.est === e ? ' selected' : ''}>${e}</option>`).join('')}</select>
         <select data-cqsel="resp" aria-label="Responsable"><option value="">Todos los responsables</option>${uniq(CQ.map((q) => q['Responsable actual'])).map((r) => `<option value="${esc(r)}"${CQF.resp === r ? ' selected' : ''}>${esc(r)}</option>`).join('')}</select>
@@ -1240,7 +1386,7 @@ function drawCqDlg() {
   dlg.innerHTML = `<form method="dialog" novalidate onsubmit="return false"><div class="dlg-h"><h2><span class="cq-code">${esc(q['Código'])}</span> · ${esc(q['Área'] || '')}</h2><span style="display:flex;gap:8px;align-items:center">${pill(q.Estado)}<button class="ebtn" type="button" data-cqclose="1" aria-label="Cerrar">✕</button></span></div>
     <div class="cq-dlg"><div class="cq-info">
       <div class="cq-q">${esc(q.Consulta)}</div>
-      <div class="cq-meta">${meta('Frente', q.Frente ? q.Frente + ' · ' + (fById[q.Frente]?.Frente || '') : '')}${meta('Hoja', q.Hoja != null ? 'Hoja ' + q.Hoja : '')}${meta('Responsable actual', q['Responsable actual'])}${q['Responsable original'] && q['Responsable original'] !== q['Responsable actual'] ? meta('Antes lo tenía', q['Responsable original']) : ''}${meta('Respondió', q['Respondió'])}${meta('Fecha respuesta · medio', [q['Fecha respuesta'] ? fd(q['Fecha respuesta'], 1) : '', q.Medio].filter(Boolean).join(' · '))}</div>
+      <div class="cq-meta">${meta('Área', q.Frente ? q.Frente + ' · ' + (fById[q.Frente]?.Frente || '') : '')}${meta('Hoja', q.Hoja != null ? 'Hoja ' + q.Hoja : '')}${meta('Responsable actual', q['Responsable actual'])}${q['Responsable original'] && q['Responsable original'] !== q['Responsable actual'] ? meta('Antes lo tenía', q['Responsable original']) : ''}${meta('Respondió', q['Respondió'])}${meta('Fecha respuesta · medio', [q['Fecha respuesta'] ? fd(q['Fecha respuesta'], 1) : '', q.Medio].filter(Boolean).join(' · '))}</div>
       ${sect('Respuesta', q.Respuesta) || '<div><h3>Respuesta</h3><p class="faint">Todavía no hay respuesta.</p></div>'}${sect('Siguiente acción', q['Siguiente acción'])}${sect('Observaciones', q.Observaciones)}
       <div><h3 style="display:flex;justify-content:space-between;align-items:center">Documentos ligados <button class="btn sm" type="button" data-cqpick="open">${ic('link')}Ligar documento</button></h3>
         ${own.length ? `<div class="cq-docs">${own.map((d) => cqDocRow(d, 'own', CQPV && CQPV.path === d.Ruta)).join('')}</div>` : '<p class="faint small">Ninguno todavía.</p>'}</div>
@@ -1341,7 +1487,7 @@ function cqExport() {
   const H = ['Hoja', 'Área', 'Código', 'Consulta', 'Responsable original', 'Responsable actual', 'Estado', 'Respuesta', 'Fecha respuesta', 'Respondió', 'Medio', 'Siguiente acción', 'Actualizado', 'Observaciones', 'Frente', 'Documentos'];
   const d2 = (s) => s ? s.split('-').reverse().join('/') : '';
   const rows = cqFiltered().map((q) => H.map((h) => h === 'Documentos' ? docsOf(q).map((d) => d.Archivo).join('; ') : (h === 'Fecha respuesta' || h === 'Actualizado') ? d2(q[h]) : (q[h] ?? '')));
-  const filt = [CQF.fr && 'frente ' + CQF.fr, CQF.hoja && 'hoja ' + CQF.hoja, CQF.est && CQF.est.toLowerCase(), CQF.resp, CQF.q && '"' + CQF.q + '"'].filter(Boolean).join(', ');
+  const filt = [CQF.fr && 'área ' + CQF.fr, CQF.hoja && 'hoja ' + CQF.hoja, CQF.est && CQF.est.toLowerCase(), CQF.resp, CQF.q && '"' + CQF.q + '"'].filter(Boolean).join(', ');
   const ws = XLSX.utils.aoa_to_sheet([['EHG-SOL-001 · Matriz de seguimiento de consultas — Proyecto Solar GUARUMA 50 MW'], [`Empresa Hondureña de Generación, S.A. de C.V. · Exportado de la plataforma el ${d2(TODAY)}${filt ? ' · Filtro: ' + filt : ''}`], [], H, ...rows]);
   ws['!cols'] = [6, 24, 8, 50, 28, 28, 14, 55, 12, 24, 11, 36, 12, 45, 8, 45].map((w) => ({ wch: w }));
   ws['!autofilter'] = { ref: `A4:${XLSX.utils.encode_col(H.length - 1)}${rows.length + 4}` };
@@ -1397,12 +1543,12 @@ function render() {
   if (!DATA) return;
   let route = (location.hash || '#resumen').slice(1);
   if (route === 'informes') { route = 'reporte'; RTAB = 'semanas'; } // enlace viejo del menú "Informes semanales"
-  const views = { resumen: vResumen, frentes: vFrentes, contratos: vContratos, ofertas: vOfertas, cronograma: vCrono, pendientes: vRiesgos, riesgos: vRiesgos, consultas: vConsultas, reporte: vReporte, documentos: vDocs, bitacora: vBit };
+  const views = { resumen: vResumen, frentes: vFrentes, contratos: vContratos, presupuesto: vPresupuesto, ofertas: vOfertas, cronograma: vCrono, pendientes: vRiesgos, riesgos: vRiesgos, consultas: vConsultas, reporte: vReporte, documentos: vDocs, bitacora: vBit };
   let html, crumb;
   const chev = ic('chev').replace('<svg', '<svg width="12" height="12" style="stroke:currentColor;fill:none;stroke-width:2"');
   if (MODS[route]) { showMod(route); $('#crumbs').innerHTML = `<span>Guaruma 50 MW</span>${chev}<b>${MODS[route].lbl}</b>`; drawNav(route); $('#app').classList.remove('mopen'); return; }
   modUnmount();
-  if (route.startsWith('frente-')) { const id = route.slice(7); html = vFrente(id); crumb = `<span>Frentes</span>${ic('chev').replace('<svg', '<svg width="12" height="12" style="stroke:currentColor;fill:none;stroke-width:2"')}<b>${esc(fById[id]?.Frente || '')}</b>`; }
+  if (route.startsWith('frente-')) { const id = route.slice(7); html = vFrente(id); crumb = `<span>Áreas</span>${ic('chev').replace('<svg', '<svg width="12" height="12" style="stroke:currentColor;fill:none;stroke-width:2"')}<b>${esc(fById[id]?.Frente || '')}</b>`; }
   else { if (!views[route]) route = 'resumen'; html = views[route](); crumb = `<span>Guaruma 50 MW</span>${ic('chev').replace('<svg', '<svg width="12" height="12" style="stroke:currentColor;fill:none;stroke-width:2"')}<b>${(ROUTES.find((r) => r[0] === route) || ROUTES.find((r) => r[0] === 'pendientes'))[1]}</b>`; }
   $('#view').innerHTML = html; $('#crumbs').innerHTML = crumb; drawNav(route);
   $('#app').classList.remove('mopen');
@@ -1412,6 +1558,7 @@ let lastRoute = '';
 window.addEventListener('hashchange', () => { const r = location.hash; if (r !== lastRoute) { fTab = 'resumen'; docSel = 0; lastRoute = r; } render(); window.scrollTo({ top: 0 }); });
 document.addEventListener('click', (e) => {
   if (cqClick(e)) return;
+  const rsm = e.target.closest('[data-rsem]'); if (rsm) { RSEL = +rsm.dataset.rsem; location.hash = '#reporte'; return; }
   const go = e.target.closest('[data-go]'); if (go && !e.target.closest('a,button')) { location.hash = go.dataset.go; return; }
   const rt = e.target.closest('[data-rtab]'); if (rt) { RTAB = rt.dataset.rtab; render(); return; }
   const rmg = e.target.closest('[data-rmesgo]'); if (rmg) { if (rmg.dataset.rmesgo) repGoMes(rmg.dataset.rmesgo); return; }
@@ -1456,7 +1603,7 @@ document.addEventListener('focusout', hideTip); addEventListener('scroll', hideT
 
 // ================= Edición (fase 3): escribe en el Excel maestro con Microsoft Graph =================
 const TABLES = {
-  Frentes: { t: 'tFrentes', id: 'ID', prefix: 'F', pad: 2, label: 'frente', name: 'Frente' },
+  Frentes: { t: 'tFrentes', id: 'ID', prefix: 'F', pad: 2, label: 'área', name: 'Frente' },
   Contratos: { t: 'tContratos', id: 'N.º', prefix: '', pad: 5, label: 'contrato', name: 'Contratista' },
   Pagos: { t: 'tPagos', id: 'ID', prefix: 'P', pad: 2, label: 'pago', name: 'Concepto' },
   Ofertas: { t: 'tOfertas', id: 'ID', prefix: 'O', pad: 2, label: 'oferta', name: 'Proveedor' },
@@ -1471,14 +1618,14 @@ const frOpts = () => F.map((f) => [f.ID, f.ID + ' · ' + f.Frente]);
 const ctOpts = () => C.map((c) => [c['N.º'], c['N.º'] + ' · ' + c.Contratista]);
 const SCHEMA = {
   Informes: ['N.º', 'Período', 'Fecha de emisión', 'Estado general', 'Archivo', 'Notas', 'Tipo', 'Semana', 'Frente'].map((k) => ({ k })),
-  Pendientes: [{ k: 'Pendiente', t: 'text', req: 1, w: 2 }, { k: 'Decisión solicitada', t: 'textarea', w: 2, help: 'Lo que se le pide concretamente a quien decide (sale resaltado en el reporte semanal).' }, { k: 'Prioridad', t: 'select', o: ['Alta', 'Media', 'Baja'], req: 1 }, { k: 'Estado', t: 'select', o: ['Pendiente', 'En curso', 'Resuelto', 'Descartado'], req: 1 }, { k: 'Frente', t: 'select', o: frOpts, req: 1 }, { k: 'Responsable', t: 'text' }, { k: 'Fecha límite', t: 'date' }, { k: 'Qué atrasa', t: 'textarea', w: 2, help: 'Pasos separados por  >  y cada paso como "Nombre: detalle". El último paso es el impacto final.' }, { k: 'Impacto', t: 'textarea', w: 2 }, { k: 'Notas', t: 'textarea', w: 2 }],
-  Actividades: [{ k: 'Actividad', t: 'text', req: 1, w: 2 }, { k: 'Frente', t: 'select', o: frOpts, req: 1 }, { k: 'Estado', t: 'select', o: ['Pendiente', 'En curso', 'Programado', 'Cumplido', 'Cancelado'], req: 1 }, { k: 'Responsable', t: 'text' }, { k: 'Fecha', t: 'date' }, { k: 'Notas', t: 'textarea', w: 2 }],
-  Ofertas: [{ k: 'Frente', t: 'select', o: frOpts, req: 1 }, { k: 'Proveedor', t: 'text', req: 1 }, { k: 'Referencia', t: 'text' }, { k: 'Fecha', t: 'date' }, { k: 'Monto', t: 'number' }, { k: 'Moneda', t: 'select', o: ['USD', 'HNL'], req: 1 }, { k: 'Estado', t: 'select', o: ['Solicitada', 'Recibida', 'En evaluación', 'Adjudicada', 'Descartada', 'Reemplazada'], req: 1 }, { k: 'Plazo', t: 'text' }, { k: 'Alcance', t: 'textarea', w: 2 }, { k: 'Archivo', t: 'file', w: 2, help: 'Se guarda en la carpeta del frente.' }, { k: 'Notas', t: 'textarea', w: 2 }],
+  Pendientes: [{ k: 'Pendiente', t: 'text', req: 1, w: 2 }, { k: 'Decisión solicitada', t: 'textarea', w: 2, help: 'Lo que se le pide concretamente a quien decide (sale resaltado en el reporte semanal).' }, { k: 'Prioridad', t: 'select', o: ['Alta', 'Media', 'Baja'], req: 1 }, { k: 'Estado', t: 'select', o: ['Pendiente', 'En curso', 'Resuelto', 'Descartado'], req: 1 }, { k: 'Frente', l: 'Área', t: 'select', o: frOpts, req: 1 }, { k: 'Responsable', t: 'text' }, { k: 'Fecha límite', t: 'date' }, { k: 'Qué atrasa', t: 'textarea', w: 2, help: 'Pasos separados por  >  y cada paso como "Nombre: detalle". El último paso es el impacto final.' }, { k: 'Impacto', t: 'textarea', w: 2 }, { k: 'Notas', t: 'textarea', w: 2 }],
+  Actividades: [{ k: 'Actividad', t: 'text', req: 1, w: 2 }, { k: 'Frente', l: 'Área', t: 'select', o: frOpts, req: 1 }, { k: 'Estado', t: 'select', o: ['Pendiente', 'En curso', 'Programado', 'Cumplido', 'Cancelado'], req: 1 }, { k: 'Responsable', t: 'text' }, { k: 'Fecha', t: 'date' }, { k: 'Notas', t: 'textarea', w: 2 }],
+  Ofertas: [{ k: 'Frente', l: 'Área', t: 'select', o: frOpts, req: 1 }, { k: 'Proveedor', t: 'text', req: 1 }, { k: 'Referencia', t: 'text' }, { k: 'Fecha', t: 'date' }, { k: 'Monto', t: 'number' }, { k: 'Moneda', t: 'select', o: ['USD', 'HNL'], req: 1 }, { k: 'Estado', t: 'select', o: ['Solicitada', 'Recibida', 'En evaluación', 'Adjudicada', 'Descartada', 'Reemplazada'], req: 1 }, { k: 'Plazo', t: 'text' }, { k: 'Alcance', t: 'textarea', w: 2 }, { k: 'Archivo', t: 'file', w: 2, help: 'Se guarda en la carpeta del frente.' }, { k: 'Notas', t: 'textarea', w: 2 }],
   Pagos: [{ k: 'Contrato', t: 'select', o: ctOpts, req: 1 }, { k: 'Concepto', t: 'text', req: 1 }, { k: '%', t: 'percent' }, { k: 'Monto', t: 'number', req: 1 }, { k: 'Moneda', t: 'select', o: ['USD', 'HNL'], req: 1 }, { k: 'Estado', t: 'select', o: ['Pagado', 'Pendiente', 'Programado', 'No aplica aún'], req: 1 }, { k: 'Fecha de pago', t: 'date' }, { k: 'Condición / hito', t: 'text', w: 2 }, { k: 'Notas', t: 'textarea', w: 2 }],
-  Contratos: [{ k: 'N.º', t: 'text', req: 1, newOnly: 1 }, { k: 'Frente', t: 'select', o: frOpts, req: 1 }, { k: 'Contratista', t: 'text', req: 1, w: 2 }, { k: 'Objeto', t: 'textarea', w: 2 }, { k: 'Monto', t: 'number', req: 1 }, { k: 'Moneda', t: 'select', o: ['USD', 'HNL'], req: 1 }, { k: 'Estado', t: 'select', o: ['Borrador', 'Firmado', 'En ejecución', 'Terminado', 'Anulado'], req: 1 }, { k: 'Fecha firma', t: 'date' }, { k: 'Plazo', t: 'text', w: 2 }, { k: 'Archivo', t: 'file', w: 2, help: 'Se guarda en la carpeta del frente.' }, { k: 'Notas', t: 'textarea', w: 2 }],
-  Frentes: [{ k: 'Frente', t: 'text', req: 1, w: 2 }, { k: 'Estado', t: 'select', o: ['En tiempo', 'Atención', 'Crítico', 'En espera', 'Completado', 'No iniciado'], req: 1 }, { k: 'Avance %', t: 'percent' }, { k: 'Responsable EHG', t: 'text' }, { k: 'Proveedor / contraparte', t: 'text' }, { k: 'Inicio', t: 'date' }, { k: 'Fin previsto', t: 'date' }, { k: 'Próximo hito', t: 'text', w: 2 }, { k: 'Fecha próximo hito', t: 'date' }, { k: 'Carpeta', t: 'text', help: 'Ruta dentro de "Proyecto CAHSA 50 MW". Si no existe, se crea.' }, { k: 'Notas', t: 'textarea', w: 2 }],
-  Consultas: [{ k: 'Código', t: 'text', req: 1, newOnly: 1, help: 'Clave única: L1, AP6, SO2…' }, { k: 'Frente', t: 'select', o: frOpts, req: 1 }, { k: 'Hoja', t: 'number' }, { k: 'Área', t: 'text', dl: () => uniq(CQ.map((q) => q['Área'])) }, { k: 'Consulta', t: 'textarea', req: 1, w: 2 }, { k: 'Estado', t: 'select', o: CQ_EST, req: 1 }, { k: 'Responsable actual', t: 'text', dl: () => uniq(CQ.map((q) => q['Responsable actual'])) }, { k: 'Responsable original', t: 'text', dl: () => uniq(CQ.map((q) => q['Responsable original'])) }, { k: 'Respuesta', t: 'textarea', w: 2 }, { k: 'Fecha respuesta', t: 'date' }, { k: 'Medio', t: 'select', o: ['Correo', 'Reunión', 'Documento', 'WhatsApp', 'Llamada'] }, { k: 'Respondió', t: 'text', w: 2, dl: () => uniq(CQ.map((q) => q['Respondió'])) }, { k: 'Siguiente acción', t: 'textarea', w: 2 }, { k: 'Observaciones', t: 'textarea', w: 2 }],
-  Riesgos: [{ k: 'Tema', t: 'text', req: 1, w: 2 }, { k: 'Frente', t: 'select', o: frOpts, req: 1 }, { k: 'Nivel', t: 'select', o: ['Alto', 'Medio', 'Bajo'], req: 1 }, { k: 'Estado', t: 'select', o: ['Abierto', 'Mitigado', 'Cerrado'], req: 1 }, { k: 'Impacto', t: 'textarea', w: 2 }, { k: 'Acción propuesta', t: 'textarea', w: 2 }]
+  Contratos: [{ k: 'N.º', t: 'text', req: 1, newOnly: 1 }, { k: 'Frente', l: 'Área', t: 'select', o: frOpts, req: 1 }, { k: 'Contratista', t: 'text', req: 1, w: 2 }, { k: 'Objeto', t: 'textarea', w: 2 }, { k: 'Monto', t: 'number', req: 1 }, { k: 'Moneda', t: 'select', o: ['USD', 'HNL'], req: 1 }, { k: 'Estado', t: 'select', o: ['Borrador', 'Firmado', 'En ejecución', 'Terminado', 'Anulado'], req: 1 }, { k: 'Fecha firma', t: 'date' }, { k: 'Plazo', t: 'text', w: 2 }, { k: 'Archivo', t: 'file', w: 2, help: 'Se guarda en la carpeta del frente.' }, { k: 'Notas', t: 'textarea', w: 2 }],
+  Frentes: [{ k: 'Frente', l: 'Área', t: 'text', req: 1, w: 2 }, { k: 'Estado', t: 'select', o: ['En tiempo', 'Atención', 'Crítico', 'En espera', 'Completado', 'No iniciado'], req: 1 }, { k: 'Avance %', l: 'Avance real %', t: 'percent' }, { k: '% plan', l: 'Avance plan %', t: 'percent' }, { k: 'Atraso / motivo', t: 'text', w: 2 }, { k: 'Responsable EHG', t: 'text' }, { k: 'Proveedor / contraparte', t: 'text' }, { k: 'Inicio', t: 'date' }, { k: 'Fin previsto', t: 'date' }, { k: 'Próximo hito', t: 'text', w: 2 }, { k: 'Fecha próximo hito', t: 'date' }, { k: 'Carpeta', t: 'text', help: 'Ruta dentro de "Proyecto CAHSA 50 MW". Si no existe, se crea.' }, { k: 'Notas', t: 'textarea', w: 2 }],
+  Consultas: [{ k: 'Código', t: 'text', req: 1, newOnly: 1, help: 'Clave única: L1, AP6, SO2…' }, { k: 'Frente', l: 'Área', t: 'select', o: frOpts, req: 1 }, { k: 'Hoja', t: 'number' }, { k: 'Área', t: 'text', dl: () => uniq(CQ.map((q) => q['Área'])) }, { k: 'Consulta', t: 'textarea', req: 1, w: 2 }, { k: 'Estado', t: 'select', o: CQ_EST, req: 1 }, { k: 'Responsable actual', t: 'text', dl: () => uniq(CQ.map((q) => q['Responsable actual'])) }, { k: 'Responsable original', t: 'text', dl: () => uniq(CQ.map((q) => q['Responsable original'])) }, { k: 'Respuesta', t: 'textarea', w: 2 }, { k: 'Fecha respuesta', t: 'date' }, { k: 'Medio', t: 'select', o: ['Correo', 'Reunión', 'Documento', 'WhatsApp', 'Llamada'] }, { k: 'Respondió', t: 'text', w: 2, dl: () => uniq(CQ.map((q) => q['Respondió'])) }, { k: 'Siguiente acción', t: 'textarea', w: 2 }, { k: 'Observaciones', t: 'textarea', w: 2 }],
+  Riesgos: [{ k: 'Tema', t: 'text', req: 1, w: 2 }, { k: 'Frente', l: 'Área', t: 'select', o: frOpts, req: 1 }, { k: 'Nivel', t: 'select', o: ['Alto', 'Medio', 'Bajo'], req: 1 }, { k: 'Estado', t: 'select', o: ['Abierto', 'Mitigado', 'Cerrado'], req: 1 }, { k: 'Impacto', t: 'textarea', w: 2 }, { k: 'Acción propuesta', t: 'textarea', w: 2 }]
 };
 const presetOf = (el) => { const p = {}; const raw = el.dataset.preset ? decodeURIComponent(el.dataset.preset) : ''; raw.split('&').filter(Boolean).forEach((kv) => { const i = kv.indexOf('='); p[kv.slice(0, i)] = kv.slice(i + 1); }); return p; };
 function nextId(tb) {
@@ -1501,7 +1648,7 @@ function openForm(tb, id, preset = {}) {
   FORM = { tb, id: cur ? cur[T.id] : null, cur };
   const field = (f) => {
     const v = rec[f.k], fid = 'f_' + f.k.replace(/[^a-z0-9]/gi, '_');
-    const lab = `<label for="${fid}">${esc(f.k)}${f.req ? ' <i>*</i>' : ''}</label>`;
+    const lab = `<label for="${fid}">${esc(f.l || f.k)}${f.req ? ' <i>*</i>' : ''}</label>`;
     let inp;
     if (f.newOnly && cur) inp = `<input id="${fid}" value="${esc(v)}" disabled>`;
     else if (f.t === 'select') { const opts = typeof f.o === 'function' ? f.o() : f.o.map((x) => [x, x]); inp = `<select id="${fid}" data-k="${esc(f.k)}">${f.req ? '' : '<option value=""></option>'}${opts.map(([val, txt]) => `<option value="${esc(val)}"${String(v ?? '') === String(val) ? ' selected' : ''}>${esc(txt)}</option>`).join('')}</select>`; }
@@ -1735,7 +1882,7 @@ function repSheet() {
       <div class="rp-sec"><h3>Avances de la semana</h3>${av.length ? `<ul>${av.slice(0, 10).map((a) => `<li>${esc(a)}</li>`).join('')}</ul>` : '<p class="rp-empty">Sin avances registrados en la plataforma en estas fechas.</p>'}</div>
       <div class="rp-sec"><h3>Plan de la semana${r.lateN ? ` <span style="color:#C2352B;font-weight:600;font-size:10.5px">· ${r.lateN} atrasado${r.lateN > 1 ? 's' : ''}</span>` : ''}</h3>${r.plan.length ? `<table class="rp-tb">${r.plan.map((p) => `<tr><td class="${p.f < x.ps ? 'late' : ''}">${fd(p.f)}</td><td>${esc(p.t)}<div class="rp-who">${esc(p.who || '')}</div></td></tr>`).join('')}</table>${r.lateN > r.lateShown ? `<p class="rp-who" style="margin-top:4px">y ${r.lateN - r.lateShown} atrasado${r.lateN - r.lateShown > 1 ? 's' : ''} más en la plataforma.</p>` : ''}` : '<p class="rp-empty">Sin actividades con fecha esta semana.</p>'}<p class="rp-who" style="margin-top:4px">Fechas en rojo: vencidas.</p></div>
     </div>
-    <div class="rp-sec"><h3>Estado de los frentes</h3><table class="rp-tb rp-fr">${e.fr.map(({ f, av: a, trend }) => `<tr><td>${pillR(f.Estado)}</td><td><b>${esc(f.Frente)}</b></td><td class="rp-av">${a == null ? '<span class="rp-who">sin dato</span>' : `<span class="rp-bar"><i style="width:${Math.round(a * 100)}%"></i></span><b>${Math.round(a * 100)} %</b> ${arrow(trend)}`}</td><td>${esc(f['Próximo hito'] || '')}${f['Fecha próximo hito'] ? ` · ${fd(f['Fecha próximo hito'])}` : ''}</td></tr>`).join('')}</table></div>
+    <div class="rp-sec"><h3>Avance por área</h3><table class="rp-tb rp-fr">${e.fr.map(({ f, av: a, trend }) => `<tr><td>${pillR(f.Estado)}</td><td><b>${esc(f.Frente)}</b></td><td class="rp-av">${a == null ? '<span class="rp-who">sin dato</span>' : `<span class="rp-bar"><i style="width:${Math.round(a * 100)}%"></i></span><b>${Math.round(a * 100)} %</b> ${arrow(trend)}`}</td><td>${esc(f['Próximo hito'] || '')}${f['Fecha próximo hito'] ? ` · ${fd(f['Fecha próximo hito'])}` : ''}</td></tr>`).join('')}</table></div>
     ${REP.note ? `<div class="rp-sec"><h3>Notas</h3><p>${esc(REP.note).replace(/\n/g, '<br>')}</p></div>` : ''}
     <div class="rp-foot">Generado desde la Plataforma Guaruma 50 MW el ${fd(TODAY, 1)} · Ing. Cristhyan Vallejos, Jefe de Proyectos EHGSA · ▲ subió ＝ igual ▼ bajó vs. reporte anterior</div>
   </div>`;
@@ -1760,7 +1907,7 @@ function vRepGen(tabs = '') {
 }
 function repWarn() {
   const x = repCtx(), r = repData(), e = repExtras(x); const w = [];
-  if (e.stale.length) w.push(`<b>Avance sin actualizar:</b> ${e.stale.map((s2) => esc(s2.f.Frente) + (s2.av == null ? ' (vacío)' : ' (igual que la semana pasada)')).join(', ')}. Actualízalo en <i>Editar frente</i>.`);
+  if (e.stale.length) w.push(`<b>Avance sin actualizar:</b> ${e.stale.map((s2) => esc(s2.f.Frente) + (s2.av == null ? ' (vacío)' : ' (igual que la semana pasada)')).join(', ')}. Actualízalo en <i>Editar área</i>.`);
   if (!(r.extra.length || r.avances.length || r.paidWeek.length)) w.push('<b>Sin avances registrados</b> para la semana. Agrega al menos uno en "Avances adicionales".');
   return w;
 }
