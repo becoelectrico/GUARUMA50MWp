@@ -697,7 +697,7 @@ const ROUTES = [
   ['cronograma', 'Cronograma', 'cal'], ['pendientes', 'Pendientes y riesgos', 'alert'], ['consultas', 'Consultas', 'quest'], ['reporte', 'Reportes semanales', 'report'], ['documentos', 'Documentos', 'folder'], ['bitacora', 'Bitácora', 'clock']
 ];
 // ---------- Módulos (secciones con su propio archivo en modulos/, se cargan al entrar) ----------
-const APP_VER = '1.16.0';
+const APP_VER = '1.16.1';
 const MODS = {
   licencia: { lbl: 'Licencia ambiental', icon: 'cal', cnt: 'Detalle' },
   'ruta-regulatoria': { lbl: 'Ruta regulatoria', icon: 'route', cnt: 'Trámites' }
@@ -931,7 +931,7 @@ function vResumen() {
   </section>
   ${pem}
   ${pres}
-  <section class="panel"><div class="ph"><div><h2 class="h2">Lo que frena el proyecto</h2><p>Pendientes de prioridad alta y lo que atrasan.${lateN ? ` ${lateN} pendiente${lateN > 1 ? 's' : ''} con fecha vencida.` : ''}</p></div><a class="btn sm" href="#pendientes">Ver los ${pend.length} pendientes</a></div>
+  <section class="panel"><div class="ph"><div><h2 class="h2">Lo que requiere atención</h2><p>Pendientes de prioridad alta y lo que atrasan.${lateN ? ` ${lateN} pendiente${lateN > 1 ? 's' : ''} con fecha vencida.` : ''}</p></div><a class="btn sm" href="#pendientes">Ver los ${pend.length} pendientes</a></div>
     <div class="pd-list">${top.length ? top.map((d) => pendCard(d)).join('') : '<div class="empty">No hay pendientes de prioridad alta.</div>'}</div></section>
   ${av}
   ${agd}`;
