@@ -1,6 +1,6 @@
-# Plataforma Guaruma 50 MW
+# Plataforma Guaruma 50 MWp
 
-Plataforma de seguimiento del Proyecto Solar Guaruma 50 MW (Empresa Hondureña de Generación, S.A. de C.V.).
+Plataforma de seguimiento del Proyecto Solar Guaruma 50 MWp (Empresa Hondureña de Generación, S.A. de C.V.).
 
 - **Datos:** `Proyecto CAHSA 50 MW/00_Plataforma/Plataforma_Guaruma.xlsx` en OneDrive (fuente única).
 - **Documentos:** se leen en vivo de la carpeta `Proyecto CAHSA 50 MW` con Microsoft Graph.
