@@ -1,5 +1,5 @@
 /* =====================================================================
-   Plataforma Guaruma 50 MW · Módulo LICENCIA AMBIENTAL  (ruta #licencia)
+   Plataforma Guaruma 50 MWp · Módulo LICENCIA AMBIENTAL  (ruta #licencia)
    ---------------------------------------------------------------------
    Qué es: el cronograma detallado de la sección "Licencia ambiental" de
    Asana (Gantt, tabla, dependencias, avance y costos en L y US$). Asana se
@@ -260,7 +260,7 @@ const HTML = `
   <div class="mod-gate" id="gate"><div class="spin" id="gate-spin"></div><div class="gate-msg" id="gate-msg"></div><button id="login" type="button" hidden></button></div>
   <header class="top">
     <div>
-      <div class="eyebrow">Proyecto Solar Guaruma · CAHSA 50 MW</div>
+      <div class="eyebrow">Proyecto Solar Guaruma 50 MWp</div>
       <h1>Licencia Ambiental · Cronograma detallado</h1>
     </div>
     <div class="hdr-r">
@@ -800,7 +800,7 @@ const hhmm=d=>d.toLocaleTimeString('es-HN',{hour:'2-digit',minute:'2-digit'});
 function gateMsg(html,showLogin){$('#gate').hidden=false;$('#gate-msg').innerHTML=html||'';$('#gate-spin').hidden=!!showLogin;$('#login').hidden=!showLogin}
 const redirectUri=()=>location.origin+location.pathname.replace(/index\.html$/,'');
 
-function payload(){return JSON.stringify({app:'cronograma-licencia-ambiental',proyecto:'Proyecto Solar Guaruma CAHSA 50 MW',seccionAsana:'Licencia ambiental',formato:1,
+function payload(){return JSON.stringify({app:'cronograma-licencia-ambiental',proyecto:'Proyecto Solar Guaruma 50 MWp',seccionAsana:'Licencia ambiental',formato:1,
   tc:state.tc,tcFecha:state.tcFecha,people:state.people,cols:state.cols,tasks:state.tasks,hist:state.hist.slice(0,1500)},null,1)}
 function applyRemote(o){
   state.tc=+o.tc||state.tc;state.tcFecha=o.tcFecha||state.tcFecha;

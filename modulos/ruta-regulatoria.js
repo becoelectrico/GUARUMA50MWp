@@ -1,5 +1,5 @@
 /* =====================================================================
-   Plataforma Guaruma 50 MW · Módulo RUTA REGULATORIA  (ruta #ruta-regulatoria)
+   Plataforma Guaruma 50 MWp · Módulo RUTA REGULATORIA  (ruta #ruta-regulatoria)
    ---------------------------------------------------------------------
    Qué es: la ruta regulatoria de interconexión del proyecto. Qué pide cada
    ente (CND, EOR, CRIE, ENEE Transmisión, CREE, SEN y SERNA), en qué orden,
@@ -231,7 +231,7 @@ nav.tabs button[aria-selected="true"]{background:none;color:var(--ink);border-bo
 const HTML = `
 <div class="wrap">
   <header class="top">
-    <span class="eyebrow">Proyecto Solar GUARUMA 50 MW · EHG · Matriz regulatoria · actualizado 20 oct 2026 · fecha X: 30 nov 2026</span>
+    <span class="eyebrow">Proyecto Solar GUARUMA 50 MWp · EHG · Matriz regulatoria · actualizado 20 oct 2026 · fecha X: 30 nov 2026</span>
     <h1>Ruta regulatoria de interconexión</h1>
     <p class="sub">Qué pide cada ente (CND, EOR, CRIE, ENEE Transmisión, CREE y SEN), en qué orden, qué bloquea a qué, cuánto tarda y cuánto cuesta. Toca cualquier paso para ver el detalle técnico y administrativo.</p>
   </header>

@@ -255,13 +255,13 @@ body.present .grow{height:40px}
 </style>
 </head>
 <body>
-<div class="gate" id="gate"><div class="gate-card"><img src="../icons/logo.png" alt="EHGSA"><h1>Cronograma Licencia Ambiental</h1><p>Proyecto Solar Guaruma 50 MW · EHGSA</p><div class="spin" id="gate-spin"></div><button class="gate-btn" id="login" hidden><svg viewBox="0 0 23 23"><path fill="#f35325" d="M1 1h10v10H1z"/><path fill="#81bc06" d="M12 1h10v10H12z"/><path fill="#05a6f0" d="M1 12h10v10H1z"/><path fill="#ffba08" d="M12 12h10v10H12z"/></svg>Iniciar sesión con Microsoft</button><div class="gate-msg" id="gate-msg"></div></div></div>
+<div class="gate" id="gate"><div class="gate-card"><img src="../icons/logo.png" alt="EHGSA"><h1>Cronograma Licencia Ambiental</h1><p>Proyecto Solar Guaruma 50 MWp · EHGSA</p><div class="spin" id="gate-spin"></div><button class="gate-btn" id="login" hidden><svg viewBox="0 0 23 23"><path fill="#f35325" d="M1 1h10v10H1z"/><path fill="#81bc06" d="M12 1h10v10H12z"/><path fill="#05a6f0" d="M1 12h10v10H1z"/><path fill="#ffba08" d="M12 12h10v10H12z"/></svg>Iniciar sesión con Microsoft</button><div class="gate-msg" id="gate-msg"></div></div></div>
 
 <div class="wrap">
   <header class="top">
     <div>
       <a class="back edit-only" href="../">← Plataforma Guaruma</a>
-      <div class="eyebrow">Proyecto Solar Guaruma · CAHSA 50 MW</div>
+      <div class="eyebrow">Proyecto Solar Guaruma 50 MWp</div>
       <h1>Licencia Ambiental · Cronograma detallado</h1>
     </div>
     <div class="hdr-r">
@@ -805,7 +805,7 @@ const hhmm=d=>d.toLocaleTimeString('es-HN',{hour:'2-digit',minute:'2-digit'});
 function gateMsg(html,showLogin){$('#gate').hidden=false;$('#gate-msg').innerHTML=html||'';$('#gate-spin').hidden=!!showLogin;$('#login').hidden=!showLogin}
 const redirectUri=()=>location.origin+location.pathname.replace(/index\.html$/,'');
 
-function payload(){return JSON.stringify({app:'cronograma-licencia-ambiental',proyecto:'Proyecto Solar Guaruma CAHSA 50 MW',seccionAsana:'Licencia ambiental',formato:1,
+function payload(){return JSON.stringify({app:'cronograma-licencia-ambiental',proyecto:'Proyecto Solar Guaruma 50 MWp',seccionAsana:'Licencia ambiental',formato:1,
   tc:state.tc,tcFecha:state.tcFecha,people:state.people,cols:state.cols,tasks:state.tasks,hist:state.hist.slice(0,1500)},null,1)}
 function applyRemote(o){
   state.tc=+o.tc||state.tc;state.tcFecha=o.tcFecha||state.tcFecha;

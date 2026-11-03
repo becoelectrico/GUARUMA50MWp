@@ -3,9 +3,9 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Plataforma Guaruma 50 MW</title>
+<title>Plataforma Guaruma 50 MWp</title>
 <meta name="theme-color" content="#0A2A55">
-<meta name="description" content="Plataforma de seguimiento del Proyecto Solar Guaruma 50 MW · EHGSA">
+<meta name="description" content="Plataforma de seguimiento del Proyecto Solar Guaruma 50 MWp · EHGSA">
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
@@ -587,7 +587,7 @@ a.btn{text-decoration:none;color:inherit}
 <div class="gate" id="gate">
   <div class="gate-card">
     <img src="icons/logo.png" alt="EHGSA">
-    <h1>Plataforma Guaruma 50 MW</h1>
+    <h1>Plataforma Guaruma 50 MWp</h1>
     <p>Empresa Hondureña de Generación, S.A. de C.V.</p>
     <div class="spin" id="gate-spin"></div>
     <button class="gate-btn" id="login" hidden><svg viewBox="0 0 23 23"><path fill="#f35325" d="M1 1h10v10H1z"/><path fill="#81bc06" d="M12 1h10v10H12z"/><path fill="#05a6f0" d="M1 12h10v10H1z"/><path fill="#ffba08" d="M12 12h10v10H12z"/></svg>Iniciar sesión con Microsoft</button>
@@ -596,7 +596,7 @@ a.btn{text-decoration:none;color:inherit}
 </div>
 <div class="app" id="app">
   <aside class="sb" aria-label="Navegación">
-    <div class="sb-brand"><img alt="EHGSA" src="icons/logo.png"><div class="sb-name"><b>Guaruma 50 MW</b><span>EHGSA · Plataforma de proyecto</span></div></div>
+    <div class="sb-brand"><img alt="EHGSA" src="icons/logo.png"><div class="sb-name"><b>Guaruma 50 MWp</b><span>EHGSA · Plataforma de proyecto</span></div></div>
     <nav class="sb-nav" id="nav"></nav>
     <div class="sb-foot">
       <button class="sync" id="sync" type="button" data-tip="Toca para actualizar desde OneDrive"><i></i><span id="sync-t">Conectando…</span></button>
@@ -697,7 +697,7 @@ const ROUTES = [
   ['cronograma', 'Cronograma', 'cal'], ['pendientes', 'Pendientes y riesgos', 'alert'], ['consultas', 'Consultas', 'quest'], ['reporte', 'Reportes semanales', 'report'], ['documentos', 'Documentos', 'folder'], ['bitacora', 'Bitácora', 'clock']
 ];
 // ---------- Módulos (secciones con su propio archivo en modulos/, se cargan al entrar) ----------
-const APP_VER = '1.16.4';
+const APP_VER = '1.16.5';
 const MODS = {
   licencia: { lbl: 'Licencia ambiental', icon: 'cal', cnt: 'Detalle' },
   'ruta-regulatoria': { lbl: 'Ruta regulatoria', icon: 'route', cnt: 'Trámites' }
@@ -926,7 +926,7 @@ function vResumen() {
     ${ag.length > MAXA ? `<div class="li"><span></span><a class="small" href="#pendientes" style="color:var(--info)">y ${ag.length - MAXA} más</a></div>` : ''}</div></section>`;
   return `
   <section class="cover">
-    <div><h1 class="h1">Proyecto Solar Guaruma 50 MW</h1><p class="headline">${esc(P['Comentario de estado'] || '')}</p></div>
+    <div><h1 class="h1">Proyecto Solar Guaruma 50 MWp</h1><p class="headline">${esc(P['Comentario de estado'] || '')}</p></div>
     <div class="status-card">${pill(P['Estado general'])}<p class="faint">${esc(P['Ubicación'] || '')}</p></div>
   </section>
   ${pem}
@@ -1488,7 +1488,7 @@ function cqExport() {
   const d2 = (s) => s ? s.split('-').reverse().join('/') : '';
   const rows = cqFiltered().map((q) => H.map((h) => h === 'Documentos' ? docsOf(q).map((d) => d.Archivo).join('; ') : (h === 'Fecha respuesta' || h === 'Actualizado') ? d2(q[h]) : (q[h] ?? '')));
   const filt = [CQF.fr && 'área ' + CQF.fr, CQF.hoja && 'hoja ' + CQF.hoja, CQF.est && CQF.est.toLowerCase(), CQF.resp, CQF.q && '"' + CQF.q + '"'].filter(Boolean).join(', ');
-  const ws = XLSX.utils.aoa_to_sheet([['EHG-SOL-001 · Matriz de seguimiento de consultas — Proyecto Solar GUARUMA 50 MW'], [`Empresa Hondureña de Generación, S.A. de C.V. · Exportado de la plataforma el ${d2(TODAY)}${filt ? ' · Filtro: ' + filt : ''}`], [], H, ...rows]);
+  const ws = XLSX.utils.aoa_to_sheet([['EHG-SOL-001 · Matriz de seguimiento de consultas — Proyecto Solar GUARUMA 50 MWp'], [`Empresa Hondureña de Generación, S.A. de C.V. · Exportado de la plataforma el ${d2(TODAY)}${filt ? ' · Filtro: ' + filt : ''}`], [], H, ...rows]);
   ws['!cols'] = [6, 24, 8, 50, 28, 28, 14, 55, 12, 24, 11, 36, 12, 45, 8, 45].map((w) => ({ wch: w }));
   ws['!autofilter'] = { ref: `A4:${XLSX.utils.encode_col(H.length - 1)}${rows.length + 4}` };
   const DH = ['Código', 'Archivo', 'Ruta', 'Tipo', 'Fecha', 'Nota'];
@@ -1546,10 +1546,10 @@ function render() {
   const views = { resumen: vResumen, frentes: vFrentes, contratos: vContratos, presupuesto: vPresupuesto, ofertas: vOfertas, cronograma: vCrono, pendientes: vRiesgos, riesgos: vRiesgos, consultas: vConsultas, reporte: vReporte, documentos: vDocs, bitacora: vBit };
   let html, crumb;
   const chev = ic('chev').replace('<svg', '<svg width="12" height="12" style="stroke:currentColor;fill:none;stroke-width:2"');
-  if (MODS[route]) { showMod(route); $('#crumbs').innerHTML = `<span>Guaruma 50 MW</span>${chev}<b>${MODS[route].lbl}</b>`; drawNav(route); $('#app').classList.remove('mopen'); return; }
+  if (MODS[route]) { showMod(route); $('#crumbs').innerHTML = `<span>Guaruma 50 MWp</span>${chev}<b>${MODS[route].lbl}</b>`; drawNav(route); $('#app').classList.remove('mopen'); return; }
   modUnmount();
   if (route.startsWith('frente-')) { const id = route.slice(7); html = vFrente(id); crumb = `<span>Áreas</span>${ic('chev').replace('<svg', '<svg width="12" height="12" style="stroke:currentColor;fill:none;stroke-width:2"')}<b>${esc(fById[id]?.Frente || '')}</b>`; }
-  else { if (!views[route]) route = 'resumen'; html = views[route](); crumb = `<span>Guaruma 50 MW</span>${ic('chev').replace('<svg', '<svg width="12" height="12" style="stroke:currentColor;fill:none;stroke-width:2"')}<b>${(ROUTES.find((r) => r[0] === route) || ROUTES.find((r) => r[0] === 'pendientes'))[1]}</b>`; }
+  else { if (!views[route]) route = 'resumen'; html = views[route](); crumb = `<span>Guaruma 50 MWp</span>${ic('chev').replace('<svg', '<svg width="12" height="12" style="stroke:currentColor;fill:none;stroke-width:2"')}<b>${(ROUTES.find((r) => r[0] === route) || ROUTES.find((r) => r[0] === 'pendientes'))[1]}</b>`; }
   $('#view').innerHTML = html; $('#crumbs').innerHTML = crumb; drawNav(route);
   $('#app').classList.remove('mopen');
   mountDocs(); if (route === 'reporte') repEnsureFolders().then(() => { if (RSEL != null) { const k = Object.keys(DOCSTATE).find((b) => b === (repWeeks().find((w) => w.n === RSEL) || {}).folder); if (k && DOCSTATE[k].err) { DOCSTATE[k].err = null; DOCSTATE[k].items = null; mountDocs(); } } }); if (route === 'consultas') drawCqTable();
@@ -1865,7 +1865,7 @@ function repSheet() {
   const dv = e.pres ? (e.comp - e.pres) / e.pres : 0;
   const arrow = (t) => t === 'up' ? '<span style="color:#2F9447">▲</span>' : t === 'down' ? '<span style="color:#C2352B">▼</span>' : t === 'same' ? '<span style="color:#7A889E">＝</span>' : '';
   return `<div class="rp-page" id="rp-page">
-    <div class="rp-head"><img src="icons/logo.png" alt=""><div class="rp-ht"><div class="rp-k">Empresa Hondureña de Generación, S.A. de C.V.</div><div class="rp-t">Reporte ejecutivo semanal · Proyecto Solar Guaruma 50 MW</div></div>
+    <div class="rp-head"><img src="icons/logo.png" alt=""><div class="rp-ht"><div class="rp-k">Empresa Hondureña de Generación, S.A. de C.V.</div><div class="rp-t">Reporte ejecutivo semanal · Proyecto Solar Guaruma 50 MWp</div></div>
       <div class="rp-meta"><b>${x.num}</b><span>Semana del ${fd(x.ps)} al ${fd(x.pe, 1)}</span><span>Avances del ${fd(x.as)} al ${fd(x.ae)}</span></div></div>
     <div class="rp-status">${pillR(P['Estado general'])}<p>${esc(msg)}</p></div>
     <div class="rp-sec"><h3>Crítico por definir</h3>${r.crit.length ? r.crit.map((d) => { const late = d['Fecha límite'] && d['Fecha límite'] < TODAY;
@@ -1884,7 +1884,7 @@ function repSheet() {
     </div>
     <div class="rp-sec"><h3>Avance por área</h3><table class="rp-tb rp-fr">${e.fr.map(({ f, av: a, trend }) => `<tr><td>${pillR(f.Estado)}</td><td><b>${esc(f.Frente)}</b></td><td class="rp-av">${a == null ? '<span class="rp-who">sin dato</span>' : `<span class="rp-bar"><i style="width:${Math.round(a * 100)}%"></i></span><b>${Math.round(a * 100)} %</b> ${arrow(trend)}`}</td><td>${esc(f['Próximo hito'] || '')}${f['Fecha próximo hito'] ? ` · ${fd(f['Fecha próximo hito'])}` : ''}</td></tr>`).join('')}</table></div>
     ${REP.note ? `<div class="rp-sec"><h3>Notas</h3><p>${esc(REP.note).replace(/\n/g, '<br>')}</p></div>` : ''}
-    <div class="rp-foot">Generado desde la Plataforma Guaruma 50 MW el ${fd(TODAY, 1)} · Ing. Cristhyan Vallejos, Jefe de Proyectos EHGSA · ▲ subió ＝ igual ▼ bajó vs. reporte anterior</div>
+    <div class="rp-foot">Generado desde la Plataforma Guaruma 50 MWp el ${fd(TODAY, 1)} · Ing. Cristhyan Vallejos, Jefe de Proyectos EHGSA · ▲ subió ＝ igual ▼ bajó vs. reporte anterior</div>
   </div>`;
 }
 function vRepGen(tabs = '') {
@@ -1959,7 +1959,7 @@ async function repAction(kind) {
 function mailBody(x) {
   const crit = openPend().filter((d) => d.Prioridad === 'Alta');
   const msg = REP.msg != null ? REP.msg : (P['Comentario de estado'] || '');
-  return `Buen día,\n\nAdjunto el reporte ejecutivo semanal ${x.num} del Proyecto Solar Guaruma 50 MW (semana del ${fd(x.ps)} al ${fd(x.pe, 1)}).\n\n${msg}\n\nCrítico por definir:\n${crit.map((d) => '• ' + d.Pendiente + (d.Responsable ? ' (' + d.Responsable + ')' : '') + (d['Decisión solicitada'] ? '\n   Se solicita: ' + d['Decisión solicitada'] : '')).join('\n') || '• Sin pendientes críticos.'}\n\nSaludos,\nIng. Cristhyan Vallejos\nJefe de Proyectos · Empresa Hondureña de Generación, S.A. de C.V.`;
+  return `Buen día,\n\nAdjunto el reporte ejecutivo semanal ${x.num} del Proyecto Solar Guaruma 50 MWp (semana del ${fd(x.ps)} al ${fd(x.pe, 1)}).\n\n${msg}\n\nCrítico por definir:\n${crit.map((d) => '• ' + d.Pendiente + (d.Responsable ? ' (' + d.Responsable + ')' : '') + (d['Decisión solicitada'] ? '\n   Se solicita: ' + d['Decisión solicitada'] : '')).join('\n') || '• Sin pendientes críticos.'}\n\nSaludos,\nIng. Cristhyan Vallejos\nJefe de Proyectos · Empresa Hondureña de Generación, S.A. de C.V.`;
 }
 let SEND = null;
 function openSendDialog(blob, fname, x) {
@@ -1969,7 +1969,7 @@ function openSendDialog(blob, fname, x) {
     <div class="dlg-b" style="grid-template-columns:1fr">
       ${repWarnHtml()}
       <div class="fld"><label>Para</label><div class="rcpts">${REP.to.map((m) => `<span class="rcpt">${esc(m)}</span>`).join('')}</div></div>
-      <div class="fld"><label for="s-sub">Asunto</label><input id="s-sub" value="${esc(`Reporte ejecutivo semanal ${x.num} · Proyecto Solar Guaruma 50 MW`)}"></div>
+      <div class="fld"><label for="s-sub">Asunto</label><input id="s-sub" value="${esc(`Reporte ejecutivo semanal ${x.num} · Proyecto Solar Guaruma 50 MWp`)}"></div>
       <div class="fld"><label for="s-body">Mensaje</label><textarea id="s-body" rows="9">${esc(mailBody(x))}</textarea></div>
       <div class="fld"><label>Adjunto · ${esc(fname)} (${Math.max(1, Math.round(blob.size / 1024))} KB)</label><iframe src="${url}" title="Vista previa del PDF" style="width:100%;height:420px;border:1px solid var(--line);border-radius:8px;background:#fff"></iframe></div>
       <label class="small" style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="s-save" checked> Guardar también una copia en OneDrive (${esc(REP_FOLDER)})</label>
@@ -2000,10 +2000,10 @@ let MAILF = null;
 function mailDefaults(name) {
   const firma = '\n\nSaludos,\nIng. Cristhyan Vallejos\nJefe de Proyectos · EHGSA';
   const d = name.match(/Reporte_Diario_(?:[A-Za-z]+_)?(\d{4}-\d{2}-\d{2})/i);
-  if (d) return { sub: `Reporte diario ${fd(d[1], 1)} · Proyecto Solar Guaruma 50 MW`, body: `Buenas tardes,\n\nAdjunto el reporte diario del ${fd(d[1], 1)} del Proyecto Solar Guaruma 50 MW.` + firma };
+  if (d) return { sub: `Reporte diario ${fd(d[1], 1)} · Proyecto Solar Guaruma 50 MWp`, body: `Buenas tardes,\n\nAdjunto el reporte diario del ${fd(d[1], 1)} del Proyecto Solar Guaruma 50 MWp.` + firma };
   const w = name.match(/semana[ _-]*0*(\d+)/i);
-  if (w) { const wi = weekInfo(+w[1]); return { sub: `Informe semanal · Semana ${String(+w[1]).padStart(2, '0')} de ${PROJ_WEEKS} (${wi.per}) · Proyecto Solar Guaruma 50 MW`, body: `Buenas tardes,\n\nAdjunto el informe semanal del Proyecto Solar Guaruma 50 MW, semana ${+w[1]} de ${PROJ_WEEKS} (${wi.per}).` + firma }; }
-  return { sub: `${name.replace(/\.[^.]+$/, '').replace(/_/g, ' ')} · Proyecto Solar Guaruma 50 MW`, body: `Buenas tardes,\n\nAdjunto ${name}.` + firma };
+  if (w) { const wi = weekInfo(+w[1]); return { sub: `Informe semanal · Semana ${String(+w[1]).padStart(2, '0')} de ${PROJ_WEEKS} (${wi.per}) · Proyecto Solar Guaruma 50 MWp`, body: `Buenas tardes,\n\nAdjunto el informe semanal del Proyecto Solar Guaruma 50 MWp, semana ${+w[1]} de ${PROJ_WEEKS} (${wi.per}).` + firma }; }
+  return { sub: `${name.replace(/\.[^.]+$/, '').replace(/_/g, ' ')} · Proyecto Solar Guaruma 50 MWp`, body: `Buenas tardes,\n\nAdjunto ${name}.` + firma };
 }
 async function openMailRel(rel) {
   try { const it = await graph(`${BASE}/root:/${encPath(joinRel(CFG.root, rel))}?$select=id,name,size`); openMailFile({ id: it.id, name: it.name, size: it.size, rel }); }
