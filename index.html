@@ -697,7 +697,7 @@ const ROUTES = [
   ['cronograma', 'Cronograma', 'cal'], ['pendientes', 'Pendientes y riesgos', 'alert'], ['consultas', 'Consultas', 'quest'], ['reporte', 'Reportes semanales', 'report'], ['documentos', 'Documentos', 'folder'], ['bitacora', 'Bitácora', 'clock']
 ];
 // ---------- Módulos (secciones con su propio archivo en modulos/, se cargan al entrar) ----------
-const APP_VER = '1.16.3';
+const APP_VER = '1.16.4';
 const MODS = {
   licencia: { lbl: 'Licencia ambiental', icon: 'cal', cnt: 'Detalle' },
   'ruta-regulatoria': { lbl: 'Ruta regulatoria', icon: 'route', cnt: 'Trámites' }
@@ -834,6 +834,7 @@ const addDays = (iso, n) => { const d = new Date(iso + 'T12:00:00'); d.setDate(d
 const k1 = (v) => 'US$ ' + (Math.abs(v) >= 1e6 ? nf.format(v / 1e6).replace(/\.?0+$/, '') + ' M' : nf0.format(v));
 // Hitos fijos del cronograma general (informe semanal, lámina "Cronograma general · 22 meses")
 const MILESTONES = [
+  { f: '2026-12-21', t: 'Entrega de premisas técnicas del CND (estimada)', fr: 'F08' },
   { f: '2027-07-01', t: 'Montaje de estructura' },
   { f: '2027-10-31', t: 'Fin de obra civil' }
 ];
