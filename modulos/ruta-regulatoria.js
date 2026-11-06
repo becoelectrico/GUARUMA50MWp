@@ -7,10 +7,11 @@
    San Pedro Sula Sur es nodo RTR y lo que le toca a EHG.
    Objetivo: demostrar que los trámites llegan a tiempo para la puesta en
    marcha del 31 jul 2028 (Resumen Proyecto Solar CAHSA en Asana) partiendo
-   de la solicitud de premisas al CND el 30 nov 2026 (fecha X), y señalar
-   qué tiene que estar listo de nuestro lado.
-   Datos: fijos en este archivo (actualizados al 20 oct 2026). No lee ni
-   escribe OneDrive ni Asana.
+   de la solicitud de premisas al CND, presentada el 2 nov 2026 (fecha X),
+   y señalar qué tiene que estar listo de nuestro lado.
+   Datos: fijos en este archivo (actualizados al 5 nov 2026). No lee ni
+   escribe OneDrive ni Asana. Las tareas ya hechas llevan fechas reales
+   (campo real:{s,e}); la línea "hoy" toma la fecha del equipo.
      · S  = trámites con su detalle técnico/administrativo (pestaña Ruta)
      · T  = tareas del cronograma con dependencias [id, 'FS'|'SS', desfase]
      · plan() = cálculo de fechas en días hábiles y ruta crítica
@@ -231,7 +232,7 @@ nav.tabs button[aria-selected="true"]{background:none;color:var(--ink);border-bo
 const HTML = `
 <div class="wrap">
   <header class="top">
-    <span class="eyebrow">Proyecto Solar GUARUMA 50 MWp · EHG · Matriz regulatoria · actualizado 20 oct 2026 · fecha X: 30 nov 2026</span>
+    <span class="eyebrow">Proyecto Solar GUARUMA 50 MWp · EHG · Matriz regulatoria · actualizado 5 nov 2026 · fecha X: 2 nov 2026 (presentada)</span>
     <h1>Ruta regulatoria de interconexión</h1>
     <p class="sub">Qué pide cada ente (CND, EOR, CRIE, ENEE Transmisión, CREE y SEN), en qué orden, qué bloquea a qué, cuánto tarda y cuánto cuesta. Toca cualquier paso para ver el detalle técnico y administrativo.</p>
   </header>
@@ -265,8 +266,9 @@ const HTML = `
   <section class="panel" id="p-gantt" data-panel="gantt" hidden>
     <p class="lead">Cada barra es un trámite y cada flecha dice qué tiene que terminar antes. Toca una tarea para ver qué la bloquea y qué desbloquea al terminar. El borde rojo marca la ruta crítica, la cadena que fija la fecha de operación comercial. Las barras rayadas son plazos estimados; las lisas, plazos de norma.</p>
     <div class="controls">
-      <label for="fx">Fecha X (solicitud de premisas)<input type="date" id="fx" value="2026-11-30"></label>
+      <label for="fx">Fecha X (solicitud de premisas)<input type="date" id="fx" value="2026-11-02"></label>
       <label for="pot">Potencia a declarar<select id="pot">
+        <option value="43240" selected>43.24 MW AC (declarada al CND)</option>
         <option value="42600">42.6 MW AC (Etapa I)</option>
         <option value="50000">50 MW</option>
         <option value="75000">75 MW (con expansión)</option>
@@ -294,7 +296,7 @@ const HTML = `
     <div class="gdet" id="gdet" aria-live="polite"></div>
     <h3>Fechas que no se pueden pasar</h3>
     <div class="hitos" id="hitos"></div>
-    <div class="callout"><b>Lectura del ejemplo:</b> con la obra según el cronograma de 22 meses, los trámites terminan con holgura: contrato de conexión en octubre 2027 y resolución SEN para construir en diciembre 2027, justo antes del montaje. Lo que define el 31 jul 2028 es el cierre: la solicitud de conexión a ENEE Transmisión tiene que entrar a más tardar en abril 2028 y las pruebas de conexión deben correr en paralelo con las de la planta. El otro riesgo es arrancar la obra civil antes de la resolución SEN.</div>
+    <div class="callout"><b>Lectura del ejemplo:</b> con la solicitud de premisas presentada el 2 nov 2026 y la obra según el cronograma de 22 meses, los trámites terminan con holgura: contrato de conexión en <span id="lec-cont">—</span> y resolución SEN para construir en <span id="lec-sen">—</span>. Lo que define el 31 jul 2028 es el cierre: la solicitud de conexión a ENEE Transmisión tiene que entrar a más tardar en abril 2028 y las pruebas de conexión deben correr en paralelo con las de la planta. El otro riesgo es arrancar la obra civil antes de la resolución SEN.</div>
     <p class="gnote">Plazos en días hábiles. Con la casilla de feriados se descuentan Navidad, Año Nuevo, Semana Santa, 14 de abril, 1 de mayo, 15 de septiembre y la Semana Morazánica. Las tareas de preparación de EHG arrancan en las fechas de hoy; si alguna se atrasa, empuja la fecha X.</p>
   </section>
 
@@ -389,7 +391,7 @@ const S=[
   tec:["Punto de conexión con coordenadas: bahía 51E68 (138 kV) o 68T53 (230 kV)","Diagrama unifilar preliminar y características técnicas (FV + BESS + transformador)","Generación prevista en el punto de conexión para 4 años","La potencia que se declare aquí fija el monto de la garantía"],
   res:"Documento de premisas técnicas y base de datos del SIN.",plazo:"30 días hábiles. Vigencia 6 meses (prórroga hasta 3).",costo:"Base de datos sin costo.",base:"NT-ACUT arts. 7, 8, 17 y 18 · SEN-110-2025 art. 8"},
  {id:"p2",fase:"1 · Premisas",ente:"EOR",t:"Premisas regionales y Base de Datos Regional",dur:26,dep:[["p1","SS",5]],tipo:"norma",
-  adm:["El CND informa el proyecto al EOR","Convenio de confidencialidad con el EOR antes de recibir la base regional"],
+  adm:["Nota de EHG al EOR con escritura de constitución, poder, DNI del representante y documento original de aceptación de términos de uso de la Base de Datos Regional","El CND informa el proyecto al EOR","Convenio de confidencialidad con el EOR antes de recibir la base regional"],
   tec:["EOR define alcances con el CND (5 días hábiles)","EOR elabora premisas regionales (5 días hábiles)","EOR actualiza la base de datos regional (15 días hábiles) y la entrega (1 día)","Usar el software del EOR (PSS/E)"],
   res:"Premisas regionales y BDR con código del EOR.",plazo:"26 días hábiles desde que el EOR recibe la información.",costo:"No encontré cargo publicado.",base:"Procedimiento CRIE-P-03-2014, numeral 3.2"},
  {id:"est",fase:"2 · Estudios y acceso nacional",ente:"EHG",t:"Estudios eléctricos nacionales y regionales",dur:50,dep:[["p1","FS",0],["p2","FS",0]],tipo:"est",
@@ -480,15 +482,15 @@ const SEC={
   obra:{n:"Construcción y puesta en servicio",c:"--muted"}
 };
 const T=[
- {id:"r1",s:"prep",t:"Respuesta formal de ENEE sobre el punto de conexión",dur:15,base:"2026-10-21",tipo:"est",who:"Ing. Arturo",req:"Carta del 30 sep a ENEE (Ing. René Madrid). Hoy solo hay indicación verbal de 138 kV.",por:"Define la bahía (51E68 o 68T53) y la tensión que se declaran en las premisas."},
- {id:"r2",s:"prep",t:"Unifilar preliminar y generación a 4 años (SÓLIDA)",dur:20,base:"2026-10-19",tipo:"est",who:"SÓLIDA / C. Vallejos",req:"Ingeniería básica arrancó el 19 oct; diseño básico esperado a mediados de noviembre.",por:"Sin unifilar y sin generación prevista el CND no recibe la solicitud de premisas."},
- {id:"r3",s:"prep",t:"Poder del representante legal y escrito de abogado",dur:15,base:"2026-10-26",tipo:"est",who:"Abog. Pascua / Legal EHG",req:"Revisión de las escrituras de EHG (enviadas el 13 oct).",por:"La solicitud de premisas y el formulario FS02 se presentan por escrito con poder."},
+ {id:"r1",s:"prep",t:"Respuesta formal de ENEE sobre el punto de conexión",dur:15,base:"2026-10-21",real:{s:"2026-09-28",e:"2026-10-23"},tipo:"est",who:"Ing. Arturo",req:"Hecho: oficio DIT-834-X-2026 del 23 oct. Hay espacio en la S/E San Pedro Sula Sur 138 kV, junto a las llegadas de Brassavola; el acceso definitivo se tramita ante el CND.",por:"Define la bahía y la tensión (138 kV) que se declaran en las premisas."},
+ {id:"r2",s:"prep",t:"Unifilar preliminar y generación a 4 años (SÓLIDA)",dur:20,base:"2026-10-19",tipo:"est",who:"SÓLIDA / C. Vallejos",real:{s:"2026-10-19",e:"2026-10-30"},req:"Hecho: unifilares y producción horaria 2028–2031 enviados al CND el 2 nov. El diseño básico de SÓLIDA sigue para mediados de noviembre.",por:"Sin unifilar y sin generación prevista el CND no recibe la solicitud de premisas."},
+ {id:"r3",s:"prep",t:"Poder general del representante legal",dur:9,base:"2026-10-26",tipo:"est",who:"Abogado de CAHSA / Legal EHG",req:"Con la solicitud del 2 nov se envió el nombramiento del Gerente General; el poder general lo entrega el abogado de CAHSA el 6 nov. Que incluya facultades ante ENEE, CND, CREE, EOR y CRIE.",por:"El CND pide el poder para tramitar las premisas (a BECO no le aceptó una ratificación) y el EOR lo pide para la Base de Datos Regional."},
  {id:"r4",s:"prep",t:"Contratar consultor de estudios eléctricos",dur:25,base:"2026-10-26",tipo:"est",who:"C. Vallejos / G. Dubón",req:"Cotizar FUNKEN y Perham con alcance nacional + RTR (CCSD del RMER) y plazo dentro de la vigencia de las premisas.",por:"El consultor debe estar listo para arrancar en cuanto lleguen las premisas."},
- {id:"r5",s:"prep",t:"Elegir inversores, BESS y transformador (datos garantizados)",dur:50,base:"2026-10-21",tipo:"est",who:"Gerencia Técnica / SÓLIDA",req:"Cotización de SIEYUAN (60 MVA) y selección de inversores.",por:"El CND no acepta estudios con datos que no sean los definitivos y garantizados."},
- {id:"r6",s:"prep",t:"Garantía bancaria USD 16.74/kW",dur:30,dep:[["x","SS",0]],tipo:"est",who:"Administración EHG",req:"Definir la potencia declarada. 42.6 MW ≈ US$ 713 k.",por:"Va adjunta a la solicitud de acceso; sin ella el CND no emite resolución."},
- {id:"x",s:"cnd",t:"Presentar solicitud de premisas (fecha X)",dur:0,base:"X",dep:[["r1","FS"],["r2","FS"],["r3","FS"]],tipo:"norma",who:"C. Vallejos",req:"Carta con datos de EHG, poder, punto de conexión con coordenadas, unifilar y generación a 4 años. Pedir confirmación escrita de nodo RTR.",por:"Arranca todo el carril de conexión."},
- {id:"p1",s:"cnd",t:"Elaboración de premisas técnicas (CND)",dur:30,dep:[["x","FS"]],tipo:"norma",who:"CND",req:"Firma del acuerdo de confidencialidad para recibir la base de datos.",por:"Premisas y base de datos del SIN. Vigencia 6 meses, prórroga de hasta 3."},
- {id:"p2",s:"eor",t:"Premisas regionales y BDR (EOR)",dur:26,dep:[["p1","SS",5]],tipo:"norma",who:"EOR",req:"El CND informa el proyecto al EOR. Convenio de confidencialidad con el EOR.",por:"Alcance 5 dh, premisas 5 dh, base regional 15 dh y entrega 1 dh."},
+ {id:"r5",s:"prep",t:"Elegir inversores, BESS y transformador (datos garantizados)",dur:50,base:"2026-10-21",tipo:"est",who:"Gerencia Técnica / SÓLIDA",req:"Transformador definido en 65 MVA YNyn0 (licitación enviada el 5 nov a SIEYUAN, CHINT y EPD) y BESS de 10 MWh. Falta la selección de inversores.",por:"El CND no acepta estudios con datos que no sean los definitivos y garantizados."},
+ {id:"r6",s:"prep",t:"Garantía bancaria USD 16.74/kW",dur:30,dep:[["x","SS",0]],tipo:"est",who:"Administración EHG",req:"Potencia declarada al CND: 43.24 MW AC ≈ US$ 724 k.",por:"Va adjunta a la solicitud de acceso; sin ella el CND no emite resolución."},
+ {id:"x",s:"cnd",t:"Presentar solicitud de premisas (fecha X)",dur:0,base:"X",dep:[["r1","FS"],["r2","FS"]],tipo:"norma",who:"C. Vallejos",req:"Presentada por correo el 2 nov 2026 (Art. 18): unifilares, producción horaria 2028–2031, escritura, RTN, nombramiento del GG, oficio DIT-834-X-2026 y presentación. Pendiente el complemento: presentación corregida (65 MVA, BESS 10 MWh) y poder general.",por:"Arranca todo el carril de conexión. El CND revisa la suficiencia en 5 días hábiles."},
+ {id:"p1",s:"cnd",t:"Elaboración de premisas técnicas (CND)",dur:30,dep:[["x","FS"],["r3","FS"]],tipo:"norma",who:"CND",req:"Información completa (incluido el poder general) y firma del acuerdo de confidencialidad para recibir la base de datos.",por:"Premisas y base de datos del SIN. Vigencia 6 meses, prórroga de hasta 3."},
+ {id:"p2",s:"eor",t:"Premisas regionales y BDR (EOR)",dur:26,dep:[["r3","FS"]],tipo:"norma",who:"EHG → EOR",req:"Nota de EHG al EOR (EHG-EOR-001-2026) con escritura, poder, DNI y documento de aceptación de términos de uso de la Base de Datos Regional. El CND también informa el proyecto al EOR. Convenio de confidencialidad con el EOR.",por:"Alcance 5 dh, premisas 5 dh, base regional 15 dh y entrega 1 dh."},
  {id:"est",s:"est",t:"Estudios eléctricos nacionales y RTR",dur:50,dep:[["p1","FS"],["p2","FS"],["r4","FS"],["r5","FS"]],tipo:"est",who:"Consultor (FUNKEN o Perham)",req:"Flujo de carga, cortocircuito, N-1, estabilidad transitoria, de frecuencia y de tensión. Cumplir CCSD del RMER.",por:"Informe en PDF y bases de datos. Tiene que entrar antes de que venzan las premisas."},
  {id:"acc",s:"cnd",t:"Solicitud de acceso FS02 y revisión del CND",dur:40,dep:[["est","FS"],["r6","FS"]],tipo:"norma",who:"EHG → CND",req:"FS02 con escrito de abogado, diseño básico, estudios, fecha de operación comercial y garantía.",por:"El CND dictamina en máximo 40 dh."},
  {id:"obs",s:"cnd",t:"Atención de observaciones del CND",dur:20,dep:[["acc","FS"]],tipo:"est",who:"EHG / consultor",req:"Respuesta escrita a cada observación.",por:"Estimado: una ronda de 4 semanas."},
@@ -520,6 +522,7 @@ function plan(X){
   const r={};
   const calc=id=>{
     if(r[id])return r[id];const t=TB[id];
+    if(t.real){r[id]={s:D(t.real.s),e:D(t.real.e||t.real.s),drv:"base"};return r[id]}
     const base=t.base==="X"?X:(t.base?D(t.base):null);
     if(t.fin){let n=0,d=nextBD(D(t.base));const f=D(t.fin);while(d<f){d.setUTCDate(d.getUTCDate()+1);if(isBD(d))n++}t.dur=n}
     let st=base?nextBD(base):null,drv=base?"base":null;
@@ -561,7 +564,7 @@ let last=null,P=null,gsel="x",collapsed={};
 try{collapsed=JSON.parse(localStorage.getItem("guaruma-gantt-col")||"{}")}catch(e){}
 const board=R.getElementById("board"),ggrid=R.getElementById("ggrid"),gdet=R.getElementById("gdet");
 const LAB=()=>window.matchMedia("(max-width:600px)").matches?190:290;
-const META=D("2028-07-31"),HOY=D("2026-10-20");
+const META=D("2028-07-31"),HOY=(()=>{const n=new Date();return new Date(Date.UTC(n.getFullYear(),n.getMonth(),n.getDate()))})();
 function renderGantt(){
   const {r,crit}=P;const px=+R.getElementById("zoom").value;
   const all=Object.values(r);
@@ -637,7 +640,7 @@ board.addEventListener("click",gclick);gdet.addEventListener("click",gclick);
 
 function render(){
   useFer=R.getElementById("fer").checked;
-  const v=R.getElementById("fx").value||"2026-11-30";
+  const v=R.getElementById("fx").value||"2026-11-02";
   P=plan(D(v));last=P.r;const r=P.r;
   renderGantt();
   const kw=+R.getElementById("pot").value;const gar=kw*16.74;
@@ -646,6 +649,7 @@ function render(){
   R.getElementById("f-dur").textContent="≈ "+months(r.x.s,r.cont.e).toFixed(1)+" meses";
   R.getElementById("f-cod").textContent=fmtM(r.cod.e);
   R.getElementById("r-x").textContent=fmt(r.x.s);
+  R.getElementById("lec-cont").textContent=fmtM(r.cont.e);R.getElementById("lec-sen").textContent=fmtM(r.sen3.e);
   R.getElementById("r-cont").textContent=fmt(r.cont.e);
   R.getElementById("r-cod").textContent=fmt(r.cod.e);
   const gap=months(META,r.cod.e);const g=R.getElementById("r-gap");
