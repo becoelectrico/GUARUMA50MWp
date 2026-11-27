@@ -370,6 +370,7 @@ a.btn{text-decoration:none;color:inherit}
 .fz-3{grid-template-columns:repeat(3,minmax(0,1fr));padding:14px 18px;border-top:1px solid var(--line-2)}
 .fz-foot{display:flex;flex-wrap:wrap;justify-content:space-between;gap:6px 16px;padding-top:10px;border-top:1px solid var(--line-2)}
 .ok-t{color:var(--ok)}.bad-t{color:var(--bad)}.warn-t{color:var(--warn)}
+.t.bud tr.bsub td{padding-top:4px;padding-bottom:4px}.t.bud tr.bsub td:first-child{padding-left:30px}
 .ar-list{display:grid}
 .ar{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(150px,.9fr) minmax(0,1.2fr) 92px;gap:6px 16px;align-items:center;padding:11px 18px;border-bottom:1px solid var(--line-2);cursor:pointer}
 .ar:last-child{border-bottom:0}.ar:hover{background:var(--surface-2)}
@@ -669,7 +670,7 @@ const TONE = {
   'En curso':'info','En ejecución':'info','En proceso':'info','En espera de formato':'hold','Sin respuesta':'bad','En evaluación':'info','Recibida':'info','Programado':'info',
   'Atención':'warn','Pendiente':'warn','Medio':'warn','Solicitada':'warn','Abierto':'warn',
   'Crítico':'bad','Alto':'bad','Descartada':'mute',
-  'En espera':'hold','Borrador':'hold',
+  'En espera':'hold','Borrador':'hold','Firmado por EHGSA':'info',
   'No iniciado':'mute','No aplica aún':'mute','Reemplazada':'mute','Bajo':'mute','Anulado':'mute','Cancelado':'mute'
 };
 const tone = (s) => TONE[s] || 'mute';
@@ -691,13 +692,54 @@ const fin = (id) => {
   return { tot, paid, n: cs.length };
 };
 
+// ---------- Presupuesto por partida ----------
+const PROC = ['Firmado por EHGSA'];
+let CUR = (() => { try { return localStorage.getItem('guaruma-cur') || 'USD'; } catch (_) { return 'USD'; } })();
+const cm = (v) => v == null ? '—' : CUR === 'HNL' ? 'L ' + nf.format(v * FX) : 'US$ ' + nf.format(v);
+const ck = (v) => { const x = CUR === 'HNL' ? v * FX : v, pre = CUR === 'HNL' ? 'L ' : 'US$ '; return pre + (Math.abs(x) >= 1e6 ? nf.format(x / 1e6).replace(/\.?0+$/, '') + ' M' : nf0.format(x)); };
+const presFr = (id) => { const ps = PRES.filter((q) => q.Frente === id); return ps.length ? { Frente: id, 'Presupuesto US$': ps.reduce((t, q) => t + (Number(q['Presupuesto US$']) || 0), 0), Partida: ps.map((q) => q.Partida).join(' + '), Notas: ps.length > 1 ? ps.map((q) => `${q.Partida} US$ ${nf.format(q['Presupuesto US$'])}`).join(' + ') : (ps[0].Notas || '') } : null; };
+const presFrIds = () => [...new Set(PRES.filter((q) => q.Frente).map((q) => q.Frente))];
+// Partida de un contrato u oferta: "PS-ES05" o repartida "PS-ES08=383000; PS-ES07=2465000" (montos en la moneda del documento)
+function alloc(x) {
+  const raw = String(x.Partida || '').trim(); if (!raw) return [];
+  const parts = raw.split(/[;,]/).map((q) => q.trim()).filter(Boolean);
+  if (parts.length === 1 && !parts[0].includes('=')) return [{ id: parts[0], orig: Number(x.Monto) || 0, usd: usd(Number(x.Monto) || 0, x.Moneda), split: false }];
+  return parts.map((q) => { const [id, m] = q.split('=').map((z) => z.trim()); const v = Number(String(m || '').replace(/,/g, '')) || 0; return { id, orig: v, usd: usd(v, x.Moneda), split: true }; });
+}
+function budCalc() {
+  const parts = PRES.filter((q) => q.ID).map((q) => ({ p: q, pres: Number(q['Presupuesto US$']) || 0, firm: [], proc: [], ofs: [] }));
+  const byId = Object.fromEntries(parts.map((x) => [x.p.ID, x]));
+  const sinC = [], sinO = [];
+  C.filter((c) => FIRM.includes(c.Estado) || PROC.includes(c.Estado)).forEach((c) => {
+    const a = alloc(c); if (!a.length || a.some((q) => !byId[q.id])) { sinC.push(c); return; }
+    const tot = usd(Number(c.Monto) || 0, c.Moneda) || 1;
+    const paid = paysOf(c['N.º']).filter((q) => q.Estado === 'Pagado').reduce((t, q) => t + usd(q.Monto, q.Moneda), 0);
+    a.forEach((q) => (FIRM.includes(c.Estado) ? byId[q.id].firm : byId[q.id].proc).push({ x: c, usd: q.usd, orig: q.orig, split: q.split, paid: paid * q.usd / tot }));
+  });
+  O.filter((o) => ['Recibida', 'En evaluación'].includes(o.Estado) && o.Monto).forEach((o) => {
+    const a = alloc(o); if (!a.length || a.some((q) => !byId[q.id])) { sinO.push(o); return; }
+    a.forEach((q) => byId[q.id].ofs.push({ x: o, usd: q.usd, orig: q.orig, split: q.split }));
+  });
+  parts.forEach((x) => { x.com = x.firm.reduce((t, d) => t + d.usd, 0); x.pro = x.proc.reduce((t, d) => t + d.usd, 0); x.paid = x.firm.reduce((t, d) => t + d.paid, 0); x.disp = x.pres - x.com - x.pro; });
+  const sum = (arr) => ['pres', 'com', 'pro', 'paid'].reduce((o, k) => { o[k] = arr.reduce((t, x) => t + x[k], 0); return o; }, {});
+  const secs = [];
+  parts.forEach((x) => {
+    let s = secs.find((q) => q.name === x.p['Sección']); if (!s) { s = { name: x.p['Sección'] || 'Sin sección', groups: [] }; secs.push(s); }
+    let g = s.groups.find((q) => q.name === x.p.Grupo); if (!g) { g = { name: x.p.Grupo || 'Sin grupo', parts: [] }; s.groups.push(g); }
+    g.parts.push(x);
+  });
+  secs.forEach((s) => { s.groups.forEach((g) => { Object.assign(g, sum(g.parts)); g.disp = g.pres - g.com - g.pro; }); Object.assign(s, sum(s.groups)); s.disp = s.pres - s.com - s.pro; });
+  const tot = sum(secs); tot.disp = tot.pres - tot.com - tot.pro;
+  return { parts, secs, tot, sinC, sinO, procN: C.filter((c) => PROC.includes(c.Estado)).length };
+}
+
 // ---------- Nav ----------
 const ROUTES = [
   ['resumen', 'Resumen', 'home'], ['frentes', 'Áreas', 'layers'], ['contratos', 'Contratos y pagos', 'contract'], ['presupuesto', 'Presupuesto', 'coin'], ['ofertas', 'Ofertas', 'tag'],
   ['cronograma', 'Cronograma', 'cal'], ['pendientes', 'Pendientes y riesgos', 'alert'], ['consultas', 'Consultas', 'quest'], ['reporte', 'Reportes semanales', 'report'], ['documentos', 'Documentos', 'folder'], ['bitacora', 'Bitácora', 'clock']
 ];
 // ---------- Módulos (secciones con su propio archivo en modulos/, se cargan al entrar) ----------
-const APP_VER = '1.16.7';
+const APP_VER = '1.17.0';
 const MODS = {
   licencia: { lbl: 'Licencia ambiental', icon: 'cal', cnt: 'Detalle' },
   'ruta-regulatoria': { lbl: 'Ruta regulatoria', icon: 'route', cnt: 'Trámites' }
@@ -839,7 +881,8 @@ const MILESTONES = [
 ];
 // Presupuesto por área: contratado (o la oferta en evaluación más alta si aún no hay contrato)
 function presCalc() {
-  const rows = PRES.map((pr) => {
+  const rows = presFrIds().map((fid) => {
+    const pr = presFr(fid);
     const cs = C.filter((c) => c.Frente === pr.Frente && FIRM.includes(c.Estado));
     const p = Number(pr['Presupuesto US$']) || 0;
     let val = cs.reduce((t, c) => t + usd(c.Monto, c.Moneda), 0), src = 'Contratado', ref = cs.map((c) => c['N.º']).join(', ');
@@ -938,27 +981,55 @@ function vResumen() {
 
 // ---------- Presupuesto ----------
 function vPresupuesto() {
-  const fz = fondoCalc(), pc = presCalc();
-  const sinPres = F.filter((f) => !PRES.some((p) => p.Frente === f.ID) && fz.firm.some((c) => c.Frente === f.ID));
-  const sg = (v) => (v > 0 ? '+' : v < 0 ? '−' : '') + nf.format(Math.abs(v));
-  const maxv = Math.max(1, ...pc.rows.map((r) => Math.max(r.p, r.val || 0)));
-  const fondoT = `<section class="panel"><div class="ph"><div><h2 class="h2">Uso del fondo de estudios</h2><p>${fz.fondo ? `Fondo ${money(fz.fondo, 'USD')} · ` : ''}contratos firmados, en US$ (L ${FX} por US$).</p></div></div>
-    <div class="tbl-wrap"><table class="t"><thead><tr><th>N.º</th><th>Objeto · contratista</th><th>Área</th><th class="num">Monto US$</th><th class="num">Pagado US$</th><th class="num">Por pagar US$</th></tr></thead><tbody>
-    ${fz.firm.map((c) => { const m = usd(c.Monto, c.Moneda), p = paysOf(c['N.º']).filter((x) => x.Estado === 'Pagado').reduce((t, x) => t + usd(x.Monto, x.Moneda), 0);
-      return `<tr class="click" data-go="frente-${esc(c.Frente)}"><td class="nowrap">${esc(c['N.º'])}</td><td>${esc(c.Objeto)}<div class="faint small">${esc(c.Contratista)}${c.Moneda === 'HNL' ? ` · ${money(c.Monto, 'HNL')}` : ''}</div></td><td class="small">${esc(fById[c.Frente]?.Frente || c.Frente)}</td><td class="num">${nf.format(m)}</td><td class="num">${nf.format(p)}</td><td class="num">${nf.format(m - p)}</td></tr>`; }).join('')}
-    <tr class="tot"><td></td><td><b>Total · ${fz.firm.length} contratos</b></td><td></td><td class="num"><b>${nf.format(fz.comp)}</b></td><td class="num"><b>${nf.format(fz.paid)}</b></td><td class="num"><b>${nf.format(fz.porPagar)}</b></td></tr></tbody></table></div>
-    ${fz.fondo ? `<div class="fz fz-3"><div><span class="small muted">Comprometido</span><b class="tnum">${pc0(fz.comp / fz.fondo)}</b><span class="small faint">${k1(fz.comp)} del fondo</span></div><div><span class="small muted">Pagado</span><b class="tnum">${k1(fz.paid)}</b><span class="small faint">${k1(fz.porPagar)} por pagar</span></div><div><span class="small muted">Disponible</span><b class="tnum">≈ ${k1(fz.libre)}</b><span class="small faint">para los estudios que faltan${fz.adj ? ` (descontando ${k1(fz.adj)} por adjudicar)` : ''}</span></div></div>` : ''}</section>`;
-  const presT = `<section class="panel"><div class="ph"><div><h2 class="h2">Presupuesto contra contratado</h2><p>${pc.rows.length ? `Estudios: ${pc.dif > 0 ? 'por encima' : 'por debajo'} del presupuesto en ${(Math.abs(pc.pct) * 100).toFixed(1)} % (${sg(pc.dif)} US$).` : 'Sin partidas en la hoja Presupuesto.'}</p></div></div>
-    <div class="tbl-wrap"><table class="t"><thead><tr><th>Área · partida</th><th class="num">Presupuesto</th><th class="num">Contratado</th><th class="num">Diferencia</th><th class="num">%</th><th style="min-width:160px"></th></tr></thead><tbody>
-    ${pc.rows.map((r) => `<tr class="click" data-go="frente-${esc(r.pr.Frente)}"><td><b>${esc(r.f?.Frente || r.pr.Partida)}</b>${r.pr.Partida && r.pr.Partida !== r.f?.Frente || r.pr.Notas ? `<div class="faint small">${[r.pr.Partida !== r.f?.Frente ? esc(r.pr.Partida) : '', esc(r.pr.Notas || '')].filter(Boolean).join(' · ')}</div>` : ''}${r.src !== 'Contratado' ? `<div class="small warn-t">${r.src}${r.ref ? ' · ' + esc(r.ref) : ''}</div>` : `<div class="faint small">Contrato ${esc(r.ref)}</div>`}</td>
-      <td class="num">${nf.format(r.p)}</td><td class="num">${r.val == null ? '—' : nf.format(r.val)}</td><td class="num ${r.dif > 0 ? 'bad-t' : 'ok-t'}">${r.dif == null ? '—' : sg(r.dif)}</td><td class="num ${r.dif > 0 ? 'bad-t' : 'ok-t'}">${r.dif == null || !r.p ? '—' : (r.dif > 0 ? '+' : '−') + Math.abs(r.dif / r.p * 100).toFixed(1) + ' %'}</td>
-      <td><div class="pv-b"><span style="width:${r.p / maxv * 100}%" class="pv-p" data-tip="Presupuesto US$ ${nf.format(r.p)}"></span>${r.val != null ? `<span style="width:${r.val / maxv * 100}%" class="pv-c" data-tip="Contratado US$ ${nf.format(r.val)}"></span>` : ''}</div></td></tr>`).join('')}
-    <tr class="tot"><td><b>Total</b></td><td class="num"><b>${nf.format(pc.tp)}</b></td><td class="num"><b>${nf.format(pc.tv)}</b></td><td class="num ${pc.dif > 0 ? 'bad-t' : 'ok-t'}"><b>${sg(pc.dif)}</b></td><td class="num ${pc.dif > 0 ? 'bad-t' : 'ok-t'}"><b>${(pc.dif > 0 ? '+' : '−') + (Math.abs(pc.pct) * 100).toFixed(1)} %</b></td><td class="small faint"><i class="sw pv-p"></i>Presupuesto <i class="sw pv-c" style="margin-left:8px"></i>Contratado</td></tr></tbody></table></div>
-    ${sinPres.length ? `<div class="pb small muted" style="border-top:1px solid var(--line-2)">Sin línea de presupuesto: ${sinPres.map((f) => `<b>${esc(f.Frente)}</b> (contratado ${k1(fin(f.ID).tot)})`).join(', ')}. Agrégala en la hoja Presupuesto del Excel para compararla.</div>` : ''}</section>`;
-  const eq = O.filter((o) => o.Frente && !PRES.some((p) => p.Frente === o.Frente) && ['Recibida', 'En evaluación'].includes(o.Estado) && o.Monto && !fz.firm.some((c) => c.Frente === o.Frente));
-  const eqT = eq.length ? `<section class="panel"><div class="ph"><div><h2 class="h2">Ofertas de equipos recibidas</h2><p>Preliminares: no entran en el fondo de estudios ni en los totales.</p></div><a class="btn sm" href="#ofertas">Ver ofertas</a></div>
-    <div class="tbl-wrap"><table class="t"><thead><tr><th>Área</th><th>Proveedor · referencia</th><th class="num">Monto</th><th>Estado</th></tr></thead><tbody>${eq.map((o) => `<tr class="click" data-go="frente-${esc(o.Frente)}"><td class="small">${esc(fById[o.Frente]?.Frente || o.Frente)}</td><td>${esc(o.Proveedor)}<div class="faint small">${esc(o.Referencia || '')}</div></td><td class="num">${money(o.Monto, o.Moneda)}</td><td>${pill(o.Estado)}</td></tr>`).join('')}</tbody></table></div></section>` : '';
-  return `<section class="cover"><div><h1 class="h1">Presupuesto</h1><div class="loc">Fondo de estudios y presupuesto contra contratado por área. Mismos números del informe semanal.</div></div></section>${fondoT}${presT}${eqT}`;
+  const fz = fondoCalc(), b = budCalc();
+  const nueva = '<span class="pill s-info" data-tip="Partida que no estaba en el presupuesto aprobado; se cubre con el total de su sección">Nueva</span>';
+  const caret = '<svg viewBox="0 0 24 24" class="caret"><path d="m9 6 6 6-6 6"/></svg>';
+  const pctOf = (v, t) => t ? pc0(v / t) : '—';
+  const dispC = (v) => v < -0.005 ? 'bad-t' : '';
+  const toggle = `<div class="seg" role="group" aria-label="Moneda"><button type="button" data-cur="USD" aria-pressed="${CUR === 'USD'}">US$</button><button type="button" data-cur="HNL" aria-pressed="${CUR === 'HNL'}">L</button></div>`;
+  const band = `<section class="panel band">
+    <div class="kpi"><div class="k">Presupuesto total</div><div class="v">${ck(b.tot.pres)}</div><div class="n">${b.secs.length} secciones · ${b.parts.length} partidas</div></div>
+    <div class="kpi"><div class="k">Comprometido</div><div class="v">${ck(b.tot.com)}</div><div class="n">${pctOf(b.tot.com, b.tot.pres)} · contratos firmados por las dos partes</div></div>
+    <div class="kpi"><div class="k">En proceso</div><div class="v">${ck(b.tot.pro)}</div><div class="n">${b.procN ? `${b.procN} contrato${b.procN > 1 ? 's' : ''} firmado${b.procN > 1 ? 's' : ''} por EHGSA · falta la firma de la contraparte` : 'Sin contratos por firmar'}</div></div>
+    <div class="kpi"><div class="k">Pagado</div><div class="v">${ck(b.tot.paid)}</div><div class="n">${ck(b.tot.com - b.tot.paid)} por pagar</div></div>
+    <div class="kpi"><div class="k">Disponible</div><div class="v">${ck(b.tot.disp)}</div><div class="n">Presupuesto menos comprometido y en proceso</div></div></section>`;
+  const docRow = (d, kind) => {
+    const c = d.x, isO = kind === 'o';
+    const name = isO ? `${esc(c.Proveedor)}${c.Referencia ? ' · ' + esc(String(c.Referencia).slice(0, 70)) : ''}` : `${esc(c['N.º'])} · ${esc(c.Contratista)}`;
+    const orig = c.Moneda === 'HNL' || d.split ? `<span class="faint"> · ${money(d.orig, c.Moneda)}${d.split ? ' (parte)' : ''}</span>` : '';
+    const st = isO ? '<span class="pill s-mute" data-tip="Oferta en evaluación: es referencia y no entra en los totales">Oferta</span>' : pill(c.Estado);
+    return `<tr class="bsub${isO ? ' faint' : ''}"><td colspan="2" class="small"><span class="subn">${name}${orig}</span> ${st}</td><td class="num small">${!isO && FIRM.includes(c.Estado) ? cm(d.usd) : ''}</td><td class="num small">${!isO && PROC.includes(c.Estado) ? cm(d.usd) : isO ? `<span data-tip="Referencia">${cm(d.usd)}</span>` : ''}</td><td></td></tr>`;
+  };
+  const secT = b.secs.map((s) => {
+    const over = s.disp < -0.005;
+    const w = (v) => s.pres ? Math.max(0, Math.min(100, v / s.pres * 100)) : 0;
+    const groups = s.groups.map((g) => {
+      const act = g.parts.some((x) => x.firm.length || x.proc.length || x.ofs.length);
+      const gOver = g.disp < -0.005;
+      return `<details class="grp"${act ? ' open' : ''}><summary>${caret}<div class="gs-t">${esc(g.name)}<span class="faint small" style="font-weight:500">${g.parts.length} partida${g.parts.length > 1 ? 's' : ''}</span></div>
+        <div class="gs-r">${g.com + g.pro > 0 ? `<span class="cnt-chip s-${gOver ? 'warn' : 'ok'}">${pctOf(g.com + g.pro, g.pres)} usado</span>` : ''}</div>
+        <div class="gs-sub"><span>Presupuesto ${cm(g.pres)}</span><span>Comprometido ${cm(g.com)}</span>${g.pro ? `<span>En proceso ${cm(g.pro)}</span>` : ''}<span class="${gOver ? 'warn-t' : ''}">Disponible ${cm(g.disp)}</span></div></summary>
+        <div class="tbl-wrap"><table class="t bud"><thead><tr><th>Partida</th><th class="num">Presupuesto</th><th class="num">Comprometido</th><th class="num">En proceso</th><th class="num">Disponible</th></tr></thead><tbody>
+        ${g.parts.map((x) => {
+          const pOver = x.disp < -0.005;
+          return `<tr><td><b>${esc(x.p.Partida)}</b> <span class="faint small">${esc(x.p.ID)}</span> ${x.p.Origen === 'Nueva' ? nueva : ''}${x.p.Notas ? `<div class="faint small">${esc(x.p.Notas)}</div>` : ''}</td>
+            <td class="num">${cm(x.pres)}</td><td class="num">${x.com ? cm(x.com) : '<span class="faint">—</span>'}</td><td class="num">${x.pro ? cm(x.pro) : '<span class="faint">—</span>'}</td>
+            <td class="num ${pOver ? (over ? 'bad-t' : 'warn-t') : ''}"${pOver && !over ? ' data-tip="La partida se pasa, pero la sección lo cubre"' : ''}>${cm(x.disp)}</td></tr>
+            ${x.firm.concat(x.proc).map((d) => docRow(d, 'c')).join('')}${x.ofs.map((d) => docRow(d, 'o')).join('')}`; }).join('')}
+        </tbody></table></div></details>`;
+    }).join('');
+    return `<section class="panel"><div class="ph"><div><h2 class="h2">${esc(s.name)}</h2><p>Presupuesto ${cm(s.pres)} · comprometido ${cm(s.com)} (${pctOf(s.com, s.pres)})${s.pro ? ` · en proceso ${cm(s.pro)}` : ''} · disponible <b class="${dispC(s.disp)}">${cm(s.disp)}</b></p></div>${over ? '<span class="pill s-bad">Sobre el presupuesto</span>' : '<span class="pill s-ok">Dentro del presupuesto</span>'}</div>
+      <div class="pb" style="display:grid;gap:10px"><div class="stack" role="img" aria-label="Uso del presupuesto de la sección">${[[s.paid, 'var(--ok)', 'Pagado'], [s.com - s.paid, 'var(--info)', 'Por pagar'], [s.pro, 'var(--info-bg)', 'En proceso']].map(([v, c, l]) => v > 0 ? `<span style="width:${w(v)}%;background:${c}" data-tip="${l}: ${cm(v)}"></span>` : '').join('')}</div>
+      <div class="small faint" style="display:flex;gap:14px;flex-wrap:wrap"><span><i class="sw" style="background:var(--ok)"></i>Pagado ${cm(s.paid)}</span><span><i class="sw" style="background:var(--info)"></i>Por pagar ${cm(s.com - s.paid)}</span><span><i class="sw" style="background:var(--info-bg)"></i>En proceso ${cm(s.pro)}</span></div></div>
+      <div class="acc">${groups}</div></section>`;
+  }).join('');
+  const sinT = b.sinC.length || b.sinO.length ? `<section class="panel"><div class="ph"><div><h2 class="h2">Sin partida</h2><p>Contratos u ofertas sin partida del presupuesto. Asígnales una en la columna Partida.</p></div></div>
+    <div class="list">${b.sinC.map((c) => `<div class="li"><span class="tag">${esc(c['N.º'])}</span><span class="what">${esc(c.Contratista)} · ${money(c.Monto, c.Moneda)}</span>${pill(c.Estado)}</div>`).join('')}${b.sinO.map((o) => `<div class="li"><span class="tag">${esc(o.ID)}</span><span class="what">${esc(o.Proveedor)} · ${money(o.Monto, o.Moneda)}</span>${pill(o.Estado)}</div>`).join('')}</div></section>` : '';
+  const fondoT = fz.fondo ? `<section class="panel"><div class="ph"><div><h2 class="h2">Fondo de estudios</h2><p>Fondo ${cm(fz.fondo)} · contratos firmados por las dos partes.</p></div></div>
+    <div class="fz fz-3 pb"><div><span class="small muted">Comprometido</span><b class="tnum">${pc0(fz.comp / fz.fondo)}</b><span class="small faint">${cm(fz.comp)} del fondo</span></div><div><span class="small muted">Pagado</span><b class="tnum">${cm(fz.paid)}</b><span class="small faint">${cm(fz.porPagar)} por pagar</span></div><div><span class="small muted">Disponible</span><b class="tnum">≈ ${cm(fz.libre)}</b><span class="small faint">para los estudios que faltan${fz.adj ? ` (descontando ${cm(fz.adj)} por adjudicar)` : ''}</span></div></div></section>` : '';
+  return `<section class="cover"><div><h1 class="h1">Presupuesto</h1><div class="loc">Presupuesto aprobado por sección, grupo y partida, contra lo contratado. El control es por sección: una partida puede pasarse si la sección la cubre.</div></div>
+    <div class="status-card" style="display:grid;gap:6px;justify-items:end">${toggle}<span class="small faint">Tasa fija L ${nf.format(FX)} por US$</span></div></section>
+    ${band}${secT}${sinT}${fondoT}`;
 }
 
 function vFrentes() {
@@ -979,7 +1050,7 @@ function vFrente(id) {
   const f = fById[id]; if (!f) return '<div class="empty">No existe esa área.</div>';
   const cs = contractsOf(id), ofs = O.filter((o) => o.Frente === id), acts = A.filter((a) => a.Frente === id), rs = R.filter((r) => r.Frente === id), dcs = openPend().filter((d) => d.Frente === id);
   const m = fin(id);
-  const pres = PRES.find((p) => p.Frente === id);
+  const pres = presFr(id);
   const tabs = [['resumen', 'Resumen'], ['ofertas', 'Ofertas', ofs.length], ['contrato', 'Contrato y pagos', cs.length], ['actividades', 'Actividades', acts.length], ['documentos', 'Documentos']];
   let body = '';
   if (fTab === 'resumen') {
@@ -1026,7 +1097,7 @@ function contractPanel(c, collapsible) {
   const paid = ps.filter((p) => p.Estado === 'Pagado').reduce((s, p) => s + p.Monto, 0);
   const cls = (p) => p.Estado === 'Pagado' ? 'paid' : p.Estado === 'No aplica aún' ? 'na' : 'pend';
   const bar = `<div class="pay">${ps.map((p) => `<div class="${cls(p)}" style="flex:${p.Monto / tot}" data-tip="<b>${esc(p.Concepto)} · ${Math.round(p['%'] * 100)} %</b>${money(p.Monto, p.Moneda)}<br>${esc(p['Condición / hito'])}<br>Estado: ${esc(p.Estado)}${p.Notas ? '<br>' + esc(p.Notas) : ''}">${Math.round(p['%'] * 100)} %</div>`).join('')}</div>`;
-  const facts = `<div style="display:flex;gap:24px;flex-wrap:wrap" class="small"><div><div class="faint">Monto</div><b class="tnum" style="font-size:15px">${money(c.Monto, c.Moneda)}</b></div><div><div class="faint">Pagado</div><b class="tnum" style="font-size:15px">${money(paid, c.Moneda)}</b></div><div><div class="faint">Saldo</div><b class="tnum" style="font-size:15px">${money((c.Monto || 0) - paid, c.Moneda)}</b></div><div><div class="faint">Firma</div><b>${fd(c['Fecha firma'], 1)}</b></div><div><div class="faint">Plazo</div><b>${esc(c.Plazo)}</b></div></div>`;
+  const facts = `<div style="display:flex;gap:24px;flex-wrap:wrap" class="small">${c.Partida ? `<div><div class="faint">Partida</div><b style="font-size:13px">${esc(alloc(c).map((q) => { const pr = PRES.find((z) => z.ID === q.id); return pr ? `${q.id} · ${pr.Partida}` : q.id; }).join(' + '))}</b></div>` : ''}<div><div class="faint">Monto</div><b class="tnum" style="font-size:15px">${money(c.Monto, c.Moneda)}</b></div><div><div class="faint">Pagado</div><b class="tnum" style="font-size:15px">${money(paid, c.Moneda)}</b></div><div><div class="faint">Saldo</div><b class="tnum" style="font-size:15px">${money((c.Monto || 0) - paid, c.Moneda)}</b></div><div><div class="faint">Firma</div><b>${fd(c['Fecha firma'], 1)}</b></div><div><div class="faint">Plazo</div><b>${esc(c.Plazo)}</b></div></div>`;
   const table = `<div class="tbl-wrap"><table class="t"><thead><tr><th>Pago</th><th class="num">Monto</th><th>Condición</th><th>Estado</th><th>Fecha</th><th></th></tr></thead><tbody>
         ${ps.map((p) => `<tr><td>${esc(p.Concepto)}</td><td class="num">${money(p.Monto, p.Moneda)}</td><td class="small">${esc(p['Condición / hito'])}${p.Notas ? `<div class="faint">${esc(p.Notas)}</div>` : ''}</td><td>${pill(p.Estado)}</td><td class="nowrap small">${fd(p['Fecha de pago'], 1)}</td><td class="act">${p.Estado !== 'Pagado' && p.Estado !== 'No aplica aún' ? `<button class="qbtn" type="button" data-edit="Pagos|${esc(p.ID)}" data-preset="${encodeURIComponent('Estado=Pagado&Fecha de pago=' + TODAY)}">Registrar pago</button>` : ''}<button class="ebtn" type="button" data-edit="Pagos|${esc(p.ID)}" data-tip="Editar pago">${EDI}</button></td></tr>`).join('')}</tbody></table></div>
       <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">${c.Notas ? `<div class="faint small" style="flex:1;min-width:200px">${esc(c.Notas)}</div>` : '<span style="flex:1"></span>'}<button class="btn sm" type="button" data-new="Pagos" data-preset="${encodeURIComponent('Contrato=' + c['N.º'] + '&Moneda=' + (c.Moneda || 'USD'))}">${ic('plus')}Agregar pago</button><button class="btn sm" type="button" data-edit="Contratos|${esc(c['N.º'])}">Editar contrato</button></div>`;
@@ -1120,9 +1191,10 @@ async function listFolder(rel) {
 }
 
 function vContratos() {
-  const byCur = {}; C.filter((c) => c.Estado !== 'Borrador').forEach((c) => { byCur[c.Moneda] = byCur[c.Moneda] || { t: 0, p: 0 }; byCur[c.Moneda].t += c.Monto; paysOf(c['N.º']).forEach((p) => { if (p.Estado === 'Pagado') byCur[c.Moneda].p += p.Monto; }); });
+  const byCur = {}; C.filter((c) => FIRM.includes(c.Estado)).forEach((c) => { byCur[c.Moneda] = byCur[c.Moneda] || { t: 0, p: 0 }; byCur[c.Moneda].t += c.Monto; paysOf(c['N.º']).forEach((p) => { if (p.Estado === 'Pagado') byCur[c.Moneda].p += p.Monto; }); });
   return `<section class="cover"><div><h1 class="h1">Contratos y pagos</h1><div class="loc">Contratos de obra determinada de EHGSA, con sus anticipos y pagos.</div></div><div class="status-card" style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn" type="button" data-new="Contratos">${ic('plus')}Agregar contrato</button><button class="btn primary" type="button" data-new="Pagos">${ic('plus')}Agregar pago</button></div></section>
     <section class="panel band">${Object.entries(byCur).map(([cur, v]) => `<div class="kpi"><div class="k">Firmado en ${cur === 'USD' ? 'dólares' : 'lempiras'}</div><div class="v">${money(v.t, cur)}</div><div class="meter thin"><span style="width:${v.p / v.t * 100}%;background:var(--ok)"></span></div><div class="n">Pagado ${money(v.p, cur)} · saldo ${money(v.t - v.p, cur)}</div></div>`).join('')}
+      ${C.some((c) => PROC.includes(c.Estado)) ? `<div class="kpi"><div class="k">En proceso</div><div class="v">${C.filter((c) => PROC.includes(c.Estado)).length}</div><div class="n">${C.filter((c) => PROC.includes(c.Estado)).map((c) => c['N.º']).join(', ')} · firmados por EHGSA, falta la contraparte</div></div>` : ''}
       <div class="kpi"><div class="k">En borrador</div><div class="v">${C.filter((c) => c.Estado === 'Borrador').length}</div><div class="n">${C.filter((c) => c.Estado === 'Borrador').map((c) => c['N.º']).join(', ')} · esperan adjudicación</div></div></section>
     <div class="status-card" style="justify-items:end;max-width:none"><div class="seg"><button type="button" data-acc="open">Abrir todo</button><button type="button" data-acc="close">Cerrar todo</button></div></div>
     <div class="acc">${C.map((c) => contractPanel(c, true)).join('')}</div>`;
@@ -1133,7 +1205,7 @@ function vOfertas() {
   return `<section class="cover"><div><h1 class="h1">Ofertas</h1><div class="loc">Cotizaciones agrupadas por área. Abre un grupo para ver el detalle y la comparación con el presupuesto.</div></div>
     <div class="status-card" style="display:flex;gap:8px;flex-wrap:wrap;align-items:center"><button class="btn primary" type="button" data-new="Ofertas">${ic('plus')}Agregar oferta</button><div class="seg"><button type="button" data-acc="open">Abrir todo</button><button type="button" data-acc="close">Cerrar todo</button></div></div></section>
     <div class="acc">${groups.map(({ f, os }) => {
-      const pr = PRES.find((p) => p.Frente === f.ID);
+      const pr = presFr(f.ID);
       const by = {}; os.forEach((o) => { by[o.Estado] = (by[o.Estado] || 0) + 1; });
       const adj = os.find((o) => o.Estado === 'Adjudicada');
       const open = os.some((o) => o.Estado === 'En evaluación' || o.Estado === 'Solicitada');
@@ -1573,6 +1645,7 @@ document.addEventListener('click', (e) => {
   if (e.target.closest('[data-asana-cfg],[data-asana-save],[data-asana-del]')) { asanaClick(e); return; }
   if (e.target.closest('#docbox')) { docsClick(e); }
   const of = e.target.closest('[data-openfolder]'); if (of) { openFolderWeb(of.dataset.openfolder); return; }
+  const cu = e.target.closest('[data-cur]'); if (cu) { CUR = cu.dataset.cur; try { localStorage.setItem('guaruma-cur', CUR); } catch (_) {} render(); return; }
   const ac = e.target.closest('[data-acc]'); if (ac) { document.querySelectorAll('details.grp').forEach((d) => { d.open = ac.dataset.acc === 'open'; }); return; }
   if (e.target.closest('[aria-disabled="true"]')) e.preventDefault();
 });
@@ -1619,9 +1692,9 @@ const SCHEMA = {
   Informes: ['N.º', 'Período', 'Fecha de emisión', 'Estado general', 'Archivo', 'Notas', 'Tipo', 'Semana', 'Frente'].map((k) => ({ k })),
   Pendientes: [{ k: 'Pendiente', t: 'text', req: 1, w: 2 }, { k: 'Decisión solicitada', t: 'textarea', w: 2, help: 'Lo que se le pide concretamente a quien decide (sale resaltado en el reporte semanal).' }, { k: 'Prioridad', t: 'select', o: ['Alta', 'Media', 'Baja'], req: 1 }, { k: 'Estado', t: 'select', o: ['Pendiente', 'En curso', 'Resuelto', 'Descartado'], req: 1 }, { k: 'Frente', l: 'Área', t: 'select', o: frOpts, req: 1 }, { k: 'Responsable', t: 'text' }, { k: 'Fecha límite', t: 'date' }, { k: 'Qué atrasa', t: 'textarea', w: 2, help: 'Pasos separados por  >  y cada paso como "Nombre: detalle". El último paso es el impacto final.' }, { k: 'Impacto', t: 'textarea', w: 2 }, { k: 'Notas', t: 'textarea', w: 2 }],
   Actividades: [{ k: 'Actividad', t: 'text', req: 1, w: 2 }, { k: 'Frente', l: 'Área', t: 'select', o: frOpts, req: 1 }, { k: 'Estado', t: 'select', o: ['Pendiente', 'En curso', 'Programado', 'Cumplido', 'Cancelado'], req: 1 }, { k: 'Responsable', t: 'text' }, { k: 'Fecha', t: 'date' }, { k: 'Notas', t: 'textarea', w: 2 }],
-  Ofertas: [{ k: 'Frente', l: 'Área', t: 'select', o: frOpts, req: 1 }, { k: 'Proveedor', t: 'text', req: 1 }, { k: 'Referencia', t: 'text' }, { k: 'Fecha', t: 'date' }, { k: 'Monto', t: 'number' }, { k: 'Moneda', t: 'select', o: ['USD', 'HNL'], req: 1 }, { k: 'Estado', t: 'select', o: ['Solicitada', 'Recibida', 'En evaluación', 'Adjudicada', 'Descartada', 'Reemplazada'], req: 1 }, { k: 'Plazo', t: 'text' }, { k: 'Alcance', t: 'textarea', w: 2 }, { k: 'Archivo', t: 'file', w: 2, help: 'Se guarda en la carpeta del frente.' }, { k: 'Notas', t: 'textarea', w: 2 }],
+  Ofertas: [{ k: 'Frente', l: 'Área', t: 'select', o: frOpts, req: 1 }, { k: 'Proveedor', t: 'text', req: 1 }, { k: 'Referencia', t: 'text' }, { k: 'Fecha', t: 'date' }, { k: 'Monto', t: 'number' }, { k: 'Moneda', t: 'select', o: ['USD', 'HNL'], req: 1 }, { k: 'Estado', t: 'select', o: ['Solicitada', 'Recibida', 'En evaluación', 'Adjudicada', 'Descartada', 'Reemplazada'], req: 1 }, { k: 'Plazo', t: 'text' }, { k: 'Partida', t: 'text', w: 2, dl: () => PRES.filter((q) => q.ID).map((q) => q.ID + ' · ' + q.Partida), help: 'ID de la partida del presupuesto (p. ej. PS-ES05). Si se reparte entre varias: PS-ES08=383000; PS-ES07=2465000, con montos en la moneda del documento.' }, { k: 'Alcance', t: 'textarea', w: 2 }, { k: 'Archivo', t: 'file', w: 2, help: 'Se guarda en la carpeta del frente.' }, { k: 'Notas', t: 'textarea', w: 2 }],
   Pagos: [{ k: 'Contrato', t: 'select', o: ctOpts, req: 1 }, { k: 'Concepto', t: 'text', req: 1 }, { k: '%', t: 'percent' }, { k: 'Monto', t: 'number', req: 1 }, { k: 'Moneda', t: 'select', o: ['USD', 'HNL'], req: 1 }, { k: 'Estado', t: 'select', o: ['Pagado', 'Pendiente', 'Programado', 'No aplica aún'], req: 1 }, { k: 'Fecha de pago', t: 'date' }, { k: 'Condición / hito', t: 'text', w: 2 }, { k: 'Notas', t: 'textarea', w: 2 }],
-  Contratos: [{ k: 'N.º', t: 'text', req: 1, newOnly: 1 }, { k: 'Frente', l: 'Área', t: 'select', o: frOpts, req: 1 }, { k: 'Contratista', t: 'text', req: 1, w: 2 }, { k: 'Objeto', t: 'textarea', w: 2 }, { k: 'Monto', t: 'number', req: 1 }, { k: 'Moneda', t: 'select', o: ['USD', 'HNL'], req: 1 }, { k: 'Estado', t: 'select', o: ['Borrador', 'Firmado', 'En ejecución', 'Terminado', 'Anulado'], req: 1 }, { k: 'Fecha firma', t: 'date' }, { k: 'Plazo', t: 'text', w: 2 }, { k: 'Archivo', t: 'file', w: 2, help: 'Se guarda en la carpeta del frente.' }, { k: 'Notas', t: 'textarea', w: 2 }],
+  Contratos: [{ k: 'N.º', t: 'text', req: 1, newOnly: 1 }, { k: 'Frente', l: 'Área', t: 'select', o: frOpts, req: 1 }, { k: 'Contratista', t: 'text', req: 1, w: 2 }, { k: 'Objeto', t: 'textarea', w: 2 }, { k: 'Monto', t: 'number', req: 1 }, { k: 'Moneda', t: 'select', o: ['USD', 'HNL'], req: 1 }, { k: 'Estado', t: 'select', o: ['Borrador', 'Firmado por EHGSA', 'Firmado', 'En ejecución', 'Terminado', 'Anulado'], req: 1 }, { k: 'Fecha firma', t: 'date' }, { k: 'Plazo', t: 'text', w: 2 }, { k: 'Partida', t: 'text', w: 2, dl: () => PRES.filter((q) => q.ID).map((q) => q.ID + ' · ' + q.Partida), help: 'ID de la partida del presupuesto (p. ej. PS-ES05). Si se reparte entre varias: PS-ES08=383000; PS-ES07=2465000, con montos en la moneda del documento.' }, { k: 'Archivo', t: 'file', w: 2, help: 'Se guarda en la carpeta del frente.' }, { k: 'Notas', t: 'textarea', w: 2 }],
   Frentes: [{ k: 'Frente', l: 'Área', t: 'text', req: 1, w: 2 }, { k: 'Estado', t: 'select', o: ['En tiempo', 'Atención', 'Crítico', 'En espera', 'Completado', 'No iniciado'], req: 1 }, { k: 'Avance %', l: 'Avance real %', t: 'percent' }, { k: '% plan', l: 'Avance plan %', t: 'percent' }, { k: 'Atraso / motivo', t: 'text', w: 2 }, { k: 'Responsable EHG', t: 'text' }, { k: 'Proveedor / contraparte', t: 'text' }, { k: 'Inicio', t: 'date' }, { k: 'Fin previsto', t: 'date' }, { k: 'Próximo hito', t: 'text', w: 2 }, { k: 'Fecha próximo hito', t: 'date' }, { k: 'Carpeta', t: 'text', help: 'Ruta dentro de "Proyecto CAHSA 50 MW". Si no existe, se crea.' }, { k: 'Notas', t: 'textarea', w: 2 }],
   Consultas: [{ k: 'Código', t: 'text', req: 1, newOnly: 1, help: 'Clave única: L1, AP6, SO2…' }, { k: 'Frente', l: 'Área', t: 'select', o: frOpts, req: 1 }, { k: 'Hoja', t: 'number' }, { k: 'Área', t: 'text', dl: () => uniq(CQ.map((q) => q['Área'])) }, { k: 'Consulta', t: 'textarea', req: 1, w: 2 }, { k: 'Estado', t: 'select', o: CQ_EST, req: 1 }, { k: 'Responsable actual', t: 'text', dl: () => uniq(CQ.map((q) => q['Responsable actual'])) }, { k: 'Responsable original', t: 'text', dl: () => uniq(CQ.map((q) => q['Responsable original'])) }, { k: 'Respuesta', t: 'textarea', w: 2 }, { k: 'Fecha respuesta', t: 'date' }, { k: 'Medio', t: 'select', o: ['Correo', 'Reunión', 'Documento', 'WhatsApp', 'Llamada'] }, { k: 'Respondió', t: 'text', w: 2, dl: () => uniq(CQ.map((q) => q['Respondió'])) }, { k: 'Siguiente acción', t: 'textarea', w: 2 }, { k: 'Observaciones', t: 'textarea', w: 2 }],
   Riesgos: [{ k: 'Tema', t: 'text', req: 1, w: 2 }, { k: 'Frente', l: 'Área', t: 'select', o: frOpts, req: 1 }, { k: 'Nivel', t: 'select', o: ['Alto', 'Medio', 'Bajo'], req: 1 }, { k: 'Estado', t: 'select', o: ['Abierto', 'Mitigado', 'Cerrado'], req: 1 }, { k: 'Impacto', t: 'textarea', w: 2 }, { k: 'Acción propuesta', t: 'textarea', w: 2 }]
@@ -1847,7 +1920,7 @@ function repExtras(x) {
   hit.push({ n: 'Puesta en marcha', f: pm, st: anyRisk ? 'Atención' : 'En fecha', c: anyRisk ? '#B07800' : '#2F9447', ref: anyRisk ? 'Hay hitos de la ruta atrasados' : 'Meta del proyecto' });
   // Presupuesto de estudios
   let pres = 0, comp = 0;
-  PRES.forEach((pr) => { pres += Number(pr['Presupuesto US$'] || 0); const cs = C.filter((c) => c.Frente === pr.Frente && ['Firmado', 'En ejecución', 'Terminado'].includes(c.Estado)); if (cs.length) comp += cs.reduce((s2, c) => s2 + usd(c.Monto, c.Moneda), 0); else { const o = O.filter((o2) => o2.Frente === pr.Frente && o2.Estado === 'En evaluación' && o2.Monto).sort((a2, b2) => usd(b2.Monto, b2.Moneda) - usd(a2.Monto, a2.Moneda))[0]; if (o) comp += usd(o.Monto, o.Moneda); } });
+  presFrIds().map(presFr).forEach((pr) => { pres += Number(pr['Presupuesto US$'] || 0); const cs = C.filter((c) => c.Frente === pr.Frente && ['Firmado', 'En ejecución', 'Terminado'].includes(c.Estado)); if (cs.length) comp += cs.reduce((s2, c) => s2 + usd(c.Monto, c.Moneda), 0); else { const o = O.filter((o2) => o2.Frente === pr.Frente && o2.Estado === 'En evaluación' && o2.Monto).sort((a2, b2) => usd(b2.Monto, b2.Moneda) - usd(a2.Monto, a2.Moneda))[0]; if (o) comp += usd(o.Monto, o.Moneda); } });
   // Avance por frente y tendencia
   const prevSnap = (fid) => HIST.filter((h) => h.ID === fid && (h['Fecha foto'] || '') < x.ps).sort((a2, b2) => String(a2['Fecha foto']).localeCompare(String(b2['Fecha foto']))).pop();
   const fr = F.map((f) => { const av = f['Avance %'] === '' || f['Avance %'] == null ? null : Number(f['Avance %']); const pv = prevSnap(f.ID); const pav = pv && pv['Avance %'] !== '' && pv['Avance %'] != null ? Number(pv['Avance %']) : null; return { f, av, pav, trend: av == null || pav == null ? null : av > pav ? 'up' : av < pav ? 'down' : 'same' }; });
