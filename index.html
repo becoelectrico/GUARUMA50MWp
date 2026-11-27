@@ -739,7 +739,7 @@ const ROUTES = [
   ['cronograma', 'Cronograma', 'cal'], ['pendientes', 'Pendientes y riesgos', 'alert'], ['consultas', 'Consultas', 'quest'], ['reporte', 'Reportes semanales', 'report'], ['documentos', 'Documentos', 'folder'], ['bitacora', 'Bitácora', 'clock']
 ];
 // ---------- Módulos (secciones con su propio archivo en modulos/, se cargan al entrar) ----------
-const APP_VER = '1.17.1';
+const APP_VER = '1.17.2';
 const MODS = {
   licencia: { lbl: 'Licencia ambiental', icon: 'cal', cnt: 'Detalle' },
   'ruta-regulatoria': { lbl: 'Ruta regulatoria', icon: 'route', cnt: 'Trámites' }
@@ -2367,8 +2367,9 @@ async function load() {
 function stampSync() {
   if (!META) return;
   const d = new Date(META.at), hh = d.toLocaleTimeString('es-HN', { hour: '2-digit', minute: '2-digit' });
-  setSync('ok', `Archivo del ${fd(META.at.slice(0, 10))}, ${hh}`);
-  $('#sync').dataset.tip = `<b>Archivo maestro</b>Última modificación: ${fd(META.at.slice(0, 10), 1)} ${hh}${META.by ? ' por ' + esc(META.by) : ''}<br>Toca para actualizar.`;
+  const ld = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  setSync('ok', `Archivo del ${fd(ld)}, ${hh}`);
+  $('#sync').dataset.tip = `<b>Archivo maestro</b>Última modificación: ${fd(ld, 1)} ${hh}${META.by ? ' por ' + esc(META.by) : ''}<br>Toca para actualizar.`;
 }
 function setSync(cls, txt) { const b = $('#sync'); b.className = 'sync ' + cls; $('#sync-t').textContent = txt; }
 function hideGate() { $('#gate').hidden = true; }
