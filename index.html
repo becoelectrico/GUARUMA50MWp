@@ -739,7 +739,7 @@ const ROUTES = [
   ['cronograma', 'Cronograma', 'cal'], ['pendientes', 'Pendientes y riesgos', 'alert'], ['consultas', 'Consultas', 'quest'], ['reporte', 'Reportes semanales', 'report'], ['documentos', 'Documentos', 'folder'], ['bitacora', 'Bitácora', 'clock']
 ];
 // ---------- Módulos (secciones con su propio archivo en modulos/, se cargan al entrar) ----------
-const APP_VER = '1.17.0';
+const APP_VER = '1.17.1';
 const MODS = {
   licencia: { lbl: 'Licencia ambiental', icon: 'cal', cnt: 'Detalle' },
   'ruta-regulatoria': { lbl: 'Ruta regulatoria', icon: 'route', cnt: 'Trámites' }
@@ -982,6 +982,8 @@ function vResumen() {
 // ---------- Presupuesto ----------
 function vPresupuesto() {
   const fz = fondoCalc(), b = budCalc();
+  if (!b.parts.length) return `<section class="cover"><div><h1 class="h1">Presupuesto</h1><div class="loc">Presupuesto por sección, grupo y partida.</div></div></section>
+    <section class="panel"><div class="pb" style="display:grid;gap:8px"><b>Los datos que tiene la plataforma todavía son de antes del presupuesto por partidas.</b><span class="small muted">La hoja Presupuesto del Excel ya tiene las partidas, pero esta copia de los datos es anterior. Toca <b>Actualizar</b> (arriba, el botón de la flecha) para leer el Excel de nuevo. Si sigue igual, espera un minuto a que OneDrive termine de subir el archivo y vuelve a actualizar.</span></div></section>`;
   const nueva = '<span class="pill s-info" data-tip="Partida que no estaba en el presupuesto aprobado; se cubre con el total de su sección">Nueva</span>';
   const caret = '<svg viewBox="0 0 24 24" class="caret"><path d="m9 6 6 6-6 6"/></svg>';
   const pctOf = (v, t) => t ? pc0(v / t) : '—';
